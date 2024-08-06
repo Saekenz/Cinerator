@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title th:text="#{label.form.title}">form</title>
+</head>
+<body>
+<form method="POST" enctype="utf8">
+    <input  name="firstName" value="" />
+    <span id="firstNameError" style="display:none"></span>
+
+    <input  name="lastName" value="" />
+    <span id="lastNameError" style="display:none"></span>
+
+    <input  name="email" value="" />
+    <span id="emailError" style="display:none"></span>
+
+    <input name="password" value="" type="password" />
+    <span id="passwordError" style="display:none"></span>
+
+    <input name="matchingPassword" value="" type="password" />
+    <span id="globalError" style="display:none"></span>
+
+    <a href="#" onclick="register()" th:text="#{label.form.submit}>submit</a>
+</form>
+
+
+<script src="jquery.min.js"></script>
+    <script type="text/javascript">
+        var serverContext = [[@{/}]];
+
+            function register(){
+                $(".alert").html("").hide();
+                var formData= $('form').serialize();
+                $.post(serverContext + "/user/registration",formData ,function(data){
+                    if(data.message == "success"){
+                        window.location.href = serverContext +"/successRegister.html";
+                    }
+                })
+                    .fail(function(data) {
+                        if(data.responseJSON.error.indexOf("MailError") > -1)
+                        {
+                            window.location.href = serverContext + "/emailError.html";
+                        }
+                        else if(data.responseJSON.error.indexOf("InternalError") > -1){
+                            window.location.href = serverContext +
+                                "/login.html?message=" + data.responseJSON.message;
+                        }
+                        else if(data.responseJSON.error == "UserAlreadyExist"){
+                            $("#emailError").show().html(data.responseJSON.message);
+                        }
+                        else{
+                            var errors = $.parseJSON(data.responseJSON.message);
+                            $.each( errors, function( index,item ){
+                                $("#"+item.field+"Error").show().html(item.defaultMessage);
+                            });
+                            errors = $.parseJSON(data.responseJSON.error);
+                            $.each( errors, function( index,item ){
+                                $("#globalError").show().append(item.defaultMessage+"<br>");
+                            });
+                        }
+                    }
+    </script>
+</body>
+</html>
