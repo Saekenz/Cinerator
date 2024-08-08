@@ -1,19 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="UTF-8">
     <title>Cinerator</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" integrity="sha384-oOE/3m0LUMPub4kaC09mrdEhIc+e3exm4xOGxAmuFXhBNF4hcg/6MiAXAf5p0P56" crossorigin="anonymous"/>
+    <style>
+        .logout-btn {
+            background-color: #ff4b5c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background-color: #ff2a3a;
+        }
+    </style>
 </head>
 <body>
-<h1>Cinerator - Movie ratings</h1>
-
-<form action="/greet" method="GET" id="nameForm">
-    <div>
-        <label for="nameField">How would you like to be called?</label>
-        <input name="myName" id="nameField">
-        <button>Enter!</button>
+    <h1>Cinerator - Movie ratings</h1>
+    <div sec:authorize="isAuthenticated()">
+        Authenticated as <span th:text="${#authentication.getPrincipal().getName()}">User</span>
     </div>
-</form>
+    <form action="/greet" method="GET" id="nameForm">
+        <div>
+            <label for="nameField">How would you like to be called?</label>
+            <input name="myName" id="nameField">
+            <button>Enter!</button>
+        </div>
+    </form>
+    <form action="/logout" method="GET" class="form-signin">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
 </body>
 </html>

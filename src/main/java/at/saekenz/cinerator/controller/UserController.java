@@ -4,6 +4,7 @@ import at.saekenz.cinerator.model.User;
 import at.saekenz.cinerator.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -51,6 +52,11 @@ public class UserController {
     @GetMapping("/roles/{role}")
     public List<User> findUsersByRole(@PathVariable String role) {
         return userService.findUsersByRole(role);
+    }
+
+    @GetMapping("/currentUser")
+    public String currentUserName(Authentication authentication) {
+        return authentication.getName();
     }
 
 }

@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,10 +37,13 @@ public class CineratorApplication {
 
             System.out.println("Running....");
 
-            User u1 = new User("UserA", "password", "USER", true);
-            User u2 = new User("UserB", "password", "USER", true);
-            User u3 = new User("UserC", "password", "ADMIN", true);
-            User u4 = new User("UserD", "password", "USER", false);
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            String encodedPassword = passwordEncoder.encode("password");
+
+            User u1 = new User("UserA", encodedPassword, "USER", true);
+            User u2 = new User("UserB", encodedPassword, "USER", true);
+            User u3 = new User("UserC", encodedPassword, "ADMIN", true);
+            User u4 = new User("UserD", encodedPassword, "USER", false);
 
             userRepository.saveAll(List.of(u1,u2,u3,u4));
         };

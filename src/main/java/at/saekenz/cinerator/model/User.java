@@ -10,6 +10,7 @@ public class User {
    @GeneratedValue(strategy = GenerationType.AUTO)
    private Long user_id;
    private String username;
+   @Column(length = 100)
    private String password;
    private String role;
    private boolean enabled;
