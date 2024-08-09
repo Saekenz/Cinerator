@@ -1,6 +1,6 @@
 package at.saekenz.cinerator;
 
-import at.saekenz.cinerator.model.User;
+import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

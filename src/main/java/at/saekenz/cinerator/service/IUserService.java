@@ -1,6 +1,6 @@
 package at.saekenz.cinerator.service;
 
-import at.saekenz.cinerator.model.User;
+import at.saekenz.cinerator.model.user.User;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package at.saekenz.cinerator.model;
+package at.saekenz.cinerator.model.user;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;

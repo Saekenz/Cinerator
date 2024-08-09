@@ -1,4 +1,4 @@
-package at.saekenz.cinerator.model;
+package at.saekenz.cinerator.model.user;
 
 public class UserNotFoundException extends RuntimeException {
 

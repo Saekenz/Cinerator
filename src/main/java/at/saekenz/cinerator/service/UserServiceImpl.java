@@ -1,6 +1,6 @@
 package at.saekenz.cinerator.service;
 
-import at.saekenz.cinerator.model.User;
+import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

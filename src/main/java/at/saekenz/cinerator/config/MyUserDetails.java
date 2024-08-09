@@ -1,6 +1,6 @@
 package at.saekenz.cinerator.config;
 
-import at.saekenz.cinerator.model.User;
+import at.saekenz.cinerator.model.user.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

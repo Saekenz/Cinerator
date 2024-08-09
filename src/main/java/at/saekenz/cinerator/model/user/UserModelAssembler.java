@@ -1,4 +1,4 @@
-package at.saekenz.cinerator.model;
+package at.saekenz.cinerator.model.user;
 
 import at.saekenz.cinerator.controller.UserController;
 import org.springframework.hateoas.EntityModel;
