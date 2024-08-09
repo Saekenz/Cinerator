@@ -1,14 +1,21 @@
 package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.User;
+import at.saekenz.cinerator.model.UserNotFoundException;
 import at.saekenz.cinerator.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/users")
@@ -18,13 +25,24 @@ public class UserController {
     IUserService userService;
 
     @GetMapping
-    public List<User> findAll() {
-        return userService.findAll();
+    public CollectionModel<EntityModel<User>> findAll() {
+        List<EntityModel<User>> users = userService.findAll().stream()
+                .map(user -> EntityModel.of(user,
+                        linkTo(methodOn(UserController.class).findById(user.getUser_id())).withSelfRel(),
+                        linkTo(methodOn(UserController.class).findAll()).withRel("users"),
+                        linkTo(methodOn(UserController.class).findUsersByRole(user.getRole())).withRel("similar")))
+                .toList();
+
+        return CollectionModel.of(users, linkTo(methodOn(UserController.class).findAll()).withSelfRel());
     }
 
     @GetMapping("/{id}")
-    public Optional<User> findById(@PathVariable Long id) {
-        return userService.findById(id);
+    public EntityModel<User> findById(@PathVariable Long id) {
+        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+
+        return EntityModel.of(user,
+                linkTo(methodOn(UserController.class).findById(id)).withSelfRel(),
+                linkTo(methodOn(UserController.class).findAll()).withRel("users"));
     }
 
     @ResponseStatus(HttpStatus.CREATED)

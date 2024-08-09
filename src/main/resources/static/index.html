@@ -26,7 +26,12 @@
 <body>
     <h1>Cinerator - Movie ratings</h1>
     <div sec:authorize="isAuthenticated()">
-        Authenticated as <span th:text="${#authentication.getPrincipal().getName()}">User</span>
+        Authenticated as <span th:text="${#authentication.getName()}">User</span>
+        <span th:text="${#authentication.getPrincipal().getUsername()}"></span>
+        <span th:text="${#authentication.getPrincipal().authorities}"></span>
+        <span th:text="${#authentication.getCredentials()}"></span>
+        <span th:text="${#authentication.getUsername}"></span>
+        <span sec:authentication="name">Bob</span>
     </div>
     <form action="/greet" method="GET" id="nameForm">
         <div>

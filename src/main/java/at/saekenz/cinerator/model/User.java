@@ -60,4 +60,9 @@ public class User {
    public void setEnabled(boolean enabled) {
       this.enabled = enabled;
    }
+
+   @Override
+   public String toString() {
+      return "User{user_id=" + user_id + ", username=" + username + ", role=" + role + ", enabled=" + enabled + "}";
+   }
 }
