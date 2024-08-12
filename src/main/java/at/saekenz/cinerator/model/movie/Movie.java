@@ -1,5 +1,6 @@
-package at.saekenz.cinerator.model;
+package at.saekenz.cinerator.model.movie;
 
+import at.saekenz.cinerator.model.Review;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -18,6 +19,7 @@ public class Movie {
     private String director;
     private String genre;
     private String country;
+    private String imdb_id;
 
     @OneToMany(mappedBy = "movie")
     private List<Review> reviews;
@@ -27,12 +29,13 @@ public class Movie {
     }
 
     public Movie(String title, String director, Date release_date, String genre,
-                 String country, List<Review> reviews) {
+                 String country, String imdb_id, List<Review> reviews) {
         this.title = title;
         this.director = director;
         this.release_date = release_date;
         this.genre = genre;
         this.country = country;
+        this.imdb_id = imdb_id;
         this.reviews = reviews;
     }
 
@@ -80,11 +83,27 @@ public class Movie {
         this.country = country;
     }
 
+    public String getImdb_id() { return imdb_id; }
+
     public List<Review> getReviews() {
         return reviews;
     }
 
     public void setReviews(List<Review> reviews) {
         this.reviews = reviews;
+    }
+
+    @Override
+    public String toString() {
+        return "Movie{" +
+                "movie_id=" + movie_id +
+                ", title='" + title + '\'' +
+                ", release_date=" + release_date +
+                ", director='" + director + '\'' +
+                ", genre='" + genre + '\'' +
+                ", country='" + country + '\'' +
+                ", imdb_id='" + imdb_id + '\'' +
+                ", reviews=" + reviews +
+                '}';
     }
 }

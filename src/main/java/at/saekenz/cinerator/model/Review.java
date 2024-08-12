@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.model;
 
+import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.user.User;
 import jakarta.persistence.*;
 
@@ -15,6 +16,7 @@ public class Review {
     private String comment;
     private int rating;
     private Date review_date;
+    private boolean is_liked;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -27,10 +29,11 @@ public class Review {
     public Review() {
     }
 
-    public Review(String comment, int rating, Date review_date, User user, Movie movie) {
+    public Review(String comment, int rating, Date review_date, boolean is_liked, User user, Movie movie) {
         this.comment = comment;
         this.rating = rating;
         this.review_date = review_date;
+        this.is_liked = is_liked;
         this.user = user;
         this.movie = movie;
     }
