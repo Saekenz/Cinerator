@@ -11,6 +11,8 @@ public interface IMovieService {
 
     Optional<Movie> findById(Long id);
 
+    List<Movie> findByTitle(String title);
+
     Movie save(Movie movie);
 
     void deleteById(Long id);
@@ -18,4 +20,8 @@ public interface IMovieService {
     List<Movie> findByGenre(String genre);
 
     List<Movie> findByDirector(String director);
+
+    List<Movie> findByCountry(String country);
+
+    List<Movie> findByYear(int year);
 }

@@ -25,6 +25,11 @@ public class MovieServiceImpl implements IMovieService{
     }
 
     @Override
+    public List<Movie> findByTitle(String title) {
+        return movieRepository.findByTitle(title);
+    }
+
+    @Override
     public Movie save(Movie movie) {
         return movieRepository.save(movie);
     }
@@ -43,4 +48,15 @@ public class MovieServiceImpl implements IMovieService{
     public List<Movie> findByDirector(String director) {
         return movieRepository.findByDirector(director);
     }
+
+    @Override
+    public List<Movie> findByCountry(String country) {
+        return movieRepository.findByCountry(country);
+    }
+
+    @Override
+    public List<Movie> findByYear(int year) {
+        return movieRepository.findByYearReleased(year);
+    }
+
 }
