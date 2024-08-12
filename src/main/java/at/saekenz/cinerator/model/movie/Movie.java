@@ -3,6 +3,7 @@ package at.saekenz.cinerator.model.movie;
 import at.saekenz.cinerator.model.Review;
 import jakarta.persistence.*;
 
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
@@ -53,6 +54,10 @@ public class Movie {
 
     public Date getRelease_date() {
         return release_date;
+    }
+
+    public int getReleaseYear() {
+        return release_date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear();
     }
 
     public void setRelease_date(Date release_date) {
