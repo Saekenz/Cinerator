@@ -1,6 +1,6 @@
 package at.saekenz.cinerator.model.movie;
 
-import at.saekenz.cinerator.model.Review;
+import at.saekenz.cinerator.model.review.Review;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -29,14 +29,13 @@ public class Movie {
     }
 
     public Movie(String title, String director, LocalDate release_date, String genre,
-                 String country, String imdb_id, List<Review> reviews) {
+                 String country, String imdb_id) {
         this.title = title;
         this.director = director;
         this.release_date = release_date;
         this.genre = genre;
         this.country = country;
         this.imdb_id = imdb_id;
-        this.reviews = reviews;
     }
 
     public Long getMovie_id() {
@@ -109,7 +108,6 @@ public class Movie {
                 ", genre='" + genre + '\'' +
                 ", country='" + country + '\'' +
                 ", imdb_id='" + imdb_id + '\'' +
-                ", reviews=" + reviews +
                 '}';
     }
 }

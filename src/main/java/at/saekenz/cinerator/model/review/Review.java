@@ -1,12 +1,16 @@
-package at.saekenz.cinerator.model;
+package at.saekenz.cinerator.model.review;
 
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
+@Table(name = "reviews")
 public class Review {
 
     @Id
@@ -15,21 +19,25 @@ public class Review {
 
     private String comment;
     private int rating;
-    private Date review_date;
+    private LocalDate review_date;
     private boolean is_liked;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnore
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "movie_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnore
     private Movie movie;
 
     public Review() {
     }
 
-    public Review(String comment, int rating, Date review_date, boolean is_liked, User user, Movie movie) {
+    public Review(String comment, int rating, LocalDate review_date, boolean is_liked, User user, Movie movie) {
         this.comment = comment;
         this.rating = rating;
         this.review_date = review_date;
@@ -58,11 +66,11 @@ public class Review {
         this.rating = rating;
     }
 
-    public Date getReview_date() {
+    public LocalDate getReview_date() {
         return review_date;
     }
 
-    public void setReview_date(Date review_date) {
+    public void setReview_date(LocalDate review_date) {
         this.review_date = review_date;
     }
 
@@ -80,5 +88,24 @@ public class Review {
 
     public void setMovie(Movie movie) {
         this.movie = movie;
+    }
+
+    public boolean isIs_liked() {
+        return is_liked;
+    }
+
+    public void setIs_liked(boolean is_liked) {
+        this.is_liked = is_liked;
+    }
+
+    @Override
+    public String toString() {
+        return "Review{" +
+                "review_id=" + review_id +
+                ", comment='" + comment + '\'' +
+                ", rating=" + rating +
+                ", review_date=" + review_date +
+                ", is_liked=" + is_liked +
+                '}';
     }
 }

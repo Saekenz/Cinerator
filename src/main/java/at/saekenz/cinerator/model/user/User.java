@@ -1,6 +1,9 @@
 package at.saekenz.cinerator.model.user;
 
+import at.saekenz.cinerator.model.review.Review;
 import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -9,11 +12,15 @@ public class User {
    @Id
    @GeneratedValue(strategy = GenerationType.AUTO)
    private Long user_id;
+
    private String username;
    @Column(length = 100)
    private String password;
    private String role;
    private boolean enabled;
+
+   @OneToMany(mappedBy = "user")
+   private List<Review> reviews;
 
    public User() {
    }
@@ -59,6 +66,14 @@ public class User {
 
    public void setEnabled(boolean enabled) {
       this.enabled = enabled;
+   }
+
+   public List<Review> getReviews() {
+      return reviews;
+   }
+
+   public void setReviews(List<Review> reviews) {
+      this.reviews = reviews;
    }
 
    @Override
