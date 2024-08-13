@@ -3,8 +3,7 @@ package at.saekenz.cinerator.model.movie;
 import at.saekenz.cinerator.model.Review;
 import jakarta.persistence.*;
 
-import java.time.ZoneId;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -16,7 +15,7 @@ public class Movie {
     private Long movie_id;
 
     private String title;
-    private Date release_date;
+    private LocalDate release_date;
     private String director;
     private String genre;
     private String country;
@@ -29,7 +28,7 @@ public class Movie {
 
     }
 
-    public Movie(String title, String director, Date release_date, String genre,
+    public Movie(String title, String director, LocalDate release_date, String genre,
                  String country, String imdb_id, List<Review> reviews) {
         this.title = title;
         this.director = director;
@@ -52,15 +51,15 @@ public class Movie {
         this.title = title;
     }
 
-    public Date getRelease_date() {
+    public LocalDate getRelease_date() {
         return release_date;
     }
 
     public int getReleaseYear() {
-        return release_date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear();
+        return release_date.getYear();
     }
 
-    public void setRelease_date(Date release_date) {
+    public void setRelease_date(LocalDate release_date) {
         this.release_date = release_date;
     }
 

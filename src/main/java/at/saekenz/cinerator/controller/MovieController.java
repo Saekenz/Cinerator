@@ -5,13 +5,11 @@ import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.service.IMovieService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.thymeleaf.expression.Lists;
 
 import java.util.List;
 
@@ -26,8 +24,6 @@ public class MovieController {
     IMovieService movieService;
 
     private final MovieModelAssembler assembler;
-    @Autowired
-    private ServerProperties serverProperties;
 
     public MovieController(MovieModelAssembler assembler) {
         this.assembler = assembler;
