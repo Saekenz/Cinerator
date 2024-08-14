@@ -90,6 +90,12 @@ public class MovieController {
         return CollectionModel.of(movies, linkTo(methodOn(MovieController.class).findByYearReleased(year)).withSelfRel());
     }
 
+    @GetMapping("/imdb_id/{imdb_id}")
+    public EntityModel<Movie> findByImdbId(@PathVariable String imdb_id) {
+        Movie movie = movieService.findByImdb_id(imdb_id).orElseThrow(() -> new MovieNotFoundException(imdb_id));
+        return assembler.toModel(movie);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<?> updateMovie(@PathVariable Long id, @RequestBody Movie newMovie) {
         Movie updatedMovie = movieService.findById(id).map(

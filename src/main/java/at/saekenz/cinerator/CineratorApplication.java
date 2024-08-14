@@ -1,8 +1,5 @@
 package at.saekenz.cinerator;
 
-import at.saekenz.cinerator.repository.MovieRepository;
-import at.saekenz.cinerator.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;

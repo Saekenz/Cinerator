@@ -81,7 +81,7 @@ public class UserController {
         return CollectionModel.of(users, linkTo(methodOn(UserController.class).findByUsername(username)).withSelfRel());
     }
 
-    @GetMapping("/roles/{role}")
+    @GetMapping("/role/{role}")
     public CollectionModel<EntityModel<User>> findUsersByRole(@PathVariable String role) {
         List<EntityModel<User>> users = userService.findUsersByRole(role).stream()
                 .map(assembler::toModel)

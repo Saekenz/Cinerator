@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MovieRepository extends JpaRepository<Movie, Long> {
 
@@ -20,4 +21,7 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     @Query("SELECT m FROM Movie m WHERE EXTRACT(YEAR FROM m.release_date) = :yearReleased")
     List<Movie> findByYearReleased(@Param("yearReleased") int yearReleased);
+
+    @Query("SELECT m FROM Movie m WHERE LOWER(m.imdb_id) = LOWER(:imdb_id)")
+    Optional<Movie> findByImdb_id(@Param("imdb_id") String imdb_id);
 }

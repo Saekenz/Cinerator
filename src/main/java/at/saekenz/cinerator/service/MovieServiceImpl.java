@@ -59,4 +59,9 @@ public class MovieServiceImpl implements IMovieService{
         return movieRepository.findByYearReleased(year);
     }
 
+    @Override
+    public Optional<Movie> findByImdb_id(String imdb_id) {
+        return movieRepository.findByImdb_id(imdb_id);
+    }
+
 }

@@ -24,4 +24,6 @@ public interface IMovieService {
     List<Movie> findByCountry(String country);
 
     List<Movie> findByYear(int year);
+
+    Optional<Movie> findByImdb_id(String imdb_id);
 }
