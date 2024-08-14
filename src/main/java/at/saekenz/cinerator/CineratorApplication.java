@@ -11,12 +11,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @SpringBootApplication()
 public class CineratorApplication {
 
-    @Autowired
-    UserRepository userRepository;
-
-    @Autowired
-    MovieRepository movieRepository;
-
     public static void main(String[] args) {
         SpringApplication.run(CineratorApplication.class, args);
     }
