@@ -36,14 +36,22 @@ public class MovieControllerSpringBootIntegrationTest {
 
     @WithMockUser("test-user")
     @Test
-    public void testMovies() throws Exception {
+    public void testFindAllMovies() throws Exception {
         mockMvc.perform(get("/movies").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
     @WithMockUser("test-user")
     @Test
-    public void testUsers() throws Exception {
+    public void testFindMoviesByTitle() throws Exception {
+        String title = "Sicario";
+        mockMvc.perform(get("/movies/title/{title}").param("title",title).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @WithMockUser("test-user")
+    @Test
+    public void testFindAllUsers() throws Exception {
         mockMvc.perform(get("/users").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
