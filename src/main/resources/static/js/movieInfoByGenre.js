@@ -1,25 +1,15 @@
-document.getElementById('load-movie-by-title').addEventListener('click', fetchMovieData);
+document.getElementById('load-movie-by-genre').addEventListener('click', fetchMovieData);
 
 async function fetchMovieData() {
-    const movieTitle = document.getElementById('movie-title').value;
-    if (!movieTitle) return alert('Please enter a movie title');
+    const movieGenre = document.getElementById('movie-genre').value;
+    if (!movieGenre) return alert('Please enter a genre');
 
-    let url;
-    if (checkIfTitleIsImdbId(movieTitle)) {
-        url = `http://localhost:8080/movies/imdb_id/${encodeURIComponent(movieTitle)}`;
-    } else {
-        url = `http://localhost:8080/movies/title/${encodeURIComponent(movieTitle)}`;
-    }
+    const url = `http://localhost:8080/movies/genre/${encodeURIComponent(movieGenre)}`;
 
     await fetch(url)
         .then(response => response.json())
         .then(data => displayMovieData(data))
         .catch(error => console.error('Error fetching movie data:', error));
-}
-
-function checkIfTitleIsImdbId(title) {
-    const regex = /^tt\d+$/;
-    return regex.test(title);
 }
 
 function displayMovieData(movieData) {
