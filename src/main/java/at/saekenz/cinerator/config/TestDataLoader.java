@@ -50,18 +50,46 @@ public class TestDataLoader {
         return (args) -> {
             log.info("Initializing movies...");
 
-            List<Review> reviews = new ArrayList<>();
-
             Movie m1 = new Movie("Sicario", "Denis Villeneuve", LocalDate.of(2015,10,1),
                     "Thriller","United States","tt3397884");
+
             Movie m2 = new Movie("Dune: Part Two", "Denis Villeneuve", LocalDate.of(2024,3,1),
                     "Science Fiction", "United States","tt15239678");
+
             Movie m3 = new Movie("Good Will Hunting", "Gus Van Sant", LocalDate.of(1998,9,1),
                     "Drama", "United States","tt0119217");
+
             Movie m4 = new Movie("Three Colors: Red", "Krzysztof Kieslowski", LocalDate.of(1994,11,23),
                     "Drama","France","tt0111495");
 
-            for(Movie m : movieRepository.saveAll(List.of(m1,m2,m3,m4))) {
+            Movie m5 = new Movie("Inception", "Christopher Nolan", LocalDate.of(2010,7,16),
+                    "Science Fiction", "United States", "tt1375666");
+
+            Movie m6 = new Movie("Parasite", "Bong Joon Ho", LocalDate.of(2019,5,30),
+                    "Thriller", "South Korea", "tt6751668");
+
+            Movie m7 = new Movie("The Grand Budapest Hotel", "Wes Anderson", LocalDate.of(2014,3,28),
+                    "Comedy", "United States", "tt2278388");
+
+            Movie m8 = new Movie("Spirited Away", "Hayao Miyazaki", LocalDate.of(2001,7,20),
+                    "Fantasy", "Japan", "tt0245429");
+
+            Movie m9 = new Movie("The Godfather", "Francis Ford Coppola", LocalDate.of(1972,3,24),
+                    "Crime", "United States", "tt0068646");
+
+            Movie m10 = new Movie("Amélie", "Jean-Pierre Jeunet", LocalDate.of(2001,4,25),
+                    "Romantic Comedy", "France", "tt0211915");
+
+            Movie m11 = new Movie("Pulp Fiction", "Quentin Tarantino", LocalDate.of(1994,10,14),
+                    "Crime", "United States", "tt0110912");
+
+            Movie m12 = new Movie("The Dark Knight", "Christopher Nolan", LocalDate.of(2008,7,18),
+                    "Action", "United States", "tt0468569");
+
+            Movie m13 = new Movie("La La Land", "Damien Chazelle", LocalDate.of(2016,12,9),
+                    "Musical", "United States", "tt3783958");
+
+            for(Movie m : movieRepository.saveAll(List.of(m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12,m13))) {
                 log.info("Created new movie: {}", m);
             }
         };

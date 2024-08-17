@@ -29,11 +29,6 @@ public class MovieController {
         this.assembler = assembler;
     }
 
-    @RequestMapping("/test")
-    public String testHtml() {
-        return "movie_year";
-    }
-
     @GetMapping
     public CollectionModel<EntityModel<Movie>> findAll() {
         List<EntityModel<Movie>> movies = movieService.findAll().stream()
