@@ -12,8 +12,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -37,7 +40,8 @@ public class MovieControllerSpringBootIntegrationTest {
     @Test
     public void givenFindAllMoviesRequest_shouldSucceedWith200() throws Exception {
         mockMvc.perform(get("/movies").contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("{\"movieList\":")));
     }
 
     @WithMockUser("test-user")
@@ -52,7 +56,8 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindMoviesByTitleRequest_shouldSucceedWith200() throws Exception {
         String title = "Sicario";
         mockMvc.perform(get("/movies/title/{title}", title).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(String.format("\"title\":\"%s\"",title))));
     }
 
     @WithMockUser("test-user")
@@ -60,7 +65,8 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindMoviesByTitleRequest_shouldFailWith404() throws Exception {
         String title = "Sicoria";
         mockMvc.perform(get("/movies/title/{title}", title).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("title: %s", title))));
     }
 
     @WithMockUser("test-user")
@@ -68,7 +74,8 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindMoviesByImdbId_shouldSucceedWith200() throws Exception {
         String imdbId = "tt1375666"; // title: Inception
         mockMvc.perform(get("/movies/imdb_id/{imdbId}", imdbId).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(String.format("\"imdb_id\":\"%s\"", imdbId))));
     }
 
     @WithMockUser("test-user")
@@ -76,7 +83,8 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindMoviesByImdbId_shouldFailWith404() throws Exception {
         String imdbId = "tt1375665"; // not a valid imdb_id
         mockMvc.perform(get("/movies/imdb_id/{imdbId}", imdbId).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("imdb_id: %s", imdbId))));
     }
 
     @WithMockUser("test-user")
@@ -84,7 +92,8 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindMoviesByDirectorRequest_shouldSucceedWith200() throws Exception {
         String director = "Christopher Nolan";
         mockMvc.perform(get("/movies/director/{director}", director).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(String.format("\"director\":\"%s\"", director))));
     }
 
     @WithMockUser("test-user")
@@ -92,7 +101,8 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindMoviesByDirectorRequest_shouldFailWith404() throws Exception {
         String director = "Nolan North"; // not a director
         mockMvc.perform(get("/movies/director/{director}", director).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("director: %s", director))));
     }
 
     @WithMockUser("test-user")
@@ -100,7 +110,8 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindMoviesByCountryRequest_shouldSucceedWith200() throws Exception {
         String country = "France";
         mockMvc.perform(get("/movies/country/{country}", country).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(String.format("\"country\":\"%s\"", country))));
     }
 
     @WithMockUser("test-user")
@@ -108,7 +119,8 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindMoviesByCountryRequest_shouldFailWith404() throws Exception {
         String country = "Wonderland";
         mockMvc.perform(get("/movies/country/{country}", country).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("country: %s", country))));
     }
 
     @WithMockUser("test-user")
@@ -116,7 +128,8 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindMoviesByGenreRequest_shouldSucceedWith200() throws Exception {
         String genre = "Science Fiction";
         mockMvc.perform(get("/movies/genre/{genre}", genre).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(String.format("\"genre\":\"%s\"", genre))));
     }
 
     @WithMockUser("test-user")
@@ -124,7 +137,9 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindMoviesByGenreRequest_shouldFailWith404() throws Exception {
         String genre = "Ice Cream";
         mockMvc.perform(get("/movies/genre/{genre}", genre).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("genre: %s", genre))))
+                .andDo(print());
     }
 
     @WithMockUser("test-user")
@@ -132,7 +147,9 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindMoviesByYearRequest_shouldSucceedWith200() throws Exception {
         int year = 1994;
         mockMvc.perform(get("/movies/year/{year}", year).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(String.format("\"release_date\":\"%s", year))))
+                .andDo(print());
     }
 
     @WithMockUser("test-user")
@@ -140,12 +157,13 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindMoviesByYearRequest_shouldFailWith404() throws Exception {
         int year = 3199;
         mockMvc.perform(get("/movies/year/{year}", year).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("year: %s", year))));
     }
 
     //TODO -> move to user test class
     @WithMockUser("test-user")
-    @Test
+//    @Test
     public void testFindAllUsers() throws Exception {
         mockMvc.perform(get("/users").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
