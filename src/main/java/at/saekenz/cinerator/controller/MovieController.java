@@ -51,6 +51,10 @@ public class MovieController {
                 .map(assembler::toModel)
                 .toList();
 
+        if (movies.isEmpty()) {
+           throw new MovieNotFoundException(title);
+        }
+
         return CollectionModel.of(movies, linkTo(methodOn(MovieController.class).findByTitle(title)).withSelfRel());
     }
 
@@ -59,6 +63,10 @@ public class MovieController {
         List<EntityModel<Movie>> movies = movieService.findByDirector(director).stream()
                 .map(assembler::toModel)
                 .toList();
+
+        if (movies.isEmpty()) {
+            throw new MovieNotFoundException("director",director);
+        }
 
         return CollectionModel.of(movies, linkTo(methodOn(MovieController.class).findByDirector(director)).withSelfRel());
     }
@@ -69,6 +77,10 @@ public class MovieController {
                 .map(assembler::toModel)
                 .toList();
 
+        if (movies.isEmpty()) {
+            throw new MovieNotFoundException("genre",genre);
+        }
+
         return CollectionModel.of(movies, linkTo(methodOn(MovieController.class).findByGenre(genre)).withSelfRel());
     }
 
@@ -78,6 +90,10 @@ public class MovieController {
                 .map(assembler::toModel)
                 .toList();
 
+        if (movies.isEmpty()) {
+            throw new MovieNotFoundException("country",country);
+        }
+
         return CollectionModel.of(movies, linkTo(methodOn(MovieController.class).findByCountry(country)).withSelfRel());
     }
 
@@ -86,6 +102,10 @@ public class MovieController {
         List<EntityModel<Movie>> movies = movieService.findByYear(year).stream()
                 .map(assembler::toModel)
                 .toList();
+
+        if (movies.isEmpty()) {
+            throw new MovieNotFoundException("year",year+"");
+        }
 
         return CollectionModel.of(movies, linkTo(methodOn(MovieController.class).findByYearReleased(year)).withSelfRel());
     }

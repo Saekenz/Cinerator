@@ -6,5 +6,11 @@ public class MovieNotFoundException extends RuntimeException {
         super("Could not find movie: " + id);
     }
 
-    public MovieNotFoundException(String imdb_id) { super("Could not find movie with imdb_id: " + imdb_id); }
+    public MovieNotFoundException(String title) {
+        super(String.format("Could not find movie with %s: %s", title.matches("^tt\\d+$") ? "imdb_id" : "title", title));
+    }
+
+    public MovieNotFoundException(String type, String input) {
+        super(String.format("Could not find movie with %s: %s", type, input));
+    }
 }
