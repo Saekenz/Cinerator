@@ -10,6 +10,8 @@ async function fetchMovieData() {
         .then(response => response.json())
         .then(data => displayMovieData(data))
         .catch(error => console.error('Error fetching movie data:', error));
+
+    document.getElementById("movie-director").value = ""
 }
 
 function displayMovieData(movieData) {

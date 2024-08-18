@@ -1,0 +1,95 @@
+body {
+    background-color: #121212; /* Dark background color */
+    color: #E0E0E0; /* Light text color */
+    font-family: Arial, sans-serif;
+    padding: 0;
+    margin-left: 10px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #FFFFFF; /* White text for headings */
+}
+
+p {
+    color: #B0B0B0; /* Slightly dimmer text for paragraphs */
+    line-height: 1.6;
+}
+
+a {
+    color: #BB86FC; /* Purple for links */
+    text-decoration: none;
+}
+
+a:hover {
+    color: #CF6679; /* Red accent for hovered links */
+}
+
+header {
+    background-color: #1F1F1F; /* Slightly lighter background for header */
+    padding: 20px;
+    text-align: center;
+}
+
+main {
+    padding: 20px;
+}
+
+button {
+    background-color: #2D2D2D; /* Dark background for buttons */
+    color: #E0E0E0; /* Light text on buttons */
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #3C3C3C; /* Slightly lighter on hover */
+}
+
+input[type="text"], input[type="date"] {
+    background-color: #2D2D2D;
+    color: #E0E0E0;
+    border: 1px solid #555;
+    padding: 10px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+footer {
+    background-color: #1F1F1F;
+    color: #777;
+    text-align: center;
+    padding: 10px;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+
+.movie-title {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.review {
+    margin-top: 10px;
+    padding-left: 15px;
+    border-left: 3px solid #007BFF;
+}
+
+#app {
+    max-width: 800px;
+    margin: 20px auto;
+    background: #121212;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+#movie-details {
+    margin-top: 20px;
+}
+
+.movie {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-bottom: 20px;
+}
