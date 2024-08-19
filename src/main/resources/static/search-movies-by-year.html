@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie info</title>
+    <title>Movie Info by Year</title>
     <link rel="stylesheet" href="/css/dark_theme.css">
 </head>
 <body>
     <div id="app">
-        <h1>Movie Search by Title</h1>
+        <h1>Movie Search by Year</h1>
         <div id="movie-details"></div>
-        <input type="text" id="movie-title" placeholder="Enter movie title">
-        <button id="load-movie-by-title">Load Movie Data</button>
+        <input type="number" id="movie-year" placeholder="Enter a year" min="1900" max="2099" style="width: 175px;">
+        <button id="load-movie-by-year">Load Movie Data</button>
     </div>
     <script src="/js/display-movie-info.js"></script>
-    <script src="/js/search-movies-by-title.js"></script>
+    <script src="/js/search-movies-by-year.js"></script>
 </body>
 </html>

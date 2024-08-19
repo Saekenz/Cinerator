@@ -50,7 +50,7 @@ button:hover {
     background: #3C3C3C linear-gradient(145deg, #2d2d2d, #3c3c3c);
 }
 
-input[type="text"], input[type="date"] {
+input[type="text"], input[type="date"], input[type="number"] {
     background-color: #2D2D2D;
     color: #E0E0E0;
     border: 1px solid #555;

@@ -22,7 +22,7 @@ function displayMovieData(movieData) {
                     <strong>Genre:</strong> <a href="${movie._links.genre.href}">${movie.genre}</a><br>
                     <strong>Country:</strong> <a href="${movie._links.country.href}">${movie.country}</a><br>
                     <strong>Release Date:</strong> ${movie.release_date}<br>
-                    <strong>IMDB ID:</strong> <a href="https://www.imdb.com/title/${movie.imdb_id}" target="_blank">${movie.imdb_id}</a>
+                    <strong>IMDb ID:</strong> <a href="https://www.imdb.com/title/${movie.imdb_id}" target="_blank">${movie.imdb_id}</a>
                 `;
         movieDiv.appendChild(details);
 
