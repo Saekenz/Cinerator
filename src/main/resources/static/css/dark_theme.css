@@ -40,10 +40,14 @@ button {
     border: none;
     padding: 10px 20px;
     cursor: pointer;
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3), inset 1px 1px 2px rgba(255, 255, 255, 0.2); /* Subtle shadow and inset light for depth */
 }
 
 button:hover {
-    background-color: #3C3C3C; /* Slightly lighter on hover */
+    /* Gradient changes on hover */
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.4), inset 1px 1px 3px rgba(255, 255, 255, 0.3); /* Enhanced shadow on hover */
+    /* Slightly lighter on hover */
+    background: #3C3C3C linear-gradient(145deg, #2d2d2d, #3c3c3c);
 }
 
 input[type="text"], input[type="date"] {
@@ -73,7 +77,7 @@ footer {
 .review {
     margin-top: 10px;
     padding-left: 15px;
-    border-left: 3px solid #007BFF;
+    border-left: 3px solid #BB86FC;
 }
 
 #app {
@@ -81,7 +85,7 @@ footer {
     margin: 20px auto;
     background: #121212;
     padding: 20px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 #movie-details {
@@ -92,4 +96,95 @@ footer {
     border: 1px solid #ccc;
     padding: 15px;
     margin-bottom: 20px;
+}
+
+.auth-info {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.auth-info span {
+    display: block;
+    margin: 5px 0;
+}
+
+.links a {
+    display: block;
+    text-align: center;
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 5px;
+    background-color: #2e2e2e;
+    text-decoration: none;
+    color: #e0e0e0;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.links a:hover {
+    background-color: #3e3e3e;
+}
+
+.auth-button {
+    padding: 12px;
+    background-color: #BB86FC;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.auth-button:hover {
+    background-color: #CF6679;
+}
+
+.index-header {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: #BB86FC;
+}
+
+.index-body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #121212;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 20px;
+}
+
+.index-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.index-form {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.greet-input {
+    padding: 10px;
+    margin-bottom: 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: #2e2e2e;
+    color: #e0e0e0;
+}
+
+.greet-label {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: #b0bec5;
 }

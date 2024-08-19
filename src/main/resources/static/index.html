@@ -1,51 +1,43 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="https://www.thymeleaf.org"
-      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Cinerator</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinerator</title>
     <link rel="stylesheet" href="/css/dark_theme.css">
-    <style>
-        .logout-btn {
-            background-color: #ff4b5c;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .logout-btn:hover {
-            background-color: #ff2a3a;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <h1>Cinerator - Movie ratings</h1>
-    <div sec:authorize="isAuthenticated()">
-        Authenticated as <span th:text="${#authentication.getName()}">User</span>
-        <span th:text="${#authentication.getPrincipal().getUsername()}"></span>
-        <span th:text="${#authentication.getPrincipal().authorities}"></span>
-        <span th:text="${#authentication.getCredentials()}"></span>
-        <span th:text="${#authentication.getUsername}"></span>
-        <span sec:authentication="name">Bob</span>
-    </div>
-    <form action="/greet" method="GET" id="nameForm">
-        <div>
-            <label for="nameField">How would you like to be called?</label>
-            <input name="myName" id="nameField">
-            <button>Enter!</button>
+<body class="index-body">
+    <div class="index-container">
+        <h1 class="index-header" >Cinerator - Movie Ratings</h1>
+
+        <div class="auth-info">
+            <p>Authenticated as:</p>
+            <span th:text="${#authentication.getName()}">User</span>
+            <span th:text="${#authentication.getPrincipal().getUsername()}"></span>
+            <span th:text="${#authentication.getPrincipal().authorities}"></span>
+            <span th:text="${#authentication.getCredentials()}"></span>
+            <span th:text="${#authentication.getUsername}"></span>
+         </div>
+
+        <form class="index-form" action="/greet" method="GET" id="nameForm">
+            <label class="greet-label" for="nameField">How would you like to be called?</label>
+            <input class="greet-input" type="text" name="myName" id="nameField" placeholder="Enter your name">
+            <button class="auth-button" type="submit">Enter!</button>
+        </form>
+
+        <form class="index-form" action="/logout" method="GET">
+            <button class="auth-button" type="submit" >Logout</button>
+        </form>
+
+        <div class="links">
+            <a href="movie_year.html">Movies from 2015</a>
+            <a href="search-movies-by-title.html">Search movie by title</a>
+            <a href="search-movies-by-director.html">Search movie by director</a>
+            <a href="search-movies-by-genre.html">Search movie by genre</a>
+            <a href="search-movies-by-country.html">Search movie by country</a>
         </div>
-    </form>
-    <form action="/logout" method="GET" class="form-signin">
-        <button type="submit" class="logout-btn">Logout</button>
-    </form>
-    <a href="movie_year.html">Movies from 2015</a><br>
-    <a href="movie_search_title.html">Search movie by title</a><br>
-    <a href="movie_search_director.html">Search movie by director</a><br>
-    <a href="movie_search_genre.html">Search movie by genre</a><br>
-    <a href="movie_search_country.html">Search movie by country</a><br>
+    </div>
 </body>
 </html>
