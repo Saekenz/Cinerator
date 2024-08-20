@@ -12,4 +12,5 @@ async function fetchMovieData() {
         .catch(error => console.error('Error fetching movie data:', error));
 
     document.getElementById("movie-country").value = ""
+    document.title = "Movies out of "+ movieCountry;
 }

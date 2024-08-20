@@ -12,4 +12,5 @@ async function fetchMovieData() {
         .catch(error => console.error('Error fetching movie data:', error));
 
     document.getElementById("movie-year").value = ""
+    document.title = "Movies from "+ movieYear;
 }

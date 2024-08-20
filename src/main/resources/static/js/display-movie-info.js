@@ -9,24 +9,31 @@ function displayMovieData(movieData) {
         movieDiv.classList.add('movie');
 
         // Movie Title
-        const title = document.createElement('div');
-        title.classList.add('movie-title');
-        title.textContent = movie.title;
-        movieDiv.appendChild(title);
+        // const title = document.createElement('div');
+        // title.classList.add('movie-title');
+        // title.textContent = movie.title;
+        // movieDiv.appendChild(title);
 
         // Movie Details
         const details = document.createElement('div');
         details.classList.add('movie-details');
         details.innerHTML = `
-                    <strong>Director:</strong> <a href="${movie._links.director.href}">${movie.director}</a><br>
-                    <strong>Genre:</strong> <a href="${movie._links.genre.href}">${movie.genre}</a><br>
-                    <strong>Country:</strong> <a href="${movie._links.country.href}">${movie.country}</a><br>
-                    <strong>Release Date:</strong> ${movie.release_date}<br>
-                    <strong>IMDb ID:</strong> <a href="https://www.imdb.com/title/${movie.imdb_id}" target="_blank">${movie.imdb_id}</a>
-                `;
+            <div class="movie-content">
+                <div class="movie-title">${movie.title}</div>
+                <div class="movie-info">
+                        <strong>Director:</strong> <a href="${movie._links.director.href}">${movie.director}</a><br>
+                        <strong>Genre:</strong> <a href="${movie._links.genre.href}">${movie.genre}</a><br>
+                        <strong>Country:</strong> <a href="${movie._links.country.href}">${movie.country}</a><br>
+                        <strong>Release Date:</strong> ${movie.release_date}<br>
+                        <strong>IMDb ID:</strong> <a href="https://www.imdb.com/title/${movie.imdb_id}" target="_blank">${movie.imdb_id}</a><br>
+                </div>
+                <div class="movie-reviews"/>
+            </div>
+        `;
         movieDiv.appendChild(details);
 
         // Reviews
+        const movieReviews = details.querySelector('.movie-reviews');
         movie.reviews.forEach(review => {
             const reviewDiv = document.createElement('div');
             reviewDiv.classList.add('review');
@@ -36,8 +43,15 @@ function displayMovieData(movieData) {
                         <strong>Comment:</strong> ${review.comment}<br>
                         <strong>Liked:</strong> ${review.is_liked ? 'Yes' : 'No'}
                     `;
-            movieDiv.appendChild(reviewDiv);
+            movieReviews.appendChild(reviewDiv);
         });
+
+        const posterDiv = document.createElement('div');
+        posterDiv.classList.add('movie-poster');
+        posterDiv.innerHTML = `
+            <img class="poster" src="https://media.themoviedb.org/t/p/w300_and_h450_bestv2/ljsZTbVsrQSqZgWeep2B1QiDKuh.jpg" alt="Inception poster" style="width:200px;height:297px;">
+        `;
+        movieDiv.append(posterDiv);
 
         container.appendChild(movieDiv);
     });
