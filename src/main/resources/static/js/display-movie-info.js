@@ -47,9 +47,10 @@ function displayMovieData(movieData) {
         });
 
         const posterDiv = document.createElement('div');
+        const description = movie.title + ' poster';
         posterDiv.classList.add('movie-poster');
         posterDiv.innerHTML = `
-            <img class="poster" src="https://media.themoviedb.org/t/p/w300_and_h450_bestv2/ljsZTbVsrQSqZgWeep2B1QiDKuh.jpg" alt="Inception poster" style="width:200px;height:297px;">
+            <img class="poster" src="${movie.poster_url}" alt=description style="width:200px;height:297px;">
         `;
         movieDiv.append(posterDiv);
 

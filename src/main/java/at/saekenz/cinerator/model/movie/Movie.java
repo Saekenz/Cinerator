@@ -14,12 +14,20 @@ public class Movie {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long movie_id;
 
+    @Column(nullable = false)
     private String title;
+
+    @Column(nullable = false)
     private LocalDate release_date;
+
+    @Column(nullable = false)
     private String director;
     private String genre;
     private String country;
+
+    @Column(nullable = false)
     private String imdb_id;
+    private String poster_url;
 
     @OneToMany(mappedBy = "movie")
     private List<Review> reviews;
@@ -29,13 +37,14 @@ public class Movie {
     }
 
     public Movie(String title, String director, LocalDate release_date, String genre,
-                 String country, String imdb_id) {
+                 String country, String imdb_id, String poster_url) {
         this.title = title;
         this.director = director;
         this.release_date = release_date;
         this.genre = genre;
         this.country = country;
         this.imdb_id = imdb_id;
+        this.poster_url = poster_url;
     }
 
     public Long getMovie_id() {
@@ -90,6 +99,10 @@ public class Movie {
 
     public void setImdb_id(String imdb_id) { this.imdb_id = imdb_id; }
 
+    public String getPoster_url() { return poster_url; }
+
+    public void setPoster_url(String poster_url) { this.poster_url = poster_url; }
+
     public List<Review> getReviews() {
         return reviews;
     }
@@ -108,6 +121,7 @@ public class Movie {
                 ", genre='" + genre + '\'' +
                 ", country='" + country + '\'' +
                 ", imdb_id='" + imdb_id + '\'' +
+                ", poster_url='" + poster_url + '\'' +
                 '}';
     }
 }

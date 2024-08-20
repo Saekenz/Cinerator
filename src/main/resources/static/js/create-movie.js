@@ -7,7 +7,8 @@ async function submitForm() {
         director: document.getElementById('director').value,
         genre: document.getElementById('genre').value,
         country: document.getElementById('country').value,
-        imdb_id: document.getElementById('imdb_id').value
+        imdb_id: document.getElementById('imdb_id').value,
+        poster_url: document.getElementById('poster_url').value
     };
 
     const username = 'UserA';
