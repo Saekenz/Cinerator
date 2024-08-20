@@ -31,4 +31,6 @@ async function submitForm() {
             }
         })
         .catch(error => console.error('Error:', error));
+
+    // TODO -> redirect User to newly created movie's page
 }

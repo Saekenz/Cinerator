@@ -15,6 +15,7 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -159,6 +160,29 @@ public class MovieControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/movies/year/{year}", year).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(String.format("year: %s", year))));
+    }
+
+    @WithMockUser("test-user")
+    @Test
+    public void givenCreateNewMovieRequest_shouldSucceedWith201() throws Exception {
+        String json_data = "{\n" +
+                "  \"title\": \"Nightcrawler\",\n" +
+                "  \"release_date\": \"2014-10-31\",\n" +
+                "  \"director\": \"Dan Gilroy\",\n" +
+                "  \"genre\": \"Thriller\",\n" +
+                "  \"country\": \"United States\",\n" +
+                "  \"imdb_id\": \"tt287271\",\n" +
+                "  \"poster_url\": \"https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg\",\n" +
+                "  \"reviews\": []\n" +
+                "}";
+
+    mockMvc.perform(post("/movies").contentType(MediaType.APPLICATION_JSON).content(json_data))
+            .andExpect(status().isCreated())
+            .andExpect(content().string(containsString("\"title\":\"Nightcrawler\"")))
+            .andExpect(content().string(containsString("\"release_date\":\"2014-10-31\"")))
+            .andExpect(content().string(containsString("\"director\":\"Dan Gilroy\"")))
+            .andExpect(content().string(containsString("\"genre\":\"Thriller\"")))
+            .andDo(print());
     }
 
     //TODO -> move to user test class
