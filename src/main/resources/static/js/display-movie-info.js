@@ -8,12 +8,6 @@ function displayMovieData(movieData) {
         const movieDiv = document.createElement('div');
         movieDiv.classList.add('movie');
 
-        // Movie Title
-        // const title = document.createElement('div');
-        // title.classList.add('movie-title');
-        // title.textContent = movie.title;
-        // movieDiv.appendChild(title);
-
         // Movie Details
         const details = document.createElement('div');
         details.classList.add('movie-details');

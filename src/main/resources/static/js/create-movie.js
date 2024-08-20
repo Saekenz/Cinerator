@@ -22,15 +22,21 @@ async function submitForm() {
         },
         body: JSON.stringify(formData)
     })
-        .then(response => {
-            if (response.ok) {
-                alert("Movie added successfully!");
-                document.getElementById('movieForm').reset();
-            } else {
-                alert("Failed to add movie.");
+        .then((response) => {
+            if(response.ok) {
+                return response.json()
+            }
+            else {
+                throw new Error('Failed to add movie.');
             }
         })
-        .catch(error => console.error('Error:', error));
-
-    // TODO -> redirect User to newly created movie's page
+        .then((data) => {
+            alert("Movie added successfully!");
+            document.getElementById('movieForm').reset();
+            window.location.href = data._links.self.href;
+        })
+        .catch(error => {
+            console.error('Error:', error)
+            alert(error);
+        });
 }
