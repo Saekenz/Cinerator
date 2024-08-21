@@ -1,6 +1,10 @@
 package at.saekenz.cinerator.model.movie;
 
 import at.saekenz.cinerator.model.review.Review;
+import at.saekenz.cinerator.model.user.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -29,6 +33,11 @@ public class Movie {
     @Column(nullable = false)
     private String imdb_id;
     private String poster_url;
+
+    @ManyToMany(mappedBy = "watchlist")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnore
+    private List<User> user;
 
     @OneToMany(mappedBy = "movie")
     private List<Review> reviews;
@@ -77,29 +86,17 @@ public class Movie {
 
     public void setRuntime(String runtime) { this.runtime = runtime; }
 
-    public String getDirector() {
-        return director;
-    }
+    public String getDirector() { return director; }
 
-    public void setDirector(String director) {
-        this.director = director;
-    }
+    public void setDirector(String director) { this.director = director; }
 
-    public String getGenre() {
-        return genre;
-    }
+    public String getGenre() { return genre; }
 
-    public void setGenre(String genre) {
-        this.genre = genre;
-    }
+    public void setGenre(String genre) { this.genre = genre; }
 
-    public String getCountry() {
-        return country;
-    }
+    public String getCountry() {return country; }
 
-    public void setCountry(String country) {
-        this.country = country;
-    }
+    public void setCountry(String country) { this.country = country; }
 
     public String getImdb_id() { return imdb_id; }
 
@@ -109,13 +106,13 @@ public class Movie {
 
     public void setPoster_url(String poster_url) { this.poster_url = poster_url; }
 
-    public List<Review> getReviews() {
-        return reviews;
-    }
+    public List<User> getUser() { return user; }
 
-    public void setReviews(List<Review> reviews) {
-        this.reviews = reviews;
-    }
+    public void setUser(List<User> user) { this.user = user; }
+
+    public List<Review> getReviews() { return reviews; }
+
+    public void setReviews(List<Review> reviews) { this.reviews = reviews; }
 
     @Override
     public String toString() {

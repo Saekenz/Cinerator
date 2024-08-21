@@ -23,8 +23,8 @@ public class TestDataLoader {
     private static final Logger log = LoggerFactory.getLogger(TestDataLoader.class);
 
     @Bean
-    @Order(1)
-    public CommandLineRunner initUsers(UserRepository userRepository) {
+    @Order(2)
+    public CommandLineRunner initUsers(UserRepository userRepository, MovieRepository movieRepository) {
         return (args) -> {
 
             log.info("Initializing users...");
@@ -32,10 +32,18 @@ public class TestDataLoader {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String encodedPassword = passwordEncoder.encode("password");
 
-            User u1 = new User("UserA", encodedPassword, "USER", true);
-            User u2 = new User("UserB", encodedPassword, "USER", true);
-            User u3 = new User("UserC", encodedPassword, "ADMIN", true);
-            User u4 = new User("UserD", encodedPassword, "USER", false);
+            Movie m1 = movieRepository.findById(5L).get();
+            Movie m2 = movieRepository.findById(13L).get();
+            Movie m3 = movieRepository.findById(1L).get();
+            Movie m4 = movieRepository.findById(7L).get();
+            Movie m5 = movieRepository.findById(2L).get();
+            Movie m6 = movieRepository.findById(3L).get();
+            Movie m7 = movieRepository.findById(6L).get();
+
+            User u1 = new User("UserA", encodedPassword, "USER", true, List.of(m1,m2,m3));
+            User u2 = new User("UserB", encodedPassword, "USER", true, List.of(m4,m5,m6));
+            User u3 = new User("UserC", encodedPassword, "ADMIN", true, List.of(m7,m1,m5));
+            User u4 = new User("UserD", encodedPassword, "USER", false, List.of(m5,m4,m7));
 
             for(User u : userRepository.saveAll(List.of(u1,u2,u3,u4))) {
                 log.info("Created new user: {}", u);
@@ -44,7 +52,7 @@ public class TestDataLoader {
     }
 
     @Bean
-    @Order(2)
+    @Order(1)
     public CommandLineRunner initMovies(MovieRepository movieRepository) {
         return (args) -> {
             log.info("Initializing movies...");

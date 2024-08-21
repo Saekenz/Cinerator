@@ -1,5 +1,7 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.movie.Movie;
+import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserModelAssembler;
 import at.saekenz.cinerator.model.user.UserNotFoundException;
@@ -25,9 +27,11 @@ public class UserController {
     IUserService userService;
 
     private final UserModelAssembler assembler;
+    private final MovieModelAssembler movieAssembler;
 
-    UserController(UserModelAssembler assembler) {
+    UserController(UserModelAssembler assembler, MovieModelAssembler movieAssembler) {
         this.assembler = assembler;
+        this.movieAssembler = movieAssembler;
     }
 
     @GetMapping
@@ -61,6 +65,7 @@ public class UserController {
                     user.setPassword(newUser.getPassword());
                     user.setEnabled(newUser.isEnabled());
                     user.setRole(newUser.getRole());
+                    user.setWatchlist(newUser.getWatchlist());
                     user.setReviews(newUser.getReviews());
                     return userService.save(user);
                 })
@@ -104,10 +109,20 @@ public class UserController {
         return CollectionModel.of(users, linkTo(methodOn(UserController.class).findUsersByRole(role)).withSelfRel());
     }
 
-//    @GetMapping("/{id}/watchlist")
-//    public CollectionModel<EntityModel<Movie>> findWatchlistByUser(@PathVariable Long id) {
-//
-//    }
+    @GetMapping("/{id}/watchlist")
+    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findWatchlistByUser(@PathVariable Long id) {
+        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+
+        List<EntityModel<Movie>> movies = user.getWatchlist()
+                .stream()
+                .map(movieAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(movies,
+                linkTo(methodOn(UserController.class).findWatchlistByUser(id)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
 
     // for testing only
     @GetMapping("/currentUser")
