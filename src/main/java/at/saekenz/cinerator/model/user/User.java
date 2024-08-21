@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.model.user;
 
+import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.review.Review;
 import jakarta.persistence.*;
 

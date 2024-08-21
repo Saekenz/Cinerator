@@ -123,9 +123,11 @@ public class MovieController {
                     movie.setTitle(newMovie.getTitle());
                     movie.setDirector(newMovie.getDirector());
                     movie.setRelease_date(newMovie.getRelease_date());
+                    movie.setRuntime(newMovie.getRuntime());
                     movie.setGenre(newMovie.getGenre());
                     movie.setCountry(newMovie.getCountry());
                     movie.setImdb_id(newMovie.getImdb_id());
+                    movie.setPoster_url(newMovie.getPoster_url());
                     movie.setReviews(newMovie.getReviews());
                     return movieService.save(movie);
                 })

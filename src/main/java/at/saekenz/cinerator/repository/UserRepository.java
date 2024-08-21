@@ -9,7 +9,8 @@ import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    List<User> findByUsername(String username);
+    @Query("SELECT u FROM User u WHERE LOWER(u.username) LIKE LOWER(CONCAT('%', :username, '%'))")
+    List<User> findByUsername(@Param("username") String username);
 
     @Query("SELECT u FROM User u WHERE LOWER(u.username) = LOWER(:username)")
     User getUserByUsername(@Param("username") String username);

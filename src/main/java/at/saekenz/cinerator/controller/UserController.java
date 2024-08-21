@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -47,29 +46,36 @@ public class UserController {
         return assembler.toModel(user);
     }
 
-//    @ResponseStatus(HttpStatus.CREATED)
-//    @PostMapping
-//    public User create(@RequestBody User user) {
-//        return userService.save(user);
-//    }
-
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody User user) {
+    public ResponseEntity<?> createUser(@RequestBody User user) {
         EntityModel<User> entityModel = assembler.toModel(userService.save(user));
         return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                 .body(entityModel);
     }
 
-    @PutMapping
-    public User update(@RequestBody User user) {
-        return userService.save(user);
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User newUser) {
+        User updatedUser = userService.findById(id).map(
+                user -> {
+                    user.setUsername(newUser.getUsername());
+                    user.setPassword(newUser.getPassword());
+                    user.setEnabled(newUser.isEnabled());
+                    user.setRole(newUser.getRole());
+                    user.setReviews(newUser.getReviews());
+                    return userService.save(user);
+                })
+                .orElseGet(() -> userService.save(newUser));
+        EntityModel<User> entityModel = assembler.toModel(updatedUser);
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
     }
 
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void deleteById(@PathVariable Long id) {
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         userService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/username/{username}")
@@ -77,6 +83,10 @@ public class UserController {
         List<EntityModel<User>> users = userService.findByUsername(username).stream()
                 .map(assembler::toModel)
                 .toList();
+
+        if (users.isEmpty()) {
+            throw new UserNotFoundException("username", username);
+        }
 
         return CollectionModel.of(users, linkTo(methodOn(UserController.class).findByUsername(username)).withSelfRel());
     }
@@ -87,9 +97,19 @@ public class UserController {
                 .map(assembler::toModel)
                 .toList();
 
+        if (users.isEmpty()) {
+            throw new UserNotFoundException("role", role);
+        }
+
         return CollectionModel.of(users, linkTo(methodOn(UserController.class).findUsersByRole(role)).withSelfRel());
     }
 
+//    @GetMapping("/{id}/watchlist")
+//    public CollectionModel<EntityModel<Movie>> findWatchlistByUser(@PathVariable Long id) {
+//
+//    }
+
+    // for testing only
     @GetMapping("/currentUser")
     public String currentUserName(Authentication authentication) {
         return authentication.getName();
