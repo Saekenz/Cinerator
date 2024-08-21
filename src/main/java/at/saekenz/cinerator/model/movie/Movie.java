@@ -19,6 +19,7 @@ public class Movie {
 
     @Column(nullable = false)
     private LocalDate release_date;
+    private String runtime;
 
     @Column(nullable = false)
     private String director;
@@ -36,11 +37,12 @@ public class Movie {
 
     }
 
-    public Movie(String title, String director, LocalDate release_date, String genre,
-                 String country, String imdb_id, String poster_url) {
+    public Movie(String title, String director, LocalDate release_date, String runtime,
+                 String genre, String country, String imdb_id, String poster_url) {
         this.title = title;
         this.director = director;
         this.release_date = release_date;
+        this.runtime = runtime;
         this.genre = genre;
         this.country = country;
         this.imdb_id = imdb_id;
@@ -64,12 +66,16 @@ public class Movie {
     }
 
     public int getReleaseYear() {
-        return release_date.getYear();
+        return poster_url != null ? release_date.getYear() : 0;
     }
 
     public void setRelease_date(LocalDate release_date) {
         this.release_date = release_date;
     }
+
+    public String getRuntime() { return runtime; }
+
+    public void setRuntime(String runtime) { this.runtime = runtime; }
 
     public String getDirector() {
         return director;
@@ -117,6 +123,7 @@ public class Movie {
                 "movie_id=" + movie_id +
                 ", title='" + title + '\'' +
                 ", release_date=" + release_date +
+                ", runtime=" + runtime +
                 ", director='" + director + '\'' +
                 ", genre='" + genre + '\'' +
                 ", country='" + country + '\'' +

@@ -19,6 +19,7 @@ function displayMovieData(movieData) {
                         <strong>Genre:</strong> <a href="${movie._links.genre.href}">${movie.genre}</a><br>
                         <strong>Country:</strong> <a href="${movie._links.country.href}">${movie.country}</a><br>
                         <strong>Release Date:</strong> ${movie.release_date}<br>
+                        <strong>Runtime:</strong> ${movie.runtime}<br>
                         <strong>IMDb ID:</strong> <a href="https://www.imdb.com/title/${movie.imdb_id}" target="_blank">${movie.imdb_id}</a><br>
                 </div>
                 <div class="movie-reviews"/>
@@ -44,7 +45,7 @@ function displayMovieData(movieData) {
         const description = movie.title + ' poster';
         posterDiv.classList.add('movie-poster');
         posterDiv.innerHTML = `
-            <img class="poster" src="${movie.poster_url}" alt=description style="width:200px;height:297px;">
+            <img class="poster" src="${movie.poster_url}" alt="${description}" style="width:200px;height:297px;">
         `;
         movieDiv.append(posterDiv);
 

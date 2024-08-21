@@ -9,14 +9,12 @@ import at.saekenz.cinerator.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.cglib.core.Local;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
@@ -51,46 +49,46 @@ public class TestDataLoader {
         return (args) -> {
             log.info("Initializing movies...");
 
-            Movie m1 = new Movie("Sicario", "Denis Villeneuve", LocalDate.of(2015,10,1),
+            Movie m1 = new Movie("Sicario", "Denis Villeneuve", LocalDate.of(2015,10,1), "122 min",
                     "Thriller","United States","tt3397884","https://upload.wikimedia.org/wikipedia/en/4/4b/Sicario_poster.jpg");
 
-            Movie m2 = new Movie("Dune: Part Two", "Denis Villeneuve", LocalDate.of(2024,3,1),
+            Movie m2 = new Movie("Dune: Part Two", "Denis Villeneuve", LocalDate.of(2024,3,1), "167 min",
                     "Science Fiction", "United States","tt15239678","https://upload.wikimedia.org/wikipedia/en/5/52/Dune_Part_Two_poster.jpeg");
 
-            Movie m3 = new Movie("Good Will Hunting", "Gus Van Sant", LocalDate.of(1998,9,1),
+            Movie m3 = new Movie("Good Will Hunting", "Gus Van Sant", LocalDate.of(1998,9,1), "127 min",
                     "Drama", "United States","tt0119217","https://upload.wikimedia.org/wikipedia/en/5/52/Good_Will_Hunting.png");
 
-            Movie m4 = new Movie("Three Colors: Red", "Krzysztof Kieslowski", LocalDate.of(1994,11,23),
+            Movie m4 = new Movie("Three Colors: Red", "Krzysztof Kieslowski", LocalDate.of(1994,11,23), "100 min",
                     "Drama","France","tt0111495","https://upload.wikimedia.org/wikipedia/en/0/0a/Three_Colors-Red.jpg");
 
-            Movie m5 = new Movie("Inception", "Christopher Nolan", LocalDate.of(2010,7,16),
+            Movie m5 = new Movie("Inception", "Christopher Nolan", LocalDate.of(2010,7,16), "148 min",
                     "Science Fiction", "United States", "tt1375666","https://upload.wikimedia.org/wikipedia/en/2/2e/Inception_%282010%29_theatrical_poster.jpg");
 
-            Movie m6 = new Movie("Parasite", "Bong Joon Ho", LocalDate.of(2019,5,30),
+            Movie m6 = new Movie("Parasite", "Bong Joon Ho", LocalDate.of(2019,5,30), "133 min",
                     "Thriller", "South Korea", "tt6751668","https://upload.wikimedia.org/wikipedia/en/5/53/Parasite_%282019_film%29.png");
 
-            Movie m7 = new Movie("The Grand Budapest Hotel", "Wes Anderson", LocalDate.of(2014,3,28),
+            Movie m7 = new Movie("The Grand Budapest Hotel", "Wes Anderson", LocalDate.of(2014,3,28), "100 min",
                     "Comedy", "United States", "tt2278388","https://upload.wikimedia.org/wikipedia/en/1/1c/The_Grand_Budapest_Hotel.png");
 
-            Movie m8 = new Movie("Spirited Away", "Hayao Miyazaki", LocalDate.of(2001,7,20),
+            Movie m8 = new Movie("Spirited Away", "Hayao Miyazaki", LocalDate.of(2001,7,20), "125 min",
                     "Fantasy", "Japan", "tt0245429","https://upload.wikimedia.org/wikipedia/en/d/db/Spirited_Away_Japanese_poster.png");
 
-            Movie m9 = new Movie("The Godfather", "Francis Ford Coppola", LocalDate.of(1972,3,24),
+            Movie m9 = new Movie("The Godfather", "Francis Ford Coppola", LocalDate.of(1972,3,24), "175 min",
                     "Crime", "United States", "tt0068646","https://upload.wikimedia.org/wikipedia/en/1/1c/Godfather_ver1.jpg");
 
-            Movie m10 = new Movie("Amélie", "Jean-Pierre Jeunet", LocalDate.of(2001,4,25),
+            Movie m10 = new Movie("Amélie", "Jean-Pierre Jeunet", LocalDate.of(2001,4,25), "122 min",
                     "Romantic Comedy", "France", "tt0211915","https://upload.wikimedia.org/wikipedia/en/5/53/Amelie_poster.jpg");
 
-            Movie m11 = new Movie("Pulp Fiction", "Quentin Tarantino", LocalDate.of(1994,10,14),
+            Movie m11 = new Movie("Pulp Fiction", "Quentin Tarantino", LocalDate.of(1994,10,14),"154 min",
                     "Crime", "United States", "tt0110912","https://upload.wikimedia.org/wikipedia/en/3/3b/Pulp_Fiction_%281994%29_poster.jpg");
 
-            Movie m12 = new Movie("The Dark Knight", "Christopher Nolan", LocalDate.of(2008,7,18),
+            Movie m12 = new Movie("The Dark Knight", "Christopher Nolan", LocalDate.of(2008,7,18),"152 min",
                     "Action", "United States", "tt0468569","https://upload.wikimedia.org/wikipedia/en/1/1c/The_Dark_Knight_%282008_film%29.jpg");
 
-            Movie m13 = new Movie("La La Land", "Damien Chazelle", LocalDate.of(2016,12,9),
+            Movie m13 = new Movie("La La Land", "Damien Chazelle", LocalDate.of(2016,12,9),"129 min",
                     "Musical", "United States", "tt3783958","https://upload.wikimedia.org/wikipedia/en/a/ab/La_La_Land_%28film%29.png");
 
-//            Movie m14 = new Movie("Nightcrawler","Dan Gilroy", LocalDate.of(2014,10,31),"Thriller",
+//            Movie m14 = new Movie("Nightcrawler","Dan Gilroy", LocalDate.of(2014,10,31),"Thriller", "118 min",
 //                    "United States","tt287271","https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg");
 
             for(Movie m : movieRepository.saveAll(List.of(m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12,m13))) {

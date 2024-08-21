@@ -168,6 +168,7 @@ public class MovieControllerSpringBootIntegrationTest {
         String json_data = "{\n" +
                 "  \"title\": \"Nightcrawler\",\n" +
                 "  \"release_date\": \"2014-10-31\",\n" +
+                "  \"runtime\": \"118 min\",\n" +
                 "  \"director\": \"Dan Gilroy\",\n" +
                 "  \"genre\": \"Thriller\",\n" +
                 "  \"country\": \"United States\",\n" +
@@ -180,6 +181,7 @@ public class MovieControllerSpringBootIntegrationTest {
             .andExpect(status().isCreated())
             .andExpect(content().string(containsString("\"title\":\"Nightcrawler\"")))
             .andExpect(content().string(containsString("\"release_date\":\"2014-10-31\"")))
+            .andExpect(content().string(containsString("\"runtime\":\"118 min\"")))
             .andExpect(content().string(containsString("\"director\":\"Dan Gilroy\"")))
             .andExpect(content().string(containsString("\"genre\":\"Thriller\"")))
             .andDo(print());

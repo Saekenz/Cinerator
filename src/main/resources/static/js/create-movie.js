@@ -4,6 +4,7 @@ async function submitForm() {
     const formData = {
         title: document.getElementById('title').value,
         release_date: document.getElementById('release_date').value,
+        runtime: document.getElementById('runtime').value + ' min',
         director: document.getElementById('director').value,
         genre: document.getElementById('genre').value,
         country: document.getElementById('country').value,
