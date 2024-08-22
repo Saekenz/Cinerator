@@ -2,6 +2,7 @@ package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
+import at.saekenz.cinerator.model.user.EUserSearchParams;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserModelAssembler;
 import at.saekenz.cinerator.model.user.UserNotFoundException;
@@ -35,19 +36,27 @@ public class UserController {
     }
 
     @GetMapping
-    public CollectionModel<EntityModel<User>> findAll() {
-        List<EntityModel<User>> users = userService.findAll().stream()
+    public ResponseEntity<CollectionModel<EntityModel<User>>> findAll() {
+        List<User> users = userService.findAll();
+
+        if (users.isEmpty()) {
+            throw new UserNotFoundException();
+        }
+
+        List<EntityModel<User>> userModels = users.stream()
                 .map(assembler::toModel)
                 .toList();
 
-        return CollectionModel.of(users, linkTo(methodOn(UserController.class).findAll()).withSelfRel());
+        CollectionModel<EntityModel<User>> collectionModel = CollectionModel.of(userModels,
+                linkTo(methodOn(UserController.class).findAll()).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/{id}")
-    public EntityModel<User> findById(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<User>> findById(@PathVariable Long id) {
         User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-
-        return assembler.toModel(user);
+        return ResponseEntity.ok(assembler.toModel(user));
     }
 
     @PostMapping
@@ -84,29 +93,40 @@ public class UserController {
     }
 
     @GetMapping("/username/{username}")
-    public CollectionModel<EntityModel<User>> findByUsername(@PathVariable String username) {
-        List<EntityModel<User>> users = userService.findByUsername(username).stream()
+    public ResponseEntity<CollectionModel<EntityModel<User>>> findByUsername(@PathVariable String username) {
+        List<User> usersByUsername = userService.findByUsername(username);
+
+        if (usersByUsername.isEmpty()) {
+            throw new UserNotFoundException(EUserSearchParams.USERNAME, username);
+        }
+
+        List<EntityModel<User>> userModels = usersByUsername.stream()
                 .map(assembler::toModel)
                 .toList();
 
-        if (users.isEmpty()) {
-            throw new UserNotFoundException("username", username);
-        }
+        CollectionModel<EntityModel<User>> collectionModel = CollectionModel.of(userModels,
+                linkTo(methodOn(UserController.class).findByUsername(username)).withSelfRel());
 
-        return CollectionModel.of(users, linkTo(methodOn(UserController.class).findByUsername(username)).withSelfRel());
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/role/{role}")
-    public CollectionModel<EntityModel<User>> findUsersByRole(@PathVariable String role) {
-        List<EntityModel<User>> users = userService.findUsersByRole(role).stream()
+    public ResponseEntity<CollectionModel<EntityModel<User>>> findUsersByRole(@PathVariable String role) {
+        List<User> usersByRole = userService.findUsersByRole(role);
+
+        if (usersByRole.isEmpty()) {
+            throw new UserNotFoundException(EUserSearchParams.ROLE, role);
+        }
+
+        List<EntityModel<User>> userModels = usersByRole
+                .stream()
                 .map(assembler::toModel)
                 .toList();
 
-        if (users.isEmpty()) {
-            throw new UserNotFoundException("role", role);
-        }
+        CollectionModel<EntityModel<User>> collectionModel = CollectionModel.of(userModels,
+                linkTo(methodOn(UserController.class).findUsersByRole(role)).withSelfRel());
 
-        return CollectionModel.of(users, linkTo(methodOn(UserController.class).findUsersByRole(role)).withSelfRel());
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/{id}/watchlist")

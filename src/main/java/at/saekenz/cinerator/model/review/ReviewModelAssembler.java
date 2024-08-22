@@ -19,6 +19,7 @@ public class ReviewModelAssembler implements RepresentationModelAssembler<Review
                 linkTo(methodOn(ReviewController.class).findById(review.getReview_id())).withSelfRel(),
                 linkTo(methodOn(UserController.class).findById(review.getUser().getUser_id())).withRel("author"),
                 linkTo(methodOn(MovieController.class).findById(review.getMovie().getMovie_id())).withRel("movie"),
-                linkTo(methodOn(ReviewController.class).findAll()).withRel("reviews"));
+                linkTo(methodOn(ReviewController.class).findAll()).withRel("reviews"),
+                linkTo(methodOn(ReviewController.class).deleteReview(review.getReview_id())).withRel("delete"));
     }
 }
