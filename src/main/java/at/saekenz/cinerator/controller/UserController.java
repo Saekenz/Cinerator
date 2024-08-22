@@ -88,8 +88,13 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        userService.deleteById(id);
-        return ResponseEntity.noContent().build();
+        if (userService.findById(id).isPresent()) {
+            userService.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+        else {
+            throw new UserNotFoundException(id);
+        }
     }
 
     @GetMapping("/username/{username}")
