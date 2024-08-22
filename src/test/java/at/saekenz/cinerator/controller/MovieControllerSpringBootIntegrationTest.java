@@ -1,5 +1,8 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.movie.Movie;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -12,13 +15,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import static org.hamcrest.Matchers.containsString;
+import java.time.LocalDate;
+
+import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -42,7 +45,7 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindAllMoviesRequest_shouldSucceedWith200() throws Exception {
         mockMvc.perform(get("/movies").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("{\"movieList\":")));
+                .andExpect(jsonPath("$._embedded.movieList").isNotEmpty());
     }
 
     @WithMockUser("test-user")
@@ -54,11 +57,29 @@ public class MovieControllerSpringBootIntegrationTest {
 
     @WithMockUser("test-user")
     @Test
+    public void givenFindMovieByIdRequest_shouldSucceedWith200() throws Exception {
+        Long movie_id = 1L;
+        mockMvc.perform(get("/movies/{movie_id}", movie_id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.movie_id").value(movie_id));
+    }
+
+    @WithMockUser("test-user")
+    @Test
+    public void givenFindMovieByIdRequest_shouldFailWith404() throws Exception {
+        Long movie_id = -999L;
+        mockMvc.perform(get("/movies/{movie_id}", movie_id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("movie: %s", movie_id))));
+    }
+
+    @WithMockUser("test-user")
+    @Test
     public void givenFindMoviesByTitleRequest_shouldSucceedWith200() throws Exception {
         String title = "Sicario";
         mockMvc.perform(get("/movies/title/{title}", title).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString(String.format("\"title\":\"%s\"",title))));
+                .andExpect(jsonPath("$._embedded.movieList[*].title", everyItem(containsStringIgnoringCase(title))));
     }
 
     @WithMockUser("test-user")
@@ -76,7 +97,7 @@ public class MovieControllerSpringBootIntegrationTest {
         String imdbId = "tt1375666"; // title: Inception
         mockMvc.perform(get("/movies/imdb_id/{imdbId}", imdbId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString(String.format("\"imdb_id\":\"%s\"", imdbId))));
+                .andExpect(jsonPath("$.imdb_id").value(imdbId));
     }
 
     @WithMockUser("test-user")
@@ -94,7 +115,7 @@ public class MovieControllerSpringBootIntegrationTest {
         String director = "Christopher Nolan";
         mockMvc.perform(get("/movies/director/{director}", director).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString(String.format("\"director\":\"%s\"", director))));
+                .andExpect(jsonPath("$._embedded.movieList[*].director", everyItem(equalToIgnoringCase(director))));
     }
 
     @WithMockUser("test-user")
@@ -112,7 +133,7 @@ public class MovieControllerSpringBootIntegrationTest {
         String country = "France";
         mockMvc.perform(get("/movies/country/{country}", country).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString(String.format("\"country\":\"%s\"", country))));
+                .andExpect(jsonPath("$._embedded.movieList[*].country", everyItem(equalToIgnoringCase(country))));
     }
 
     @WithMockUser("test-user")
@@ -130,7 +151,7 @@ public class MovieControllerSpringBootIntegrationTest {
         String genre = "Science Fiction";
         mockMvc.perform(get("/movies/genre/{genre}", genre).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString(String.format("\"genre\":\"%s\"", genre))));
+                .andExpect(jsonPath("$._embedded.movieList[*].genre", everyItem(equalToIgnoringCase(genre))));
     }
 
     @WithMockUser("test-user")
@@ -149,7 +170,7 @@ public class MovieControllerSpringBootIntegrationTest {
         int year = 1994;
         mockMvc.perform(get("/movies/year/{year}", year).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString(String.format("\"release_date\":\"%s", year))))
+                .andExpect(jsonPath("$._embedded.movieList[*].release_date", everyItem(containsStringIgnoringCase(String.valueOf(year)))))
                 .andDo(print());
     }
 
@@ -165,33 +186,70 @@ public class MovieControllerSpringBootIntegrationTest {
     @WithMockUser("test-user")
     @Test
     public void givenCreateNewMovieRequest_shouldSucceedWith201() throws Exception {
-        String json_data = "{\n" +
-                "  \"title\": \"Nightcrawler\",\n" +
-                "  \"release_date\": \"2014-10-31\",\n" +
-                "  \"runtime\": \"118 min\",\n" +
-                "  \"director\": \"Dan Gilroy\",\n" +
-                "  \"genre\": \"Thriller\",\n" +
-                "  \"country\": \"United States\",\n" +
-                "  \"imdb_id\": \"tt287271\",\n" +
-                "  \"poster_url\": \"https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg\",\n" +
-                "  \"reviews\": []\n" +
-                "}";
+        String json_data = """
+                {
+                  "title": "Nightcrawler",
+                  "release_date": "2014-10-31",
+                  "runtime": "118 min",
+                  "director": "Dan Gilroy",
+                  "genre": "Thriller",
+                  "country": "United States",
+                  "imdb_id": "tt287271",
+                  "poster_url": "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg",
+                  "reviews": []
+                }""";
 
     mockMvc.perform(post("/movies").contentType(MediaType.APPLICATION_JSON).content(json_data))
             .andExpect(status().isCreated())
-            .andExpect(content().string(containsString("\"title\":\"Nightcrawler\"")))
-            .andExpect(content().string(containsString("\"release_date\":\"2014-10-31\"")))
-            .andExpect(content().string(containsString("\"runtime\":\"118 min\"")))
-            .andExpect(content().string(containsString("\"director\":\"Dan Gilroy\"")))
-            .andExpect(content().string(containsString("\"genre\":\"Thriller\"")))
+            .andExpect(jsonPath("$.title").value("Nightcrawler"))
+            .andExpect(jsonPath("$.release_date").value("2014-10-31"))
+            .andExpect(jsonPath("$.runtime").value("118 min"))
+            .andExpect(jsonPath("$.director").value("Dan Gilroy"))
+            .andExpect(jsonPath("$.genre").value("Thriller"))
+            .andExpect(jsonPath("$.country").value("United States"))
+            .andExpect(jsonPath("$.imdb_id").value("tt287271"))
+            .andExpect(jsonPath("$.poster_url").value("https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg"))
             .andDo(print());
     }
 
-    //TODO -> move to user test class
     @WithMockUser("test-user")
-//    @Test
-    public void testFindAllUsers() throws Exception {
-        mockMvc.perform(get("/users").contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+    @Test
+    public void givenUpdateMovieRequest_shouldSucceedWith201() throws Exception {
+        Movie updatedMovie = new Movie("The Shawshank Redemption","Frank Darabont", LocalDate.of(1994, 9, 23),
+                "142 min","Drama","United States","tt0111161",
+                "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg");
+
+        ObjectMapper om = new ObjectMapper();
+        om.findAndRegisterModules();
+        String json_data = om.writeValueAsString(updatedMovie);
+
+        Long movie_id = 3L;
+        mockMvc.perform(put("/movies/{id}", movie_id).contentType(MediaType.APPLICATION_JSON).content(json_data))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value("The Shawshank Redemption"))
+                .andExpect(jsonPath("$.release_date").value("1994-09-23"))
+                .andExpect(jsonPath("$.runtime").value("142 min"))
+                .andExpect(jsonPath("$.director").value("Frank Darabont"))
+                .andExpect(jsonPath("$.genre").value("Drama"))
+                .andExpect(jsonPath("$.country").value("United States"))
+                .andExpect(jsonPath("$.imdb_id").value("tt0111161"))
+                .andExpect(jsonPath("$.poster_url")
+                        .value("https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg"));
+    }
+
+    @WithMockUser("test-user")
+    @Test
+    public void givenDeleteMovieRequest_shouldSucceedWith204() throws Exception {
+        Long movie_id = 3L;
+        mockMvc.perform(delete("/movies/{movie_id}", movie_id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @WithMockUser("test-user")
+    @Test
+    public void givenDeleteMovieRequest_shouldFailWith404() throws Exception {
+        Long movie_id = 999L;
+        mockMvc.perform(delete("/movies/{movie_id}", movie_id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 }

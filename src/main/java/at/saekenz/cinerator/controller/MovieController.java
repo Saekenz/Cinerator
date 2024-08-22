@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.movie.EMovieSearchParams;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,90 +32,97 @@ public class MovieController {
     }
 
     @GetMapping
-    public CollectionModel<EntityModel<Movie>> findAll() {
-        List<EntityModel<Movie>> movies = movieService.findAll().stream()
+    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findAll() {
+        List<Movie> movies = movieService.findAll();
+
+        if (movies.isEmpty()) { throw new MovieNotFoundException(); }
+
+        List<EntityModel<Movie>> movieModels = movies.stream()
                 .map(assembler::toModel)
                 .toList();
 
-        return CollectionModel.of(movies, linkTo(methodOn(MovieController.class).findAll()).withSelfRel());
+        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(movieModels,
+                linkTo(methodOn(MovieController.class).findAll()).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/{id}")
-    public EntityModel<Movie> findById(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<Movie>> findById(@PathVariable Long id) {
         Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
-
-        return assembler.toModel(movie);
+        return ResponseEntity.ok(assembler.toModel(movie));
     }
 
     @GetMapping("/title/{title}")
-    public CollectionModel<EntityModel<Movie>> findByTitle(@PathVariable String title) {
-        List<EntityModel<Movie>> movies = movieService.findByTitle(title).stream()
-                .map(assembler::toModel)
-                .toList();
+    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByTitle(@PathVariable String title) {
+        List<Movie> movies = movieService.findByTitle(title);
 
-        if (movies.isEmpty()) {
-           throw new MovieNotFoundException(title);
-        }
+        if (movies.isEmpty()) { throw new MovieNotFoundException(EMovieSearchParams.TITLE, title); }
 
-        return CollectionModel.of(movies, linkTo(methodOn(MovieController.class).findByTitle(title)).withSelfRel());
+        CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
+                linkTo(methodOn(MovieController.class).findByTitle(title)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/director/{director}")
-    public CollectionModel<EntityModel<Movie>> findByDirector(@PathVariable String director) {
-        List<EntityModel<Movie>> movies = movieService.findByDirector(director).stream()
-                .map(assembler::toModel)
-                .toList();
+    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByDirector(@PathVariable String director) {
+        List<Movie> movies = movieService.findByDirector(director);
 
-        if (movies.isEmpty()) {
-            throw new MovieNotFoundException("director",director);
-        }
+        if (movies.isEmpty()) { throw new MovieNotFoundException(EMovieSearchParams.DIRECTOR, director); }
 
-        return CollectionModel.of(movies, linkTo(methodOn(MovieController.class).findByDirector(director)).withSelfRel());
+        CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
+                linkTo(methodOn(MovieController.class).findByDirector(director)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/genre/{genre}")
-    public CollectionModel<EntityModel<Movie>> findByGenre(@PathVariable String genre) {
-        List<EntityModel<Movie>> movies = movieService.findByGenre(genre).stream()
-                .map(assembler::toModel)
-                .toList();
+    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByGenre(@PathVariable String genre) {
+        List<Movie> movies = movieService.findByGenre(genre);
 
         if (movies.isEmpty()) {
-            throw new MovieNotFoundException("genre",genre);
+            throw new MovieNotFoundException(EMovieSearchParams.GENRE, genre);
         }
 
-        return CollectionModel.of(movies, linkTo(methodOn(MovieController.class).findByGenre(genre)).withSelfRel());
+        CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
+                linkTo(methodOn(MovieController.class).findByGenre(genre)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/country/{country}")
-    public CollectionModel<EntityModel<Movie>> findByCountry(@PathVariable String country) {
-        List<EntityModel<Movie>> movies = movieService.findByCountry(country).stream()
-                .map(assembler::toModel)
-                .toList();
+    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByCountry(@PathVariable String country) {
+        List<Movie> movies = movieService.findByCountry(country);
 
         if (movies.isEmpty()) {
-            throw new MovieNotFoundException("country",country);
+            throw new MovieNotFoundException(EMovieSearchParams.COUNTRY, country);
         }
 
-        return CollectionModel.of(movies, linkTo(methodOn(MovieController.class).findByCountry(country)).withSelfRel());
+        CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
+                linkTo(methodOn(MovieController.class).findByCountry(country)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/year/{year}")
-    public CollectionModel<EntityModel<Movie>> findByYearReleased(@PathVariable int year) {
-        List<EntityModel<Movie>> movies = movieService.findByYear(year).stream()
-                .map(assembler::toModel)
-                .toList();
+    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByYearReleased(@PathVariable int year) {
+        List<Movie> movies = movieService.findByYear(year);
 
         if (movies.isEmpty()) {
-            throw new MovieNotFoundException("year",year+"");
+            throw new MovieNotFoundException(EMovieSearchParams.YEAR, year+"");
         }
 
-        return CollectionModel.of(movies, linkTo(methodOn(MovieController.class).findByYearReleased(year)).withSelfRel());
+        CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
+                linkTo(methodOn(MovieController.class).findByYearReleased(year)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/imdb_id/{imdb_id}")
-    public EntityModel<Movie> findByImdbId(@PathVariable String imdb_id) {
+    public ResponseEntity<EntityModel<Movie>> findByImdbId(@PathVariable String imdb_id) {
         Movie movie = movieService.findByImdb_id(imdb_id).orElseThrow(() -> new MovieNotFoundException(imdb_id));
-        return assembler.toModel(movie);
+        return ResponseEntity.ok(assembler.toModel(movie));
     }
 
     @PutMapping("/{id}")
@@ -141,8 +150,13 @@ public class MovieController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMovie(@PathVariable Long id) {
-        movieService.deleteById(id);
-        return ResponseEntity.noContent().build();
+        if (movieService.findById(id).isPresent()) {
+            movieService.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+        else {
+            throw new MovieNotFoundException(id);
+        }
     }
 
     @PostMapping()
@@ -152,6 +166,16 @@ public class MovieController {
         return ResponseEntity
                 .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                 .body(entityModel);
+    }
+
+    private CollectionModel<EntityModel<Movie>> createCollectionModelFromList(
+            List<Movie> movies, Link selfLink) {
+
+        List<EntityModel<Movie>> movieModels = movies.stream()
+                .map(assembler::toModel)
+                .toList();
+
+        return CollectionModel.of(movieModels,selfLink);
     }
 
 }
