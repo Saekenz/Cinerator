@@ -19,7 +19,10 @@ public class Review {
 
     private String comment;
     private int rating;
+
+    @Column(nullable = false)
     private LocalDate review_date;
+
     private boolean is_liked;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -97,6 +100,8 @@ public class Review {
     public void setIs_liked(boolean is_liked) {
         this.is_liked = is_liked;
     }
+
+    public String getUsername() { return user.getUsername(); }
 
     @Override
     public String toString() {

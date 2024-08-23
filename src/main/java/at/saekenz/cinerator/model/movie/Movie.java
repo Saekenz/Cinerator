@@ -25,15 +25,18 @@ public class Movie {
 
     @Column(nullable = false)
     private LocalDate release_date;
+
     private String runtime;
 
     @Column(nullable = false)
     private String director;
+
     private String genre;
     private String country;
 
     @Column(nullable = false)
     private String imdb_id;
+
     private String poster_url;
 
     @ManyToMany(mappedBy = "watchlist")

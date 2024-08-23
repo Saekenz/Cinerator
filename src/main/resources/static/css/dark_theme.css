@@ -210,3 +210,16 @@ footer {
     font-size: 1.1rem;
     color: #b0bec5;
 }
+
+/* Style for stars */
+.star {
+    color: gold;
+    font-size: 20px;
+}
+
+/* Style for the heart icon */
+.heart {
+    color: #BB86FC;
+    font-size: 20px;
+    margin-left: 10px;
+}

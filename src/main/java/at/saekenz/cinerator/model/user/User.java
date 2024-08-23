@@ -15,10 +15,16 @@ public class User {
    @GeneratedValue(strategy = GenerationType.AUTO)
    private Long user_id;
 
+   @Column(nullable = false)
    private String username;
-   @Column(length = 100)
+
+   @Column(nullable = false, length = 100)
    private String password;
+
+   @Column(nullable = false)
    private String role;
+
+   @Column(nullable = false)
    private boolean enabled;
 
    @ManyToMany

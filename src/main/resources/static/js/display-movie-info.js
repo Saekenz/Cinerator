@@ -32,11 +32,25 @@ function displayMovieData(movieData) {
         movie.reviews.forEach(review => {
             const reviewDiv = document.createElement('div');
             reviewDiv.classList.add('review');
-            reviewDiv.innerHTML = `
-                        <strong>Review Date:</strong> ${review.review_date}<br>
-                        <strong>Rating:</strong> ${review.rating}/5<br>
-                        <strong>Comment:</strong> ${review.comment}<br>
-                        <strong>Liked:</strong> ${review.is_liked ? 'Yes' : 'No'}
+
+            const ratingContainer = document.createElement('span');
+            for (let i = 0; i < 5; i++) {
+                const star = document.createElement('span');
+                star.classList.add('star');
+                star.innerHTML = i < review.rating ? '&#9733;' : '&#9734;';
+                ratingContainer.appendChild(star);
+            }
+
+            const heartIcon = document.createElement('span');
+            heartIcon.classList.add('heart');
+            heartIcon.innerHTML = review.is_liked ? '&#10084;' : '&#9825;';
+            ratingContainer.appendChild(heartIcon);
+
+            reviewDiv.innerHTML += `<strong>Review by:</strong> ${review.username}<br>`;
+            reviewDiv.appendChild(ratingContainer);
+            reviewDiv.innerHTML += `
+                        <br>${review.review_date}<br>
+                        ${review.comment}<br>
                     `;
             movieReviews.appendChild(reviewDiv);
         });
