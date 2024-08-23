@@ -1,6 +1,8 @@
 package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.movie.Movie;
+import at.saekenz.cinerator.model.review.Review;
+import at.saekenz.cinerator.model.user.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +18,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -251,5 +254,77 @@ public class MovieControllerSpringBootIntegrationTest {
         Long movie_id = 999L;
         mockMvc.perform(delete("/movies/{movie_id}", movie_id).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    @WithMockUser("test-user")
+    @Test
+    public void givenFindReviewsByIdRequest_shouldSucceedWith200() throws Exception {
+        Long movie_id = 3L;
+        mockMvc.perform(get("/movies/{movie_id}/reviews", movie_id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.reviewList").isNotEmpty());
+    }
+
+    @WithMockUser("test-user")
+    @Test
+    public void givenFindReviewsByIdRequest_shouldFailWith404() throws Exception {
+        Long movie_id = 999L;
+        mockMvc.perform(get("/movies/{movie_id}/reviews", movie_id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    // TODO -> fix DataIntegrityViolation
+//    @WithMockUser("test-user")
+//    @Test
+//    public void givenAddReviewToMovieRequest_shouldSucceedWith201() throws Exception {
+//        Long movie_id = 1L;
+//
+//        User user = new User("UserA","password","USER",true, List.of());
+//        user.setUser_id(3L);
+//        Movie movie = new Movie("Sicario", "Denis Villeneuve", LocalDate.of(2015,10,1), "122 min",
+//                "Thriller","United States","tt3397884","https://upload.wikimedia.org/wikipedia/en/4/4b/Sicario_poster.jpg");
+//        movie.setMovie_id(movie_id);
+//
+//        Review review = new Review();
+//        review.setComment("Test review comment");
+//        review.setReview_date(LocalDate.now());
+//        review.setIs_liked(false);
+//        review.setRating(5);
+//        review.setUser(user);
+//        review.setMovie(movie);
+//
+//        ObjectMapper om = new ObjectMapper();
+//        om.findAndRegisterModules();
+//        String json_data = om.writeValueAsString(review);
+//
+//        mockMvc.perform(post("/movies/{movie_id}/reviews", movie_id).contentType(MediaType.APPLICATION_JSON)
+//                        .content(json_data))
+//                .andExpect(status().isCreated())
+//                .andExpect(jsonPath("$.comment").value(review.getComment()))
+//                .andExpect(jsonPath("$.review_date").value(review.getReview_date()))
+//                .andExpect(jsonPath("$.is_liked").value(review.isIs_liked()))
+//                .andExpect(jsonPath("$.rating").value(review.getRating()))
+//                .andDo(print());
+//    }
+
+    @WithMockUser("test-user")
+    @Test
+    public void givenAddReviewToMovieRequest_shouldFailWith404() throws Exception {
+    Long movie_id = 999L;
+    User user = new User("UserA","password","USER",true, List.of());
+    Movie movie = new Movie();
+    Review review = new Review();
+    review.setUser(user);
+    review.setMovie(movie);
+
+    ObjectMapper om = new ObjectMapper();
+    om.findAndRegisterModules();
+    String json_data = om.writeValueAsString(review);
+
+    mockMvc.perform(post("/movies/{movie_id}/reviews", movie_id).contentType(MediaType.APPLICATION_JSON)
+                    .content(json_data))
+            .andExpect(status().isNotFound())
+            .andDo(print());
+
     }
 }

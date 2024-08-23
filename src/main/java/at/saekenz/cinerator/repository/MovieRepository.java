@@ -13,11 +13,14 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Query("SELECT m FROM Movie m WHERE LOWER(m.genre) = LOWER(:genre)")
     List<Movie> findByGenre(@Param("genre") String genre);
 
-    List<Movie> findByDirector(String director);
+    @Query("SELECT m FROM Movie m WHERE LOWER(m.director) = LOWER(:director)")
+    List<Movie> findByDirector(@Param("director") String director);
 
-    List<Movie> findByTitle(String title);
+    @Query("SELECT m FROM Movie m WHERE LOWER(m.title) = LOWER(:title)")
+    List<Movie> findByTitle(@Param("title") String title);
 
-    List<Movie> findByCountry(String country);
+    @Query("SELECT m FROM Movie m WHERE LOWER(m.country) = LOWER(:country)")
+    List<Movie> findByCountry(@Param("country") String country);
 
     @Query("SELECT m FROM Movie m WHERE EXTRACT(YEAR FROM m.release_date) = :yearReleased")
     List<Movie> findByYearReleased(@Param("yearReleased") int yearReleased);

@@ -4,7 +4,10 @@ import at.saekenz.cinerator.model.movie.EMovieSearchParams;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
+import at.saekenz.cinerator.model.review.Review;
+import at.saekenz.cinerator.model.review.ReviewModelAssembler;
 import at.saekenz.cinerator.service.IMovieService;
+import at.saekenz.cinerator.service.IReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -25,10 +28,15 @@ public class MovieController {
     @Autowired
     IMovieService movieService;
 
-    private final MovieModelAssembler assembler;
+    @Autowired
+    IReviewService reviewService;
 
-    public MovieController(MovieModelAssembler assembler) {
-        this.assembler = assembler;
+    private final MovieModelAssembler movieAssembler;
+    private final ReviewModelAssembler reviewAssembler;
+
+    public MovieController(MovieModelAssembler movieAssembler, ReviewModelAssembler reviewAssembler) {
+        this.movieAssembler = movieAssembler;
+        this.reviewAssembler = reviewAssembler;
     }
 
     @GetMapping
@@ -38,7 +46,7 @@ public class MovieController {
         if (movies.isEmpty()) { throw new MovieNotFoundException(); }
 
         List<EntityModel<Movie>> movieModels = movies.stream()
-                .map(assembler::toModel)
+                .map(movieAssembler::toModel)
                 .toList();
 
         CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(movieModels,
@@ -50,7 +58,7 @@ public class MovieController {
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<Movie>> findById(@PathVariable Long id) {
         Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
-        return ResponseEntity.ok(assembler.toModel(movie));
+        return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
     @GetMapping("/title/{title}")
@@ -122,7 +130,7 @@ public class MovieController {
     @GetMapping("/imdb_id/{imdb_id}")
     public ResponseEntity<EntityModel<Movie>> findByImdbId(@PathVariable String imdb_id) {
         Movie movie = movieService.findByImdb_id(imdb_id).orElseThrow(() -> new MovieNotFoundException(imdb_id));
-        return ResponseEntity.ok(assembler.toModel(movie));
+        return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
     @PutMapping("/{id}")
@@ -141,7 +149,7 @@ public class MovieController {
                     return movieService.save(movie);
                 })
                 .orElseGet(() -> movieService.save(newMovie));
-            EntityModel<Movie> entityModel = assembler.toModel(updatedMovie);
+            EntityModel<Movie> entityModel = movieAssembler.toModel(updatedMovie);
 
             return ResponseEntity
                     .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
@@ -161,7 +169,7 @@ public class MovieController {
 
     @PostMapping()
     public ResponseEntity<?> createMovie(@RequestBody Movie newMovie) {
-        EntityModel<Movie> entityModel = assembler.toModel(movieService.save(newMovie));
+        EntityModel<Movie> entityModel = movieAssembler.toModel(movieService.save(newMovie));
 
         return ResponseEntity
                 .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
@@ -172,10 +180,34 @@ public class MovieController {
             List<Movie> movies, Link selfLink) {
 
         List<EntityModel<Movie>> movieModels = movies.stream()
-                .map(assembler::toModel)
+                .map(movieAssembler::toModel)
                 .toList();
 
         return CollectionModel.of(movieModels,selfLink);
+    }
+
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<CollectionModel<EntityModel<Review>>> findReviewsById(@PathVariable Long id) {
+        Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
+
+        List<EntityModel<Review>> reviews = movie.getReviews().stream()
+                .map(reviewAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviews,
+                linkTo(methodOn(MovieController.class).findReviewsById(id)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    @PostMapping("/{id}/reviews")
+    public ResponseEntity<?> addReviewToMovie(@PathVariable Long id, @RequestBody Review review) {
+        movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
+        EntityModel<Review> entityModel = reviewAssembler.toModel(reviewService.save(review));
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
     }
 
 }

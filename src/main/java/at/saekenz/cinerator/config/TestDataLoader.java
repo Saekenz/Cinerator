@@ -114,21 +114,51 @@ public class TestDataLoader {
 
             User u1 = userRepository.findById(1L).get();
             User u2 = userRepository.findById(2L).get();
+            User u3 = userRepository.findById(3L).get();
+            User u4 = userRepository.findById(4L).get();
 
             Movie m1 = movieRepository.findById(1L).get();
             Movie m2 = movieRepository.findById(2L).get();
             Movie m3 = movieRepository.findById(3L).get();
+            Movie m4 = movieRepository.findById(4L).get();
+            Movie m5 = movieRepository.findById(5L).get();
+            Movie m6 = movieRepository.findById(6L).get();
+            Movie m7 = movieRepository.findById(7L).get();
+            Movie m8 = movieRepository.findById(8L).get();
+            Movie m9 = movieRepository.findById(9L).get();
+            Movie m10 = movieRepository.findById(10L).get();
+            Movie m11 = movieRepository.findById(11L).get();
 
             Review r1 = new Review("An absolute visual treat. The cinematography is breathtaking, but the plot feels like it's treading water.",
                     3, LocalDate.of(2020,5,8), true, u1, m1);
-            Review r2 = new Review("A rollercoaster of emotions from start to finish.",
+            Review r2 = new Review("A gripping tale that keeps you on the edge of your seat, though the ending felt a bit rushed.",
+                    4, LocalDate.of(2021,1,15), false, u2, m2);
+            Review r3 = new Review("Fantastic performances from the cast, but the storyline is somewhat predictable.",
+                    3, LocalDate.of(2020,8,23), true, u3, m3);
+            Review r4 = new Review("An emotional rollercoaster with brilliant direction, but the pacing could have been better.",
+                    4, LocalDate.of(2019,12,19), false, u4, m4);
+            Review r5 = new Review("Visually stunning with an engaging narrative, but some characters feel underdeveloped.",
+                    4, LocalDate.of(2020,3,30), true, u1, m5);
+            Review r6 = new Review("A thought-provoking story that challenges conventions, but it may not appeal to everyone.",
+                    3, LocalDate.of(2021,6,10), false, u2, m6);
+            Review r7 = new Review("An inspiring and heartwarming movie, though it sometimes veers into cliché territory.",
+                    3, LocalDate.of(2020,10,5), true, u3, m7);
+            Review r8 = new Review("A masterful blend of humor and drama, but the runtime feels unnecessarily long.",
+                    4, LocalDate.of(2021,3,17), false, u4, m8);
+            Review r9 = new Review("A visually unique experience, but the complex plot might confuse some viewers.",
+                    3, LocalDate.of(2020,11,25), true, u1, m9);
+            Review r10 = new Review("A compelling story with a powerful message, though the dialogue is sometimes stilted.",
+                    4, LocalDate.of(2021,7,22), false, u2, m10);
+            Review r11 = new Review("A bold and daring film that pushes boundaries, but its experimental nature won't be for everyone.",
+                    3, LocalDate.of(2020,2,14), true, u3, m11);
+            Review r12 = new Review("A rollercoaster of emotions from start to finish.",
                     4, LocalDate.of(2024,8,1), true, u1, m2);
-            Review r3 = new Review("I wanted to love this, but it felt like a missed opportunity. The concept was intriguing, but the execution left much to be desired.",
+            Review r13 = new Review("I wanted to love this, but it felt like a missed opportunity. The concept was intriguing, but the execution left much to be desired.",
                     2, LocalDate.of(2000,7,4), false, u1, m3);
-            Review r4 = new Review("This one took me by surprise. A slow burn that pays off in the end with a haunting finale.",
+            Review r14 = new Review("This one took me by surprise. A slow burn that pays off in the end with a haunting finale.",
                     5, LocalDate.of(2022,2,27), true, u2, m1);
 
-            for(Review r : reviewRepository.saveAll(List.of(r1,r2,r3,r4))) {
+            for(Review r : reviewRepository.saveAll(List.of(r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13,r14))) {
                 log.info("Created new review: {}", r);
             }
         };

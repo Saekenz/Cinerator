@@ -68,6 +68,8 @@ public class Movie {
         return movie_id;
     }
 
+    public void setMovie_id(Long movie_id) { this.movie_id = movie_id; }
+
     public String getTitle() {
         return title;
     }
