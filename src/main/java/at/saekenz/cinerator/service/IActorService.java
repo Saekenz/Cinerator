@@ -23,4 +23,6 @@ public interface IActorService {
     Actor save(Actor actor);
 
     void deleteById(Long id);
+
+    List<Actor> searchActors(String name, LocalDate birthDate, String birthCountry, Integer age);
 }

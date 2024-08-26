@@ -54,4 +54,9 @@ public class ActorServiceImpl implements IActorService{
     public void deleteById(Long id) {
         actorRepository.deleteById(id);
     }
+
+    @Override
+    public List<Actor> searchActors(String name, LocalDate birthDate, String birthCountry, Integer age) {
+        return actorRepository.findActorsBySearchParams(name, birthDate, birthCountry, age);
+    }
 }

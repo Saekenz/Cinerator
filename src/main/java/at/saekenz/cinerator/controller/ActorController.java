@@ -125,4 +125,54 @@ public class ActorController {
 
         return ResponseEntity.ok(collectionModel);
     }
+
+//    @GetMapping("/searchCountry")
+//    public ResponseEntity<CollectionModel<EntityModel<Actor>>> searchActorsCountry(@RequestParam String country) {
+//        List<Actor> actors = actorService.findByBirthCountry(country);
+//
+//        if (actors.isEmpty()) { throw new ActorNotFoundException(EActorSearchParam.BIRTH_COUNTRY, country); }
+//
+//        List<EntityModel<Actor>> actorModels = actors.stream()
+//                .map(actorAssembler::toModel)
+//                .toList();
+//
+//        CollectionModel<EntityModel<Actor>> collectionModel = CollectionModel.of(actorModels,
+//                linkTo(methodOn(ActorController.class).searchActorsCountry(country)).withSelfRel());
+//
+//        return ResponseEntity.ok(collectionModel);
+//    }
+
+    @GetMapping("/search")
+    public ResponseEntity<CollectionModel<EntityModel<Actor>>> searchActors(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String birth_date,
+            @RequestParam(required = false) String birth_country,
+            @RequestParam(required = false) Integer age) {
+
+        LocalDate parsedBirthDate = null;
+        if  (birth_date != null) {
+            try {
+                parsedBirthDate = LocalDate.parse(birth_date);
+            } catch (DateTimeParseException e) {
+                throw new ActorNotFoundException(EActorSearchParam.BIRTH_DATE, birth_date);
+            }
+        }
+
+        List<Actor> actors = actorService.searchActors(name, parsedBirthDate, birth_country, age);
+
+        if (actors.isEmpty()) { throw new ActorNotFoundException(); }
+
+        List<EntityModel<Actor>> actorModels = actors.stream()
+                .map(actorAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Actor>> collectionModel = CollectionModel.of(actorModels,
+                linkTo(methodOn(ActorController.class).searchActors(name,birth_date,birth_country,age)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    // create
+    // update
+    // delete
 }
