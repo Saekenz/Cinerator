@@ -12,7 +12,7 @@ import java.util.List;
 public class User {
 
    @Id
-   @GeneratedValue(strategy = GenerationType.AUTO)
+   @GeneratedValue(strategy = GenerationType.IDENTITY)
    private Long user_id;
 
    @Column(nullable = false)
@@ -36,7 +36,7 @@ public class User {
    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
    private List<Movie> watchlist;
 
-   @OneToMany(mappedBy = "user")
+   @OneToMany(mappedBy = "user", orphanRemoval = true)
    private List<Review> reviews;
 
    public User() {
