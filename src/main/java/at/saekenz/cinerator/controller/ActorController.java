@@ -3,16 +3,20 @@ package at.saekenz.cinerator.controller;
 import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorModelAssembler;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
+import at.saekenz.cinerator.model.actor.EActorSearchParam;
 import at.saekenz.cinerator.service.IActorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/actors")
@@ -23,19 +27,102 @@ public class ActorController {
 
     private final ActorModelAssembler actorAssembler;
 
-    public ActorController(IActorService actorService) {
-        this.actorAssembler = new ActorModelAssembler();
+    public ActorController(ActorModelAssembler actorAssembler) {
+        this.actorAssembler = actorAssembler;
     }
 
     @GetMapping
-    public ResponseEntity<List<Actor>> findAll() {
+    public ResponseEntity<CollectionModel<EntityModel<Actor>>> findAll() {
         List<Actor> actors = actorService.findAll();
-        return ResponseEntity.ok().body(actors);
+
+        if (actors.isEmpty()) { throw new ActorNotFoundException(); }
+
+        List<EntityModel<Actor>> actorModels = actors.stream()
+                .map(actorAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Actor>> collectionModel = CollectionModel.of(actorModels,
+                linkTo(methodOn(ActorController.class).findAll()).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/{actor_id}")
     public ResponseEntity<EntityModel<Actor>> findById(@PathVariable Long actor_id) {
         Actor actor = actorService.findById(actor_id).orElseThrow(() -> new ActorNotFoundException(actor_id));
         return ResponseEntity.ok(actorAssembler.toModel(actor));
+    }
+
+    @GetMapping("/name/{name}")
+    public ResponseEntity<CollectionModel<EntityModel<Actor>>> findByName(@PathVariable String name) {
+        List<Actor> actors = actorService.findByName(name);
+
+        if (actors.isEmpty()) { throw new ActorNotFoundException(EActorSearchParam.NAME, name); }
+
+        List<EntityModel<Actor>> actorModels = actors.stream()
+                .map(actorAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Actor>> collectionModel = CollectionModel.of(actorModels,
+                linkTo(methodOn(ActorController.class).findByName(name)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    @GetMapping("/birth_date/{birth_date}")
+    public ResponseEntity<CollectionModel<EntityModel<Actor>>> findByBirthDate(@PathVariable String birth_date) {
+        LocalDate parsedBirthDate;
+
+        try {
+            parsedBirthDate = LocalDate.parse(birth_date);
+        }
+        catch (DateTimeParseException e) {
+            throw new ActorNotFoundException(EActorSearchParam.BIRTH_DATE, birth_date);
+        }
+
+        List<Actor> actors = actorService.findByBirthDate(parsedBirthDate);
+
+        if (actors.isEmpty()) { throw new ActorNotFoundException(EActorSearchParam.BIRTH_DATE, birth_date); }
+
+        List<EntityModel<Actor>> actorModels = actors.stream()
+                .map(actorAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Actor>> collectionModel = CollectionModel.of(actorModels,
+                linkTo(methodOn(ActorController.class).findByBirthDate(birth_date)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    @GetMapping("/birth_country/{birth_country}")
+    public ResponseEntity<CollectionModel<EntityModel<Actor>>> findByBirthCountry(@PathVariable String birth_country) {
+        List<Actor> actors = actorService.findByBirthCountry(birth_country);
+
+        if (actors.isEmpty()) { throw new ActorNotFoundException(EActorSearchParam.BIRTH_COUNTRY, birth_country); }
+
+        List<EntityModel<Actor>> actorModels = actors.stream()
+                .map(actorAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Actor>> collectionModel = CollectionModel.of(actorModels,
+                linkTo(methodOn(ActorController.class).findByBirthCountry(birth_country)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    @GetMapping("/age/{age}")
+    public ResponseEntity<CollectionModel<EntityModel<Actor>>> findByAge(@PathVariable int age) {
+        List<Actor> actors = actorService.findByAge(age);
+
+        if (actors.isEmpty()) { throw new ActorNotFoundException(EActorSearchParam.AGE, age+""); }
+
+        List<EntityModel<Actor>> actorModels = actors.stream()
+                .map(actorAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Actor>> collectionModel = CollectionModel.of(actorModels,
+                linkTo(methodOn(ActorController.class).findByAge(age)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 }
