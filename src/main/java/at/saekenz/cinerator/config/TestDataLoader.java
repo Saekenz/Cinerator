@@ -1,8 +1,10 @@
 package at.saekenz.cinerator.config;
 
+import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.user.User;
+import at.saekenz.cinerator.model.user.UserNotFoundException;
 import at.saekenz.cinerator.repository.MovieRepository;
 import at.saekenz.cinerator.repository.ReviewRepository;
 import at.saekenz.cinerator.repository.UserRepository;
@@ -32,13 +34,13 @@ public class TestDataLoader {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String encodedPassword = passwordEncoder.encode("password");
 
-            Movie m1 = movieRepository.findById(5L).get();
-            Movie m2 = movieRepository.findById(13L).get();
-            Movie m3 = movieRepository.findById(1L).get();
-            Movie m4 = movieRepository.findById(7L).get();
-            Movie m5 = movieRepository.findById(2L).get();
-            Movie m6 = movieRepository.findById(3L).get();
-            Movie m7 = movieRepository.findById(6L).get();
+            Movie m1 = movieRepository.findById(5L).orElseThrow(() ->new MovieNotFoundException(5L));
+            Movie m2 = movieRepository.findById(13L).orElseThrow(() ->new MovieNotFoundException(13L));
+            Movie m3 = movieRepository.findById(1L).orElseThrow(() ->new MovieNotFoundException(1L));
+            Movie m4 = movieRepository.findById(7L).orElseThrow(() ->new MovieNotFoundException(7L));
+            Movie m5 = movieRepository.findById(2L).orElseThrow(() ->new MovieNotFoundException(2L));
+            Movie m6 = movieRepository.findById(3L).orElseThrow(() ->new MovieNotFoundException(3L));
+            Movie m7 = movieRepository.findById(6L).orElseThrow(() ->new MovieNotFoundException(6L));
 
             User u1 = new User("UserA", encodedPassword, "USER", true, List.of(m1,m2,m3));
             User u2 = new User("UserB", encodedPassword, "USER", true, List.of(m4,m5,m6));
@@ -112,22 +114,22 @@ public class TestDataLoader {
         return (args) -> {
             log.info("Initializing reviews...");
 
-            User u1 = userRepository.findById(1L).get();
-            User u2 = userRepository.findById(2L).get();
-            User u3 = userRepository.findById(3L).get();
-            User u4 = userRepository.findById(4L).get();
+            User u1 = userRepository.findById(1L).orElseThrow(() -> new UserNotFoundException(1L));
+            User u2 = userRepository.findById(2L).orElseThrow(() -> new UserNotFoundException(2L));
+            User u3 = userRepository.findById(3L).orElseThrow(() -> new UserNotFoundException(3L));
+            User u4 = userRepository.findById(4L).orElseThrow(() -> new UserNotFoundException(4L));
 
-            Movie m1 = movieRepository.findById(1L).get();
-            Movie m2 = movieRepository.findById(2L).get();
-            Movie m3 = movieRepository.findById(3L).get();
-            Movie m4 = movieRepository.findById(4L).get();
-            Movie m5 = movieRepository.findById(5L).get();
-            Movie m6 = movieRepository.findById(6L).get();
-            Movie m7 = movieRepository.findById(7L).get();
-            Movie m8 = movieRepository.findById(8L).get();
-            Movie m9 = movieRepository.findById(9L).get();
-            Movie m10 = movieRepository.findById(10L).get();
-            Movie m11 = movieRepository.findById(11L).get();
+            Movie m1 = movieRepository.findById(1L).orElseThrow(() -> new MovieNotFoundException(1L));
+            Movie m2 = movieRepository.findById(2L).orElseThrow(() -> new MovieNotFoundException(2L));
+            Movie m3 = movieRepository.findById(3L).orElseThrow(() -> new MovieNotFoundException(3L));
+            Movie m4 = movieRepository.findById(4L).orElseThrow(() -> new MovieNotFoundException(4L));
+            Movie m5 = movieRepository.findById(5L).orElseThrow(() -> new MovieNotFoundException(5L));
+            Movie m6 = movieRepository.findById(6L).orElseThrow(() -> new MovieNotFoundException(6L));
+            Movie m7 = movieRepository.findById(7L).orElseThrow(() -> new MovieNotFoundException(7L));
+            Movie m8 = movieRepository.findById(8L).orElseThrow(() -> new MovieNotFoundException(8L));
+            Movie m9 = movieRepository.findById(9L).orElseThrow(() -> new MovieNotFoundException(9L));
+            Movie m10 = movieRepository.findById(10L).orElseThrow(() -> new MovieNotFoundException(10L));
+            Movie m11 = movieRepository.findById(11L).orElseThrow(() -> new MovieNotFoundException(11L));
 
             Review r1 = new Review("An absolute visual treat. The cinematography is breathtaking, but the plot feels like it's treading water.",
                     3, LocalDate.of(2020,5,8), true, u1, m1);

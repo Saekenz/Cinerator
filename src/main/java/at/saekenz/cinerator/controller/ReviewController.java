@@ -30,17 +30,27 @@ public class ReviewController {
     }
 
     @GetMapping
-    public CollectionModel<EntityModel<Review>> findAll() {
-        List<EntityModel<Review>> reviews = reviewService.findAll().stream()
+    public ResponseEntity<CollectionModel<EntityModel<Review>>> findAll() {
+        List<Review> reviews = reviewService.findAll();
+
+        if (reviews.isEmpty()) {
+            throw new ReviewNotFoundException();
+        }
+
+        List<EntityModel<Review>> reviewModels = reviews.stream()
                 .map(assembler::toModel)
                 .toList();
-        return CollectionModel.of(reviews, linkTo(methodOn(ReviewController.class).findAll()).withSelfRel());
+
+        CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviewModels,
+                linkTo(methodOn(ReviewController.class).findAll()).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/{id}")
-    public EntityModel<Review> findById(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<Review>> findById(@PathVariable Long id) {
         Review review = reviewService.findById(id).orElseThrow(() -> new ReviewNotFoundException(id));
-        return assembler.toModel(review);
+        return ResponseEntity.ok(assembler.toModel(review));
     }
 
     @PostMapping()
@@ -73,23 +83,50 @@ public class ReviewController {
     }
 
     @GetMapping("/user/{user_id}")
-    public CollectionModel<EntityModel<Review>> findByUserId(@PathVariable Long user_id) {
-        List<EntityModel<Review>> reviews = reviewService.findReviewsByUser(user_id).stream()
-                .map(assembler::toModel).toList();
-        return CollectionModel.of(reviews, linkTo(methodOn(ReviewController.class).findByUserId(user_id)).withSelfRel());
+    public ResponseEntity<CollectionModel<EntityModel<Review>>> findByUserId(@PathVariable Long user_id) {
+        List<Review> reviews = reviewService.findReviewsByUser(user_id);
+
+        if (reviews.isEmpty()) { throw new ReviewNotFoundException(); }
+
+        List<EntityModel<Review>> reviewModels = reviews.stream()
+                .map(assembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviewModels,
+                linkTo(methodOn(ReviewController.class).findByUserId(user_id)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/user/{user_id}/likes")
-    public CollectionModel<EntityModel<Review>> findLikedByUser(@PathVariable Long user_id) {
-        List<EntityModel<Review>> reviews = reviewService.findReviewsLikedByUser(user_id).stream()
-                .map(assembler::toModel).toList();
-        return CollectionModel.of(reviews, linkTo(methodOn(ReviewController.class).findLikedByUser(user_id)).withSelfRel());
+    public ResponseEntity<CollectionModel<EntityModel<Review>>> findLikedByUser(@PathVariable Long user_id) {
+        List<Review> reviews = reviewService.findReviewsLikedByUser(user_id);
+
+        if (reviews.isEmpty()) { throw new ReviewNotFoundException(); }
+
+        List<EntityModel<Review>> reviewModels = reviews.stream()
+                .map(assembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviewModels,
+                linkTo(methodOn(ReviewController.class).findLikedByUser(user_id)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("user/{user_id}/rating/{rating}")
-    public CollectionModel<EntityModel<Review>> findRatingByUser(@PathVariable Long user_id, @PathVariable Integer rating) {
-        List<EntityModel<Review>> reviews = reviewService.findReviewsRatedByUser(user_id, rating).stream()
-                .map(assembler::toModel).toList();
-        return CollectionModel.of(reviews, linkTo(methodOn(ReviewController.class).findRatingByUser(user_id, rating)).withSelfRel());
+    public ResponseEntity<CollectionModel<EntityModel<Review>>> findRatingByUser(@PathVariable Long user_id, @PathVariable Integer rating) {
+        List<Review> reviews = reviewService.findReviewsRatedByUser(user_id, rating);
+
+        if (reviews.isEmpty()) { throw new ReviewNotFoundException(); }
+
+        List<EntityModel<Review>> reviewModels = reviews.stream()
+                .map(assembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviewModels,
+                linkTo(methodOn(ReviewController.class).findRatingByUser(user_id, rating)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 }

@@ -296,6 +296,7 @@ public class MovieControllerSpringBootIntegrationTest {
 //        ObjectMapper om = new ObjectMapper();
 //        om.findAndRegisterModules();
 //        String json_data = om.writeValueAsString(review);
+//        System.out.println(json_data);
 //
 //        mockMvc.perform(post("/movies/{movie_id}/reviews", movie_id).contentType(MediaType.APPLICATION_JSON)
 //                        .content(json_data))
