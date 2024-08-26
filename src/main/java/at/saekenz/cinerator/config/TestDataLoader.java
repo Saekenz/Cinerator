@@ -1,10 +1,12 @@
 package at.saekenz.cinerator.config;
 
+import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserNotFoundException;
+import at.saekenz.cinerator.repository.ActorRepository;
 import at.saekenz.cinerator.repository.MovieRepository;
 import at.saekenz.cinerator.repository.ReviewRepository;
 import at.saekenz.cinerator.repository.UserRepository;
@@ -163,6 +165,23 @@ public class TestDataLoader {
             for(Review r : reviewRepository.saveAll(List.of(r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13,r14))) {
                 log.info("Created new review: {}", r);
             }
+        };
+    }
+
+    @Bean
+    public CommandLineRunner initActors(ActorRepository actorRepository) {
+        return args -> {
+          log.info("Initializing actors...");
+
+          Actor a1 = new Actor("Leonardo DiCaprio", LocalDate.of(1974, 11, 11), "United States");
+          Actor a2 = new Actor("Meryl Streep", LocalDate.of(1949, 6, 22), "United States");
+          Actor a3 = new Actor("Daniel Day-Lewis", LocalDate.of(1957, 4, 29), "United Kingdom");
+          Actor a4 = new Actor("Penélope Cruz", LocalDate.of(1974, 4, 28), "Spain");
+          Actor a5 = new Actor("Cate Blanchett", LocalDate.of(1969, 5, 14), "Australia");
+
+          for(Actor a : actorRepository.saveAll(List.of(a1, a2, a3, a4, a5))) {
+              log.info("Created actor: {}", a);
+          }
         };
     }
 }

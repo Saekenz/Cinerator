@@ -36,7 +36,7 @@ public class User {
    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
    private List<Movie> watchlist;
 
-   @OneToMany(mappedBy = "user", orphanRemoval = true)
+   @OneToMany(mappedBy = "user")
    private List<Review> reviews;
 
    public User() {

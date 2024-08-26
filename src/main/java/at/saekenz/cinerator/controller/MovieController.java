@@ -1,6 +1,6 @@
 package at.saekenz.cinerator.controller;
 
-import at.saekenz.cinerator.model.movie.EMovieSearchParams;
+import at.saekenz.cinerator.model.movie.EMovieSearchParam;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
@@ -65,7 +65,7 @@ public class MovieController {
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByTitle(@PathVariable String title) {
         List<Movie> movies = movieService.findByTitle(title);
 
-        if (movies.isEmpty()) { throw new MovieNotFoundException(EMovieSearchParams.TITLE, title); }
+        if (movies.isEmpty()) { throw new MovieNotFoundException(EMovieSearchParam.TITLE, title); }
 
         CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
                 linkTo(methodOn(MovieController.class).findByTitle(title)).withSelfRel());
@@ -77,7 +77,7 @@ public class MovieController {
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByDirector(@PathVariable String director) {
         List<Movie> movies = movieService.findByDirector(director);
 
-        if (movies.isEmpty()) { throw new MovieNotFoundException(EMovieSearchParams.DIRECTOR, director); }
+        if (movies.isEmpty()) { throw new MovieNotFoundException(EMovieSearchParam.DIRECTOR, director); }
 
         CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
                 linkTo(methodOn(MovieController.class).findByDirector(director)).withSelfRel());
@@ -90,7 +90,7 @@ public class MovieController {
         List<Movie> movies = movieService.findByGenre(genre);
 
         if (movies.isEmpty()) {
-            throw new MovieNotFoundException(EMovieSearchParams.GENRE, genre);
+            throw new MovieNotFoundException(EMovieSearchParam.GENRE, genre);
         }
 
         CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
@@ -104,7 +104,7 @@ public class MovieController {
         List<Movie> movies = movieService.findByCountry(country);
 
         if (movies.isEmpty()) {
-            throw new MovieNotFoundException(EMovieSearchParams.COUNTRY, country);
+            throw new MovieNotFoundException(EMovieSearchParam.COUNTRY, country);
         }
 
         CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
@@ -118,7 +118,7 @@ public class MovieController {
         List<Movie> movies = movieService.findByYear(year);
 
         if (movies.isEmpty()) {
-            throw new MovieNotFoundException(EMovieSearchParams.YEAR, year+"");
+            throw new MovieNotFoundException(EMovieSearchParam.YEAR, year+"");
         }
 
         CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,

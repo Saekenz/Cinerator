@@ -1,6 +1,6 @@
 package at.saekenz.cinerator.model.movie;
 
-public enum EMovieSearchParams {
+public enum EMovieSearchParam {
     TITLE("title"),
     DIRECTOR("director"),
     GENRE("genre"),
@@ -11,7 +11,7 @@ public enum EMovieSearchParams {
 
     private String paramName;
 
-    EMovieSearchParams(String paramName) { this.paramName = paramName; }
+    EMovieSearchParam(String paramName) { this.paramName = paramName; }
 
     public String getParamName() { return paramName; }
 }

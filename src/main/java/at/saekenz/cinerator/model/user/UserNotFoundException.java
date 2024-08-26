@@ -10,7 +10,7 @@ public class UserNotFoundException extends RuntimeException {
         super("Could not find user: " + id);
     }
 
-    public UserNotFoundException(EUserSearchParams searchParam, String input) {
+    public UserNotFoundException(EUserSearchParam searchParam, String input) {
         super(String.format("Could not find any users with %s: %s", searchParam.getParamName(), input));
     }
 }

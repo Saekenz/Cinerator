@@ -2,7 +2,7 @@ package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
-import at.saekenz.cinerator.model.user.EUserSearchParams;
+import at.saekenz.cinerator.model.user.EUserSearchParam;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserModelAssembler;
 import at.saekenz.cinerator.model.user.UserNotFoundException;
@@ -102,7 +102,7 @@ public class UserController {
         List<User> usersByUsername = userService.findByUsername(username);
 
         if (usersByUsername.isEmpty()) {
-            throw new UserNotFoundException(EUserSearchParams.USERNAME, username);
+            throw new UserNotFoundException(EUserSearchParam.USERNAME, username);
         }
 
         List<EntityModel<User>> userModels = usersByUsername.stream()
@@ -120,7 +120,7 @@ public class UserController {
         List<User> usersByRole = userService.findUsersByRole(role);
 
         if (usersByRole.isEmpty()) {
-            throw new UserNotFoundException(EUserSearchParams.ROLE, role);
+            throw new UserNotFoundException(EUserSearchParam.ROLE, role);
         }
 
         List<EntityModel<User>> userModels = usersByRole

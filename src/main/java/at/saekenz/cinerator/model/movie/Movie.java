@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.model.movie;
 
+import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.user.User;
 import com.fasterxml.jackson.annotation.*;
@@ -24,12 +25,16 @@ public class Movie {
     @Column(nullable = false)
     private LocalDate release_date;
 
+    @Column(nullable = false)
     private String runtime;
 
     @Column(nullable = false)
     private String director;
 
+    @Column(nullable = false)
     private String genre;
+
+    @Column(nullable = false)
     private String country;
 
     @Column(nullable = false)
@@ -45,6 +50,13 @@ public class Movie {
 
     @OneToMany(mappedBy = "movie")
     private List<Review> reviews;
+
+    @ManyToMany
+    @JoinTable(
+            name = "movie_actors",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "actor_id"))
+    private List<Actor> actors;
 
     public Movie() {
 

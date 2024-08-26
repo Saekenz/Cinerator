@@ -1,7 +1,5 @@
 package at.saekenz.cinerator.model.movie;
 
-import at.saekenz.cinerator.model.user.EUserSearchParams;
-
 public class MovieNotFoundException extends RuntimeException {
 
     public MovieNotFoundException() {
@@ -16,7 +14,7 @@ public class MovieNotFoundException extends RuntimeException {
         super(String.format("Could not find movie with %s: %s", title.matches("^tt\\d+$") ? "imdb_id" : "title", title));
     }
 
-    public MovieNotFoundException(EMovieSearchParams searchParam, String input) {
+    public MovieNotFoundException(EMovieSearchParam searchParam, String input) {
         super(String.format("Could not find any movies with %s: %s", searchParam.getParamName(), input));
     }
 }
