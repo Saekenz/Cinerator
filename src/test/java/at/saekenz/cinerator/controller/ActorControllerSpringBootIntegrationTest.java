@@ -171,8 +171,8 @@ public class ActorControllerSpringBootIntegrationTest {
     @Test
     public void givenActorSearchRequest_shouldSucceedWith200() throws Exception {
         Actor actor = new Actor("Daniel Day-Lewis", LocalDate.of(1957, 4, 29), "United Kingdom");
-        mockMvc.perform(get("/actors/search?name={name}&birth_country={birth_country}&age={age}",
-                actor.getName(),actor.getBirth_country(), actor.getAge())
+        mockMvc.perform(get("/actors/search?name={name}&birth_date={birth_date}&birth_country={birth_country}&age={age}",
+                actor.getName(),actor.getBirth_date(),actor.getBirth_country(), actor.getAge())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.actorList[*].name", everyItem(containsStringIgnoringCase(actor.getName()))))
@@ -180,7 +180,6 @@ public class ActorControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$._embedded.actorList[*].birth_country", everyItem(containsStringIgnoringCase(actor.getBirth_country()))))
                 .andExpect(jsonPath("$._embedded.actorList[*].age", everyItem(comparesEqualTo(actor.getAge()))))
                 .andDo(print());
-        // TODO -> fix search by birth_date
     }
 }
 

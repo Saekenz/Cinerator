@@ -6,6 +6,7 @@ import at.saekenz.cinerator.model.actor.ActorNotFoundException;
 import at.saekenz.cinerator.model.actor.EActorSearchParam;
 import at.saekenz.cinerator.service.IActorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -146,20 +147,11 @@ public class ActorController {
     @GetMapping("/search")
     public ResponseEntity<CollectionModel<EntityModel<Actor>>> searchActors(
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) String birth_date,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate birth_date,
             @RequestParam(required = false) String birth_country,
             @RequestParam(required = false) Integer age) {
 
-        LocalDate parsedBirthDate = null;
-        if  (birth_date != null) {
-            try {
-                parsedBirthDate = LocalDate.parse(birth_date);
-            } catch (DateTimeParseException e) {
-                throw new ActorNotFoundException(EActorSearchParam.BIRTH_DATE, birth_date);
-            }
-        }
-
-        List<Actor> actors = actorService.searchActors(name, parsedBirthDate, birth_country, age);
+        List<Actor> actors = actorService.searchActors(name, birth_date, birth_country, age);
 
         if (actors.isEmpty()) { throw new ActorNotFoundException(); }
 

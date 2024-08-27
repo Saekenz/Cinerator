@@ -28,7 +28,7 @@ public interface ActorRepository extends JpaRepository<Actor, Long> {
 
     @Query("SELECT a FROM Actor a WHERE " +
             "(LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL) AND " +
-            "(a.birth_date = :birth_date OR :birth_date IS NULL) AND " +
+            "(a.birth_date = :birth_date OR CAST(:birth_date as timestamp) IS NULL) AND " +
             "(LOWER(a.birth_country) = LOWER(:birth_country) OR :birth_country IS NULL) AND " +
             "(a.age = :age OR :age IS NULL)")
     List<Actor> findActorsBySearchParams(@Param("name") String name,
