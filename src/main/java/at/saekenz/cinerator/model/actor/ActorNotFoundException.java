@@ -11,6 +11,6 @@ public class ActorNotFoundException extends RuntimeException {
     }
 
     public ActorNotFoundException(EActorSearchParam searchParam, String input) {
-        super(String.format("Could not find any actor with %s: %s", searchParam, input));
+        super(String.format("Could not find any actor with %s: %s", searchParam.getParamName(), input));
     }
 }
