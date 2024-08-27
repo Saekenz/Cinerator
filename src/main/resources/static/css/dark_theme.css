@@ -21,7 +21,7 @@ a {
 }
 
 a:hover {
-    color: #CF6679; /* Red accent for hovered links */
+    color: #BB86FC; /* Red accent for hovered links */
 }
 
 header {
@@ -35,25 +35,27 @@ main {
 }
 
 button {
-    background-color: #2D2D2D; /* Dark background for buttons */
+    background-color: #BB86FC; /* Dark background for buttons */
     color: #E0E0E0; /* Light text on buttons */
-    border: none;
+    border: 1px solid #3c3c3c;
+    text-decoration: solid;
+    border-radius: 10px;
     padding: 10px 20px;
     cursor: pointer;
     box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3), inset 1px 1px 2px rgba(255, 255, 255, 0.2); /* Subtle shadow and inset light for depth */
 }
 
 button:hover {
-    /* Gradient changes on hover */
-    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.4), inset 1px 1px 3px rgba(255, 255, 255, 0.3); /* Enhanced shadow on hover */
-    /* Slightly lighter on hover */
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.4), inset 1px 1px 3px rgba(255, 255, 255, 0.3);
     background: #3C3C3C linear-gradient(145deg, #2d2d2d, #3c3c3c);
 }
 
 input[type="text"], input[type="date"], input[type="number"] {
     background-color: #2D2D2D;
     color: #E0E0E0;
-    border: 1px solid #555;
+    text-decoration: solid;
+    border: 1px solid #BB86FC;
+    border-radius: 10px;
     padding: 10px;
     box-sizing: border-box;
     margin-bottom: 10px;
@@ -88,11 +90,6 @@ footer {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-/*.movie-details {*/
-/*    display: flex;*/
-/*    align-items: flex-start;*/
-/*}*/
-
 .movie-content {
     flex: 1;
 }
@@ -109,7 +106,8 @@ footer {
 }
 
 .movie {
-    border: 1px solid #ccc;
+    border: 1px solid #BB86FC;
+    border-radius: 10px;
     padding: 15px;
     margin-bottom: 20px;
     display: flex;
@@ -132,23 +130,6 @@ footer {
     margin: 5px 0;
 }
 
-.links a {
-    display: block;
-    text-align: center;
-    margin: 10px 0;
-    padding: 12px;
-    border-radius: 5px;
-    background-color: #2e2e2e;
-    text-decoration: none;
-    color: #e0e0e0;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-}
-
-.links a:hover {
-    background-color: #3e3e3e;
-}
-
 .auth-button {
     padding: 12px;
     background-color: #BB86FC;
@@ -158,10 +139,6 @@ footer {
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
-}
-
-.auth-button:hover {
-    background-color: #CF6679;
 }
 
 .index-header {
@@ -222,4 +199,39 @@ footer {
     color: #BB86FC;
     font-size: 20px;
     margin-left: 10px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 15px;
+    padding: 15px;
+    background-color: black;
+    border: 3px solid #BB86FC;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    text-decoration: solid;
+}
+
+.tile {
+    background-color: #2e2e2e;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1em;
+    text-decoration: solid;
+    padding: 30px;
+    border-radius: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tile:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.tile:active {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 }
