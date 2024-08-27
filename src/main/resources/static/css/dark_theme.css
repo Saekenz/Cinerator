@@ -201,6 +201,8 @@ footer {
     margin-left: 10px;
 }
 
+/* Styles for index.html */
+
 .grid-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -234,4 +236,25 @@ footer {
 .tile:active {
     transform: translateY(-2px);
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Create actor styles */
+
+.actor-form-container {
+    background-color: #2c2c2c;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+}
+
+.actor-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.actor-label {
+    margin-bottom: 8px;
+    font-weight: bold;
 }

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Actor</title>
+    <link rel="stylesheet" href="/css/dark_theme.css">
+</head>
+<body>
+<div class="actor-form-container">
+    <h1>Add a New Actor</h1>
+    <form class="actor-form" id="actorForm" action="#" method="post">
+        <label class="actor-label" for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label class="actor-label" for="birth_date">Birthdate:</label>
+        <input type="date" id="birth_date" name="birth_date" required>
+
+        <label class="actor-label" for="birth_country">Country:</label>
+        <input type="text" id="birth_country" name="birth_country" required>
+
+        <button type="button" id="create-actor">Submit</button>
+    </form>
+    <script src="/js/create-actor.js"></script>
+</div>
+</body>
+</html>

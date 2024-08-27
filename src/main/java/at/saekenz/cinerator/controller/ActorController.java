@@ -8,6 +8,7 @@ import at.saekenz.cinerator.service.IActorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -172,7 +173,41 @@ public class ActorController {
         return ResponseEntity.ok(collectionModel);
     }
 
-    // create
-    // update
-    // delete
+    @PostMapping()
+    public ResponseEntity<?> createActor(@RequestBody Actor actor) {
+        EntityModel<Actor> actorModel = actorAssembler.toModel(actorService.save(actor));
+
+        return ResponseEntity
+                .created(actorModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(actorModel);
+    }
+
+    @PutMapping("/{actor_id}")
+    public ResponseEntity<?> updateActor(@PathVariable Long actor_id, @RequestBody Actor newActor) {
+        Actor updatedActor = actorService.findById(actor_id).map(
+                actor -> {
+                    actor.setName(newActor.getName());
+                    actor.setBirth_date(newActor.getBirth_date());
+                    actor.setBirth_country(newActor.getBirth_country());
+                    actor.setAge(newActor.getAge());
+                    return actorService.save(actor);
+                })
+                .orElseGet(() -> actorService.save(newActor));
+        EntityModel<Actor> entityModel = actorAssembler.toModel(updatedActor);
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
+    }
+
+    @DeleteMapping("/{actor_id}")
+    public ResponseEntity<?> deleteActor(@PathVariable Long actor_id) {
+        if (actorService.findById(actor_id).isPresent()) {
+            actorService.deleteById(actor_id);
+            return ResponseEntity.noContent().build();
+        }
+        else {
+            throw new ActorNotFoundException(actor_id);
+        }
+    }
 }
