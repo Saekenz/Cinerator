@@ -132,6 +132,10 @@ public class Movie {
 
     public void setReviews(List<Review> reviews) { this.reviews = reviews; }
 
+    public List<Actor> getActors() { return actors; }
+
+    public void setActors(List<Actor> actors) { this.actors = actors; }
+
     @Override
     public String toString() {
         return "Movie{" +

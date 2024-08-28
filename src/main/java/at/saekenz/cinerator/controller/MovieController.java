@@ -1,5 +1,7 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.actor.Actor;
+import at.saekenz.cinerator.model.actor.ActorModelAssembler;
 import at.saekenz.cinerator.model.movie.EMovieSearchParam;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
@@ -33,10 +35,13 @@ public class MovieController {
 
     private final MovieModelAssembler movieAssembler;
     private final ReviewModelAssembler reviewAssembler;
+    private final ActorModelAssembler actorAssembler;
 
-    public MovieController(MovieModelAssembler movieAssembler, ReviewModelAssembler reviewAssembler) {
+    public MovieController(MovieModelAssembler movieAssembler, ReviewModelAssembler reviewAssembler,
+                           ActorModelAssembler actorAssembler) {
         this.movieAssembler = movieAssembler;
         this.reviewAssembler = reviewAssembler;
+        this.actorAssembler = actorAssembler;
     }
 
     @GetMapping
@@ -196,6 +201,23 @@ public class MovieController {
 
         CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviews,
                 linkTo(methodOn(MovieController.class).findReviewsById(id)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    @GetMapping("/{id}/actors")
+    public ResponseEntity<CollectionModel<EntityModel<Actor>>> findActorsById(@PathVariable Long id) {
+        Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
+
+        List<Actor> actors = movie.getActors();
+        if (actors.isEmpty()) { return ResponseEntity.ok().build(); }
+
+        List<EntityModel<Actor>> actorModels = actors.stream()
+                .map(actorAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Actor>> collectionModel = CollectionModel.of(actorModels,
+                linkTo(methodOn(MovieController.class).findActorsById(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }

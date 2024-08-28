@@ -1,6 +1,7 @@
 package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.actor.Actor;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,14 +9,17 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -125,6 +129,7 @@ public class ActorControllerSpringBootIntegrationTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenCreateActorRequest_shouldSucceedWith201() throws Exception {
         Actor actor = new Actor("Brad Pitt",LocalDate.of(1963,12,18),"United States");
         ObjectMapper om = new ObjectMapper().findAndRegisterModules();
@@ -139,6 +144,7 @@ public class ActorControllerSpringBootIntegrationTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateActorRequest_shouldSucceedWith201() throws Exception {
         Long old_actor_id = 5L; // replace "Cate Blanchett"
         Actor actor = new Actor("Brad Pitt",LocalDate.of(1963,12,18),"United States");
@@ -155,8 +161,9 @@ public class ActorControllerSpringBootIntegrationTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenDeleteActorRequest_shouldSucceedWith204() throws Exception {
-        Long actor_id = 2L;
+        Long actor_id = 4L;
         mockMvc.perform(delete("/actors/{actor_id}",actor_id).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
@@ -180,6 +187,43 @@ public class ActorControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$._embedded.actorList[*].birth_country", everyItem(containsStringIgnoringCase(actor.getBirth_country()))))
                 .andExpect(jsonPath("$._embedded.actorList[*].age", everyItem(comparesEqualTo(actor.getAge()))))
                 .andDo(print());
+    }
+
+    @Test
+    public void givenFindMoviesByIdRequest_shouldSucceedWith200() throws Exception {
+        long actor_id = 2L;
+        MvcResult result = mockMvc.perform(get("/actors/{actor_id}/movies",actor_id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String jsonResponse = result.getResponse().getContentAsString();
+        JsonNode rootNode = new ObjectMapper().readTree(jsonResponse);
+
+        JsonNode movieList = rootNode.path("_embedded").path("movieList");
+        boolean containsActor = false;
+
+        for (JsonNode movie : movieList) {
+            JsonNode actors = movie.path("actors");
+
+            for (JsonNode actor : actors) {
+                if (actor.path("actor_id").asLong() == actor_id) {
+                    containsActor = true;
+                    break;
+                }
+            }
+            if (!containsActor) { break; }
+        }
+
+        assertTrue(String.format("Actor with actor_id = %s not present in all movies!", actor_id), containsActor);
+    }
+
+    @Test
+    public void givenFindMoviesByIdRequest_shouldFailWith404() throws Exception {
+        Long actor_id = -999L;
+        mockMvc.perform(get("/actors/{actor_id}/movies",actor_id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("actor with id: %s", actor_id))));
     }
 }
 

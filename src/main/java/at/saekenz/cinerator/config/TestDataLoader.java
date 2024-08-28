@@ -1,6 +1,7 @@
 package at.saekenz.cinerator.config;
 
 import at.saekenz.cinerator.model.actor.Actor;
+import at.saekenz.cinerator.model.actor.ActorNotFoundException;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.movie.Movie;
@@ -27,7 +28,7 @@ public class TestDataLoader {
     private static final Logger log = LoggerFactory.getLogger(TestDataLoader.class);
 
     @Bean
-    @Order(2)
+    @Order(3)
     public CommandLineRunner initUsers(UserRepository userRepository, MovieRepository movieRepository) {
         return (args) -> {
 
@@ -56,16 +57,24 @@ public class TestDataLoader {
     }
 
     @Bean
-    @Order(1)
-    public CommandLineRunner initMovies(MovieRepository movieRepository) {
+    @Order(2)
+    public CommandLineRunner initMovies(MovieRepository movieRepository, ActorRepository actorRepository) {
         return (args) -> {
             log.info("Initializing movies...");
 
+            Actor a1 = actorRepository.findById(1L).orElseThrow(() ->new ActorNotFoundException(1L));
+            Actor a2 = actorRepository.findById(2L).orElseThrow(() ->new ActorNotFoundException(2L));
+            Actor a3 = actorRepository.findById(3L).orElseThrow(() ->new ActorNotFoundException(3L));
+            Actor a4 = actorRepository.findById(4L).orElseThrow(() ->new ActorNotFoundException(4L));
+            Actor a5 = actorRepository.findById(5L).orElseThrow(() ->new ActorNotFoundException(5L));
+
             Movie m1 = new Movie("Sicario", "Denis Villeneuve", LocalDate.of(2015,10,1), "122 min",
                     "Thriller","United States","tt3397884","https://upload.wikimedia.org/wikipedia/en/4/4b/Sicario_poster.jpg");
+            m1.setActors(List.of(a1,a2,a3,a4));
 
             Movie m2 = new Movie("Dune: Part Two", "Denis Villeneuve", LocalDate.of(2024,3,1), "167 min",
                     "Science Fiction", "United States","tt15239678","https://upload.wikimedia.org/wikipedia/en/5/52/Dune_Part_Two_poster.jpeg");
+            m2.setActors(List.of(a2,a3,a5));
 
             Movie m3 = new Movie("Good Will Hunting", "Gus Van Sant", LocalDate.of(1998,9,1), "127 min",
                     "Drama", "United States","tt0119217","https://upload.wikimedia.org/wikipedia/en/5/52/Good_Will_Hunting.png");
@@ -110,7 +119,7 @@ public class TestDataLoader {
     }
 
     @Bean
-    @Order(3)
+    @Order(4)
     public CommandLineRunner initReviews(ReviewRepository reviewRepository, UserRepository userRepository,
                                          MovieRepository movieRepository) {
         return (args) -> {
@@ -169,6 +178,7 @@ public class TestDataLoader {
     }
 
     @Bean
+    @Order(1)
     public CommandLineRunner initActors(ActorRepository actorRepository) {
         return args -> {
           log.info("Initializing actors...");

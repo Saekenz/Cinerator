@@ -4,6 +4,8 @@ import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorModelAssembler;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
 import at.saekenz.cinerator.model.actor.EActorSearchParam;
+import at.saekenz.cinerator.model.movie.Movie;
+import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.service.IActorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -28,9 +30,12 @@ public class ActorController {
     IActorService actorService;
 
     private final ActorModelAssembler actorAssembler;
+    private final MovieModelAssembler movieAssembler;
 
-    public ActorController(ActorModelAssembler actorAssembler) {
+    public ActorController(ActorModelAssembler actorAssembler,
+                           MovieModelAssembler movieAssembler) {
         this.actorAssembler = actorAssembler;
+        this.movieAssembler = movieAssembler;
     }
 
     @GetMapping
@@ -128,22 +133,6 @@ public class ActorController {
         return ResponseEntity.ok(collectionModel);
     }
 
-//    @GetMapping("/searchCountry")
-//    public ResponseEntity<CollectionModel<EntityModel<Actor>>> searchActorsCountry(@RequestParam String country) {
-//        List<Actor> actors = actorService.findByBirthCountry(country);
-//
-//        if (actors.isEmpty()) { throw new ActorNotFoundException(EActorSearchParam.BIRTH_COUNTRY, country); }
-//
-//        List<EntityModel<Actor>> actorModels = actors.stream()
-//                .map(actorAssembler::toModel)
-//                .toList();
-//
-//        CollectionModel<EntityModel<Actor>> collectionModel = CollectionModel.of(actorModels,
-//                linkTo(methodOn(ActorController.class).searchActorsCountry(country)).withSelfRel());
-//
-//        return ResponseEntity.ok(collectionModel);
-//    }
-
     @GetMapping("/search")
     public ResponseEntity<CollectionModel<EntityModel<Actor>>> searchActors(
             @RequestParam(required = false) String name,
@@ -201,5 +190,23 @@ public class ActorController {
         else {
             throw new ActorNotFoundException(actor_id);
         }
+    }
+
+    @GetMapping("/{id}/movies")
+    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findMoviesById(@PathVariable Long id) {
+        Actor actor = actorService.findById(id).orElseThrow(() -> new ActorNotFoundException(id));
+
+        List<Movie> movies = actor.getMovies();
+        if (movies.isEmpty()) { return ResponseEntity.ok().build(); }
+
+        List<EntityModel<Movie>> movieModels = movies.stream()
+                .map(movieAssembler::toModel)
+                .toList();
+
+
+        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(movieModels,
+                linkTo(methodOn(ActorController.class).findMoviesById(id)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 }

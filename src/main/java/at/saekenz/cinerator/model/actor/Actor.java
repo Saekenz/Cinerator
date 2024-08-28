@@ -1,6 +1,7 @@
 package at.saekenz.cinerator.model.actor;
 
 import at.saekenz.cinerator.model.movie.Movie;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -27,6 +28,7 @@ public class Actor {
     private int age;
 
     @ManyToMany(mappedBy = "actors")
+    @JsonIgnore
     private List<Movie> movies;
 
     public Actor() {}
@@ -36,6 +38,13 @@ public class Actor {
         this.birth_date = birth_date;
         this.birth_country = birth_country;
         this.age = Period.between(birth_date, LocalDate.now()).getYears();
+    }
+
+    @PreRemove
+    private void removeActorFromMovies() {
+        for (Movie movie : movies) {
+            movie.getActors().remove(this);
+        }
     }
 
     public void setActor_id(Long actorId) {
@@ -77,6 +86,10 @@ public class Actor {
     public void setAge(int age) {
         this.age = age;
     }
+
+    public List<Movie> getMovies() { return movies; }
+
+    public void setMovies(List<Movie> movies) { this.movies = movies; }
 
     @Override
     public String toString() {

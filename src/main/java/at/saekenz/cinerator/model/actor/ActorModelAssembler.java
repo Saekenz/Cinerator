@@ -16,11 +16,10 @@ public class ActorModelAssembler implements RepresentationModelAssembler<Actor, 
 
         return EntityModel.of(actor,
                 linkTo(methodOn(ActorController.class).findById(actor.getActor_id())).withSelfRel(),
+                linkTo(methodOn(ActorController.class).findMoviesById(actor.getActor_id())).withRel("movies"),
                 linkTo(methodOn(ActorController.class).findByBirthCountry(actor.getBirth_country())).withRel("country"),
-                linkTo(methodOn(ActorController.class).findByBirthDate(actor.getBirth_date().toString())).withRel("born"),
                 linkTo(methodOn(ActorController.class).findByAge(actor.getAge())).withRel("age"),
                 linkTo(methodOn(ActorController.class).findAll()).withRel("actors"));
-
     }
 
 }

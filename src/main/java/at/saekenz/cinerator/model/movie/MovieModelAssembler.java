@@ -16,6 +16,7 @@ public class MovieModelAssembler implements RepresentationModelAssembler<Movie, 
 
         return EntityModel.of(movie,
                 linkTo(methodOn(MovieController.class).findById(movie.getMovie_id())).withSelfRel(),
+                linkTo(methodOn(MovieController.class).findActorsById(movie.getMovie_id())).withRel("actors"),
                 linkTo(methodOn(MovieController.class).findByDirector(movie.getDirector())).withRel("director"),
                 linkTo(methodOn(MovieController.class).findByGenre(movie.getGenre())).withRel("genre"),
                 linkTo(methodOn(MovieController.class).findByCountry(movie.getCountry())).withRel("country"),

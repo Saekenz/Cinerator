@@ -328,4 +328,20 @@ public class MovieControllerSpringBootIntegrationTest {
             .andDo(print());
 
     }
+
+    @Test
+    public void givenFindActorsByIdRequest_shouldSucceedWith200() throws Exception {
+        Long movie_id = 1L;
+        mockMvc.perform(get("/movies/{movie_id}/actors", movie_id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+        // TODO -> check if actors are correct
+    }
+
+    @Test
+    public void givenFindActorsByIdRequest_shouldFailWith404() throws Exception {
+        Long movie_id = -999L;
+        mockMvc.perform(get("/movies/{movie_id}/actors", movie_id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movie_id))));
+    }
 }
