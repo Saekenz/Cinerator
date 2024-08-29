@@ -9,6 +9,7 @@ import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.review.ReviewModelAssembler;
+import at.saekenz.cinerator.service.IActorService;
 import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class MovieController {
 
     @Autowired
     IMovieService movieService;
+
+    @Autowired
+    IActorService actorService;
 
     @Autowired
     IReviewService reviewService;
@@ -232,6 +236,27 @@ public class MovieController {
 
         return ResponseEntity.ok(actorAssembler.toModel(actor));
 
+    }
+
+    @PostMapping("/{movie_id}/actors")
+    public ResponseEntity<EntityModel<Movie>> addActorToMovie(@PathVariable Long movie_id, @RequestBody Long actor_id) {
+        Movie movie = movieService.findById(movie_id).orElseThrow(() -> new MovieNotFoundException(movie_id));
+        Actor actor = actorService.findById(actor_id).orElseThrow(() -> new ActorNotFoundException(actor_id));
+
+        movie.getActors().add(actor);
+        movieService.save(movie);
+
+        return ResponseEntity.ok(movieAssembler.toModel(movie));
+    }
+
+    @DeleteMapping("/{movie_id}/actors/{actor_id}")
+    public ResponseEntity<EntityModel<Movie>> removeActorFromMovie(@PathVariable Long movie_id, @PathVariable Long actor_id) {
+        Movie movie = movieService.findById(movie_id).orElseThrow(() -> new MovieNotFoundException(movie_id));
+
+        movie.removeActor(actor_id);
+        movieService.save(movie);
+
+        return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
     @PostMapping("/{id}/reviews")

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -363,6 +364,71 @@ public class MovieControllerSpringBootIntegrationTest {
 
         mockMvc.perform(get("/movies/{movie_id}/actors/{actor_id}", movie_id, actor_id).
                 contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movie_id))));
+
+        movie_id = 2L;
+        actor_id = -999L;
+
+        mockMvc.perform(get("/movies/{movie_id}/actors/{actor_id}", movie_id, actor_id).
+                        contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("actor with id: %s", actor_id))));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenAddActorToMovieRequest_shouldSucceedWith200() throws Exception {
+        Long movie_id = 13L;
+        Long actor_id = 5L;
+
+        mockMvc.perform(post("/movies/{movie_id}/actors", movie_id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(String.valueOf(actor_id)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(String.format("$.actors[?(@.actor_id == %s)]",actor_id)).exists());
+    }
+
+    @Test
+    public void givenAddActorToMovieRequest_shouldFailWith404() throws Exception {
+        Long movie_id = -999L;
+        Long actor_id = 5L;
+
+        mockMvc.perform(post("/movies/{movie_id}/actors", movie_id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.valueOf(actor_id)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movie_id))));
+
+        movie_id = 13L;
+        actor_id = -999L;
+
+        mockMvc.perform(post("/movies/{movie_id}/actors", movie_id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.valueOf(actor_id)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("actor with id: %s", actor_id))));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenDeleteActorFromMovieRequest_shouldSucceedWith200() throws Exception {
+        Long movie_id = 2L;
+        Long actor_id = 2L;
+
+        mockMvc.perform(delete("/movies/{movie_id}/actors/{actor_id}", movie_id, actor_id)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(String.format("$.actors[?(@.actor_id == %s)]", actor_id)).isEmpty());
+    }
+
+    @Test
+    public void givenDeleteActorFromMovieRequest_shouldFailWith404() throws Exception {
+        Long movie_id = -999L;
+        Long actor_id = 2L;
+
+        mockMvc.perform(delete("/movies/{movie_id}/actors/{actor_id}", movie_id, actor_id)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(String.format("Could not find movie: %s", movie_id))));
     }

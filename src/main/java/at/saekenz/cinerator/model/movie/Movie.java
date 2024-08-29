@@ -10,6 +10,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "movies")
@@ -135,6 +136,10 @@ public class Movie {
     public List<Actor> getActors() { return actors; }
 
     public void setActors(List<Actor> actors) { this.actors = actors; }
+
+    public void addActor(Actor actor) { this.actors.add(actor); }
+
+    public void removeActor(Long actor_id) { this.actors.removeIf(a -> Objects.equals(a.getActor_id(), actor_id)); }
 
     @Override
     public String toString() {
