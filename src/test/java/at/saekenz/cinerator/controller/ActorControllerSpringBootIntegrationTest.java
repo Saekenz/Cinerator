@@ -225,5 +225,27 @@ public class ActorControllerSpringBootIntegrationTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(String.format("actor with id: %s", actor_id))));
     }
+
+    @Test
+    public void givenFindMovieByIdRequest_shouldSucceedWith200() throws Exception {
+        Long actor_id = 2L;
+        Long movie_id = 2L;
+
+        mockMvc.perform(get("/actors/{actor_id}/movies/{movie_id}",actor_id,movie_id)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.movie_id").value(movie_id));
+    }
+
+    @Test
+    public void givenFindMovieByIdRequest_shouldFailWith404() throws Exception {
+        Long actor_id = -999L;
+        Long movie_id = 2L;
+
+        mockMvc.perform(get("/actors/{actor_id}/movies/{movie_id}",actor_id,movie_id)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("actor with id: %s", actor_id))));
+    }
 }
 

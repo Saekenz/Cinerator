@@ -333,14 +333,36 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindActorsByIdRequest_shouldSucceedWith200() throws Exception {
         Long movie_id = 1L;
         mockMvc.perform(get("/movies/{movie_id}/actors", movie_id).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-        // TODO -> check if actors are correct
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.actorList").isNotEmpty());
     }
 
     @Test
     public void givenFindActorsByIdRequest_shouldFailWith404() throws Exception {
         Long movie_id = -999L;
         mockMvc.perform(get("/movies/{movie_id}/actors", movie_id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movie_id))));
+    }
+
+    @Test
+    public void givenFindActorByIdRequest_shouldSucceedWith200() throws Exception {
+        Long movie_id = 2L;
+        Long actor_id = 2L;
+
+        mockMvc.perform(get("/movies/{movie_id}/actors/{actor_id}", movie_id, actor_id).
+                contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.actor_id").value(actor_id));
+    }
+
+    @Test
+    public void givenFindActorByIdRequest_shouldFailWith404() throws Exception {
+        Long movie_id = -999L;
+        Long actor_id = 2L;
+
+        mockMvc.perform(get("/movies/{movie_id}/actors/{actor_id}", movie_id, actor_id).
+                contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(String.format("Could not find movie: %s", movie_id))));
     }

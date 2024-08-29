@@ -2,6 +2,7 @@ package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorModelAssembler;
+import at.saekenz.cinerator.model.actor.ActorNotFoundException;
 import at.saekenz.cinerator.model.movie.EMovieSearchParam;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -48,7 +50,7 @@ public class MovieController {
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findAll() {
         List<Movie> movies = movieService.findAll();
 
-        if (movies.isEmpty()) { throw new MovieNotFoundException(); }
+        if (movies.isEmpty()) { return ResponseEntity.ok().build(); }
 
         List<EntityModel<Movie>> movieModels = movies.stream()
                 .map(movieAssembler::toModel)
@@ -220,6 +222,16 @@ public class MovieController {
                 linkTo(methodOn(MovieController.class).findActorsById(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
+    }
+
+    @GetMapping("/{movie_id}/actors/{actor_id}")
+    public ResponseEntity<EntityModel<Actor>> findActorById(@PathVariable Long movie_id, @PathVariable Long actor_id) {
+        Movie movie = movieService.findById(movie_id).orElseThrow(() -> new MovieNotFoundException(movie_id));
+        Actor actor = movie.getActors().stream()
+                .filter(a -> Objects.equals(a.getActor_id(), actor_id)).findFirst().orElseThrow(() -> new ActorNotFoundException(actor_id));
+
+        return ResponseEntity.ok(actorAssembler.toModel(actor));
+
     }
 
     @PostMapping("/{id}/reviews")

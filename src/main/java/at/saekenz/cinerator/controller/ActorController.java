@@ -6,6 +6,7 @@ import at.saekenz.cinerator.model.actor.ActorNotFoundException;
 import at.saekenz.cinerator.model.actor.EActorSearchParam;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
+import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.service.IActorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Objects;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -42,7 +44,7 @@ public class ActorController {
     public ResponseEntity<CollectionModel<EntityModel<Actor>>> findAll() {
         List<Actor> actors = actorService.findAll();
 
-        if (actors.isEmpty()) { throw new ActorNotFoundException(); }
+        if (actors.isEmpty()) { return ResponseEntity.ok().build(); }
 
         List<EntityModel<Actor>> actorModels = actors.stream()
                 .map(actorAssembler::toModel)
@@ -142,7 +144,8 @@ public class ActorController {
 
         List<Actor> actors = actorService.searchActors(name, birth_date, birth_country, age);
 
-        if (actors.isEmpty()) { throw new ActorNotFoundException(); }
+        // return empty body if no actors were found
+        if (actors.isEmpty()) { return ResponseEntity.ok().build(); }
 
         List<EntityModel<Actor>> actorModels = actors.stream()
                 .map(actorAssembler::toModel)
@@ -208,5 +211,16 @@ public class ActorController {
                 linkTo(methodOn(ActorController.class).findMoviesById(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
+    }
+
+    @GetMapping("/{actor_id}/movies/{movie_id}")
+    public ResponseEntity<EntityModel<Movie>> findMovieById(@PathVariable Long actor_id, @PathVariable Long movie_id) {
+        Actor actor = actorService.findById(actor_id).orElseThrow(() -> new ActorNotFoundException(actor_id));
+        Movie movie = actor.getMovies().stream()
+                .filter(m -> Objects.equals(m.getMovie_id(), movie_id))
+                .findFirst()
+                .orElseThrow(() -> new MovieNotFoundException(movie_id));
+
+        return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 }
