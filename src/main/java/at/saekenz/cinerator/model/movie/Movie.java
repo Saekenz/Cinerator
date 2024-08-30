@@ -44,7 +44,6 @@ public class Movie {
     private String poster_url;
 
     @ManyToMany(mappedBy = "watchlist")
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JsonIgnore
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<User> user;
@@ -57,7 +56,7 @@ public class Movie {
             name = "movie_actors",
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "actor_id"))
-    private List<Actor> actors;
+    private List<Actor> actors; // ok if actors contained multiple times -> multiple roles! (impl in future)
 
     public Movie() {
 

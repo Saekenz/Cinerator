@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -191,5 +192,81 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/users/{user_id}/watchlist", user_id).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andDo(print());
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenAddMovieToWatchlistRequest_shouldSucceedWith200() throws Exception {
+        Long user_id = 2L;
+        Long movie_id = 11L;
+
+        mockMvc.perform(post("/users/{user_id}/watchlist", user_id, movie_id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(String.valueOf(movie_id)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(String.format("$.watchlist[?(@.movie_id == %s)]", movie_id)).exists());
+    }
+
+    /**
+     * Performs request for adding a movie to a user's watchlist twice.
+     * The first time the request contains an invalid user_id and a valid movie_id.
+     * The second time the request contains a valid user_id and an in valid movie_id.
+     * Both requests have to return HTTP code 404.
+     * @throws Exception
+     */
+    @Test
+    public void givenAddMovieToWatchlistRequest_shouldFailWith404() throws Exception {
+       Long user_id = -999L;
+       Long movie_id = 11L;
+
+       mockMvc.perform(post("/users/{user_id}/watchlist", user_id, movie_id)
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(String.valueOf(movie_id)))
+               .andExpect(status().isNotFound())
+               .andExpect(content()
+                       .string(containsString(String.format("Could not find user: %s", user_id))));
+
+       user_id = 2L;
+       movie_id = -999L;
+
+        mockMvc.perform(post("/users/{user_id}/watchlist", user_id, movie_id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.valueOf(movie_id)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movie_id))));
+    }
+
+    /**
+     *
+     * Attempts to remove a movie from a user's watchlist by id.
+     * Request is made twice to ensure HTTP code 204 is returned even if the to be deleted
+     * resource does not exist anymore.
+     * @throws Exception
+     */
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenRemoveMovieFromWatchlistRequest_shouldSucceedWith204() throws Exception {
+        Long user_id = 3L;
+        Long movie_id = 6L;
+
+        mockMvc.perform(delete("/users/{user_id}/watchlist/{movie_id}", user_id, movie_id)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(delete("/users/{user_id}/watchlist/{movie_id}", user_id, movie_id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void givenRemoveMovieFromWatchlistRequest_shouldFailWith404() throws Exception {
+        Long user_id = -999L;
+        Long movie_id = 11L;
+
+        mockMvc.perform(delete("/users/{user_id}/watchlist/{movie_id}", user_id, movie_id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(String.valueOf(movie_id)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find user: %s", user_id))));
     }
 }

@@ -2,11 +2,15 @@ package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
+import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.model.user.EUserSearchParam;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserModelAssembler;
 import at.saekenz.cinerator.model.user.UserNotFoundException;
+import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IUserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -27,12 +31,23 @@ public class UserController {
     @Autowired
     IUserService userService;
 
+    @Autowired
+    IMovieService movieService;
+
     private final UserModelAssembler assembler;
     private final MovieModelAssembler movieAssembler;
+
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     UserController(UserModelAssembler assembler, MovieModelAssembler movieAssembler) {
         this.assembler = assembler;
         this.movieAssembler = movieAssembler;
+    }
+
+    // for testing only
+    @GetMapping("/currentUser")
+    public String currentUserName(Authentication authentication) {
+        return authentication.getName();
     }
 
     @GetMapping
@@ -149,10 +164,29 @@ public class UserController {
         return ResponseEntity.ok(collectionModel);
     }
 
-    // for testing only
-    @GetMapping("/currentUser")
-    public String currentUserName(Authentication authentication) {
-        return authentication.getName();
+    @PostMapping("/{id}/watchlist")
+    public ResponseEntity<EntityModel<User>> addMovieToWatchlist(@PathVariable Long id, @RequestBody Long movie_id) {
+        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        Movie movie = movieService.findById(movie_id).orElseThrow(() -> new MovieNotFoundException(movie_id));
+
+        user.addMovieToWatchlist(movie);
+        log.info(String.format("Movie with id %s added to watchlist", movie_id));
+        userService.save(user);
+
+        return ResponseEntity.ok(assembler.toModel(user));
     }
+
+    @DeleteMapping("/{user_id}/watchlist/{movie_id}")
+    public ResponseEntity<EntityModel<User>> removeMovieFromWatchlist(@PathVariable Long user_id, @PathVariable Long movie_id) {
+        User user = userService.findById(user_id).orElseThrow(() -> new UserNotFoundException(user_id));
+
+        if (user.removeMovieFromWatchlist(movie_id)) {
+            userService.save(user);
+            log.info(String.format("Movie with id %s removed from watchlist", movie_id));
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+
 
 }

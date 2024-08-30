@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "users")
@@ -49,6 +50,11 @@ public class User {
       this.enabled = enabled;
       this.watchlist = watchlist;
    }
+
+   public void addMovieToWatchlist(Movie movie) { this.watchlist.add(movie); }
+
+   public boolean removeMovieFromWatchlist(Long movie_id) {
+      return this.watchlist.removeIf(m -> Objects.equals(m.getMovie_id(), movie_id)); }
 
    public Long getUser_id() { return user_id; }
 
