@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -164,14 +165,25 @@ public class UserController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    @GetMapping("/{user_id}/watchlist/{movie_id}")
+    public ResponseEntity<EntityModel<Movie>> findMovieInWatchlistById(@PathVariable Long user_id, @PathVariable Long movie_id) {
+        User user = userService.findById(user_id).orElseThrow(() -> new UserNotFoundException(user_id));
+
+        Movie movie = user.getWatchlist().stream()
+                .filter(m -> Objects.equals(m.getMovie_id(), movie_id)).findFirst().orElseThrow(() -> new MovieNotFoundException(movie_id));
+
+        return ResponseEntity.ok(movieAssembler.toModel(movie));
+    }
+
     @PostMapping("/{id}/watchlist")
     public ResponseEntity<EntityModel<User>> addMovieToWatchlist(@PathVariable Long id, @RequestBody Long movie_id) {
         User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         Movie movie = movieService.findById(movie_id).orElseThrow(() -> new MovieNotFoundException(movie_id));
 
-        user.addMovieToWatchlist(movie);
-        log.info(String.format("Movie with id %s added to watchlist", movie_id));
-        userService.save(user);
+        if (user.addMovieToWatchlist(movie)) {
+            log.info(String.format("Movie with id %s added to watchlist", movie_id));
+            userService.save(user);
+        }
 
         return ResponseEntity.ok(assembler.toModel(user));
     }

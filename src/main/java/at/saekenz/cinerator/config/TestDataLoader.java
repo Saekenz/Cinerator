@@ -21,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Configuration
 public class TestDataLoader {
@@ -45,10 +46,10 @@ public class TestDataLoader {
             Movie m6 = movieRepository.findById(3L).orElseThrow(() ->new MovieNotFoundException(3L));
             Movie m7 = movieRepository.findById(6L).orElseThrow(() ->new MovieNotFoundException(6L));
 
-            User u1 = new User("UserA", encodedPassword, "USER", true, List.of(m1,m2,m3));
-            User u2 = new User("UserB", encodedPassword, "USER", true, List.of(m4,m5,m6));
-            User u3 = new User("UserC", encodedPassword, "ADMIN", true, List.of(m7,m1,m5));
-            User u4 = new User("UserD", encodedPassword, "USER", false, List.of(m5,m4,m7));
+            User u1 = new User("UserA", encodedPassword, "USER", true, Set.of(m1,m2,m3));
+            User u2 = new User("UserB", encodedPassword, "USER", true, Set.of(m4,m5,m6));
+            User u3 = new User("UserC", encodedPassword, "ADMIN", true, Set.of(m7,m1,m5));
+            User u4 = new User("UserD", encodedPassword, "USER", false, Set.of(m5,m4,m7));
 
             for(User u : userRepository.saveAll(List.of(u1,u2,u3,u4))) {
                 log.info("Created new user: {}", u);

@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -35,7 +36,7 @@ public class User {
            inverseJoinColumns = @JoinColumn(name = "movie_id")
    )
    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-   private List<Movie> watchlist;
+   private Set<Movie> watchlist;
 
    @OneToMany(mappedBy = "user")
    private List<Review> reviews;
@@ -43,7 +44,7 @@ public class User {
    public User() {
    }
 
-   public User(String username, String password, String role, boolean enabled, List<Movie> watchlist) {
+   public User(String username, String password, String role, boolean enabled, Set<Movie> watchlist) {
       this.username = username;
       this.password = password;
       this.role = role;
@@ -51,7 +52,9 @@ public class User {
       this.watchlist = watchlist;
    }
 
-   public void addMovieToWatchlist(Movie movie) { this.watchlist.add(movie); }
+   public boolean addMovieToWatchlist(Movie movie) {
+      return this.watchlist.add(movie);
+   }
 
    public boolean removeMovieFromWatchlist(Long movie_id) {
       return this.watchlist.removeIf(m -> Objects.equals(m.getMovie_id(), movie_id)); }
@@ -76,9 +79,9 @@ public class User {
 
    public void setEnabled(boolean enabled) { this.enabled = enabled; }
 
-   public List<Movie> getWatchlist() { return watchlist; }
+   public Set<Movie> getWatchlist() { return watchlist; }
 
-   public void setWatchlist(List<Movie> watchlist) { this.watchlist = watchlist; }
+   public void setWatchlist(Set<Movie> watchlist) { this.watchlist = watchlist; }
 
    public List<Review> getReviews() { return reviews; }
 

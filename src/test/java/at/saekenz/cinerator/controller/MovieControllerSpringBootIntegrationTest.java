@@ -4,7 +4,6 @@ import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.user.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -19,7 +18,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -313,7 +312,7 @@ public class MovieControllerSpringBootIntegrationTest {
     @Test
     public void givenAddReviewToMovieRequest_shouldFailWith404() throws Exception {
     Long movie_id = 999L;
-    User user = new User("UserA","password","USER",true, List.of());
+    User user = new User("UserA","password","USER",true, Set.of());
     Movie movie = new Movie();
     Review review = new Review();
     review.setUser(user);

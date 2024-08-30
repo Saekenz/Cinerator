@@ -16,7 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -109,7 +109,7 @@ public class UserControllerSpringBootIntegrationTest {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String encodedPassword = passwordEncoder.encode("password");
 
-        User user = new User("fencingcliff",encodedPassword,"USER",true,List.of());
+        User user = new User("fencingcliff",encodedPassword,"USER",true, Set.of());
         String user_data = new ObjectMapper().writeValueAsString(user);
 
         mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(user_data))
@@ -161,7 +161,7 @@ public class UserControllerSpringBootIntegrationTest {
     @WithMockUser("test-user")
     @Test
     public void givenUpdateUserRequest_shouldSucceedWith201() throws Exception {
-        User user = new User("updatedUser123","newPassword123","ADMIN",true,List.of());
+        User user = new User("updatedUser123","newPassword123","ADMIN",true,Set.of());
         String user_data = new ObjectMapper().writeValueAsString(user);
         Long user_id = 4L;
 
@@ -174,15 +174,19 @@ public class UserControllerSpringBootIntegrationTest {
                 .andDo(print());
     }
 
+    /**
+     * Attempts to retrieve the watchlist belonging to user with user_id 2.
+     * This user's watchlist should contain movies with movie_ids [2,3,7].
+     * @throws Exception
+     */
     @WithMockUser("test-user")
     @Test
     public void givenFindWatchlistByUserRequest_shouldSucceedWith200() throws Exception {
         Long user_id = 2L;
         mockMvc.perform(get("/users/{user_id}/watchlist", user_id).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList[0].movie_id").value(7))
-                .andExpect(jsonPath("$._embedded.movieList[1].movie_id").value(2))
-                .andExpect(jsonPath("$._embedded.movieList[2].movie_id").value(3));
+                .andExpect(jsonPath("$._embedded.movieList.length()").value(3))
+                .andExpect(jsonPath("$._embedded.movieList[*].movie_id", hasItems(2,3,7)));
     }
 
     @WithMockUser("test-user")
@@ -268,5 +272,35 @@ public class UserControllerSpringBootIntegrationTest {
                 .content(String.valueOf(movie_id)))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(String.format("Could not find user: %s", user_id))));
+    }
+
+    @Test
+    public void givenFindMovieInWatchlistByIdRequest_shouldSucceedWith200() throws Exception {
+        Long user_id = 1L;
+        Long movie_id = 5L;
+
+        mockMvc.perform(get("/users/{user_id}/watchlist/{movie_id}", user_id, movie_id)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.movie_id").value(movie_id));
+    }
+
+    @Test
+    public void givenFindMovieInWatchlistByIdRequest_shouldFailWith404() throws Exception {
+        Long user_id = -999L;
+        Long movie_id = 5L;
+
+        mockMvc.perform(get("/users/{user_id}/watchlist/{movie_id}", user_id, movie_id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find user: %s", user_id))));
+
+        user_id = 1L;
+        movie_id = -999L;
+
+        mockMvc.perform(get("/users/{user_id}/watchlist/{movie_id}", user_id, movie_id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movie_id))));
     }
 }
