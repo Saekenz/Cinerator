@@ -1,6 +1,7 @@
 package at.saekenz.cinerator.service;
 
 import at.saekenz.cinerator.model.movie.Movie;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,4 +27,6 @@ public interface IMovieService {
     List<Movie> findByYear(int year);
 
     Optional<Movie> findByImdb_id(String imdb_id);
+
+    Page<Movie> findAll(int page, int size, String sortBy, String sortDirection);
 }

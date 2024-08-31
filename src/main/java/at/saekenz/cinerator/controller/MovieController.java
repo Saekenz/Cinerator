@@ -72,6 +72,51 @@ public class MovieController {
         return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
+    @PostMapping()
+    public ResponseEntity<?> createMovie(@RequestBody Movie newMovie) {
+        EntityModel<Movie> entityModel = movieAssembler.toModel(movieService.save(newMovie));
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateMovie(@PathVariable Long id, @RequestBody Movie newMovie) {
+        Movie updatedMovie = movieService.findById(id).map(
+                        movie -> {
+                            movie.setTitle(newMovie.getTitle());
+                            movie.setDirector(newMovie.getDirector());
+                            movie.setRelease_date(newMovie.getRelease_date());
+                            movie.setRuntime(newMovie.getRuntime());
+                            movie.setGenre(newMovie.getGenre());
+                            movie.setCountry(newMovie.getCountry());
+                            movie.setImdb_id(newMovie.getImdb_id());
+                            movie.setPoster_url(newMovie.getPoster_url());
+                            movie.setReviews(newMovie.getReviews());
+                            return movieService.save(movie);
+                        })
+                .orElseGet(() -> movieService.save(newMovie));
+        EntityModel<Movie> entityModel = movieAssembler.toModel(updatedMovie);
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMovie(@PathVariable Long id) {
+        if (movieService.findById(id).isPresent()) {
+            movieService.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+        else {
+            throw new MovieNotFoundException(id);
+        }
+    }
+
+// ----------------------------------- SEARCH ------------------------------------------------------------------------
+
     @GetMapping("/title/{title}")
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByTitle(@PathVariable String title) {
         List<Movie> movies = movieService.findByTitle(title);
@@ -144,49 +189,6 @@ public class MovieController {
         return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateMovie(@PathVariable Long id, @RequestBody Movie newMovie) {
-        Movie updatedMovie = movieService.findById(id).map(
-                movie -> {
-                    movie.setTitle(newMovie.getTitle());
-                    movie.setDirector(newMovie.getDirector());
-                    movie.setRelease_date(newMovie.getRelease_date());
-                    movie.setRuntime(newMovie.getRuntime());
-                    movie.setGenre(newMovie.getGenre());
-                    movie.setCountry(newMovie.getCountry());
-                    movie.setImdb_id(newMovie.getImdb_id());
-                    movie.setPoster_url(newMovie.getPoster_url());
-                    movie.setReviews(newMovie.getReviews());
-                    return movieService.save(movie);
-                })
-                .orElseGet(() -> movieService.save(newMovie));
-            EntityModel<Movie> entityModel = movieAssembler.toModel(updatedMovie);
-
-            return ResponseEntity
-                    .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                    .body(entityModel);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteMovie(@PathVariable Long id) {
-        if (movieService.findById(id).isPresent()) {
-            movieService.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        else {
-            throw new MovieNotFoundException(id);
-        }
-    }
-
-    @PostMapping()
-    public ResponseEntity<?> createMovie(@RequestBody Movie newMovie) {
-        EntityModel<Movie> entityModel = movieAssembler.toModel(movieService.save(newMovie));
-
-        return ResponseEntity
-                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                .body(entityModel);
-    }
-
     private CollectionModel<EntityModel<Movie>> createCollectionModelFromList(
             List<Movie> movies, Link selfLink) {
 
@@ -196,6 +198,8 @@ public class MovieController {
 
         return CollectionModel.of(movieModels,selfLink);
     }
+
+// -------------------------------------- REVIEWS ---------------------------------------------------------------------
 
     @GetMapping("/{id}/reviews")
     public ResponseEntity<CollectionModel<EntityModel<Review>>> findReviewsById(@PathVariable Long id) {
@@ -210,6 +214,18 @@ public class MovieController {
 
         return ResponseEntity.ok(collectionModel);
     }
+
+    @PostMapping("/{id}/reviews")
+    public ResponseEntity<?> addReviewToMovie(@PathVariable Long id, @RequestBody Review review) {
+        movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
+        EntityModel<Review> entityModel = reviewAssembler.toModel(reviewService.save(review));
+        // TODO: optimize this
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
+    }
+
+// ---------------------------------------- ACTORS --------------------------------------------------------------------
 
     @GetMapping("/{id}/actors")
     public ResponseEntity<CollectionModel<EntityModel<Actor>>> findActorsById(@PathVariable Long id) {
@@ -259,14 +275,19 @@ public class MovieController {
         return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
-    @PostMapping("/{id}/reviews")
-    public ResponseEntity<?> addReviewToMovie(@PathVariable Long id, @RequestBody Review review) {
-        movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
-        EntityModel<Review> entityModel = reviewAssembler.toModel(reviewService.save(review));
-        // TODO: optimize this
-        return ResponseEntity
-                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                .body(entityModel);
+    @GetMapping("/all")
+    public ResponseEntity<CollectionModel<EntityModel<Movie>>> allMovies(@RequestParam(name = "page", defaultValue = "0") int page,
+                                 @RequestParam(name = "size", defaultValue = "5") int size,
+                                 @RequestParam(name = "sortBy", defaultValue = "movie_id") String sortBy,
+                                 @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+
+        List<Movie> movies = movieService.findAll(page, size, sortBy, sortDirection).getContent();
+        if (movies.isEmpty()) { return ResponseEntity.ok().build(); }
+
+        CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
+                linkTo(methodOn(MovieController.class).allMovies(page, size, sortBy, sortDirection)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
 }
