@@ -303,4 +303,23 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(String.format("Could not find movie: %s", movie_id))));
     }
+
+    @Test
+    public void givenFindReviewsByUserRequest_shouldSucceedWith200() throws Exception {
+        Long user_id = 1L;
+
+        mockMvc.perform(get("/users/{user_id}/reviews", user_id)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.reviewList[*].review_id", hasItems(1,5,9,12,13)));
+    }
+
+    @Test
+    public void givenFindReviewsByUserRequest_shouldFailWith404() throws Exception {
+        Long user_id = -999L;
+
+        mockMvc.perform(get("/users/{user_id}/reviews", user_id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
 }

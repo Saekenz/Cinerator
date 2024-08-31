@@ -263,7 +263,7 @@ public class MovieController {
     public ResponseEntity<?> addReviewToMovie(@PathVariable Long id, @RequestBody Review review) {
         movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
         EntityModel<Review> entityModel = reviewAssembler.toModel(reviewService.save(review));
-
+        // TODO: optimize this
         return ResponseEntity
                 .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                 .body(entityModel);

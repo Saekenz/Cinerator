@@ -3,6 +3,8 @@ package at.saekenz.cinerator.controller;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
+import at.saekenz.cinerator.model.review.Review;
+import at.saekenz.cinerator.model.review.ReviewModelAssembler;
 import at.saekenz.cinerator.model.user.EUserSearchParam;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserModelAssembler;
@@ -37,12 +39,15 @@ public class UserController {
 
     private final UserModelAssembler assembler;
     private final MovieModelAssembler movieAssembler;
+    private final ReviewModelAssembler reviewAssembler;
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
-    UserController(UserModelAssembler assembler, MovieModelAssembler movieAssembler) {
+    UserController(UserModelAssembler assembler, MovieModelAssembler movieAssembler,
+                   ReviewModelAssembler reviewAssembler) {
         this.assembler = assembler;
         this.movieAssembler = movieAssembler;
+        this.reviewAssembler = reviewAssembler;
     }
 
     // for testing only
@@ -113,6 +118,8 @@ public class UserController {
         }
     }
 
+// ------------------------------------ SEARCH ---------------------------------------------------------------------
+
     @GetMapping("/username/{username}")
     public ResponseEntity<CollectionModel<EntityModel<User>>> findByUsername(@PathVariable String username) {
         List<User> usersByUsername = userService.findByUsername(username);
@@ -149,6 +156,8 @@ public class UserController {
 
         return ResponseEntity.ok(collectionModel);
     }
+
+// ---------------------------------------- WATCHLIST -----------------------------------------------------------------
 
     @GetMapping("/{id}/watchlist")
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findWatchlistByUser(@PathVariable Long id) {
@@ -200,5 +209,24 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+// ------------------------------------------ REVIEWS -----------------------------------------------------------------
+
+    @GetMapping("/{user_id}/reviews")
+    public ResponseEntity<CollectionModel<EntityModel<Review>>> findReviewsByUser(@PathVariable Long user_id) {
+       User user = userService.findById(user_id).orElseThrow(() -> new UserNotFoundException(user_id));
+
+       List<Review> reviews = user.getReviews();
+
+       if (reviews.isEmpty()) { return ResponseEntity.ok().build(); }
+
+       List<EntityModel<Review>> reviewModels = reviews.stream()
+               .map(reviewAssembler::toModel)
+               .toList();
+
+       CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviewModels,
+               linkTo(methodOn(UserController.class).findReviewsByUser(user_id)).withSelfRel());
+
+       return ResponseEntity.ok(collectionModel);
+    }
 
 }
