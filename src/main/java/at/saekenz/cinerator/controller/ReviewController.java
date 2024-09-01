@@ -72,7 +72,7 @@ public class ReviewController {
                 review -> {
                     review.setComment(newReview.getComment());
                     review.setRating(newReview.getRating());
-                    review.setIs_liked(newReview.isIs_liked());
+                    review.setIsLiked(newReview.isLiked());
                     return reviewService.save(review);
                 })
                 .orElseGet(() -> reviewService.save(newReview));

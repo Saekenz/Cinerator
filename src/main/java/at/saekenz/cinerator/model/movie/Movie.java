@@ -18,13 +18,13 @@ public class Movie {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long movie_id;
+    private Long id;
 
     @Column(nullable = false)
     private String title;
 
     @Column(nullable = false)
-    private LocalDate release_date;
+    private LocalDate releaseDate;
 
     @Column(nullable = false)
     private String runtime;
@@ -39,9 +39,9 @@ public class Movie {
     private String country;
 
     @Column(nullable = false)
-    private String imdb_id;
+    private String imdbId;
 
-    private String poster_url;
+    private String posterUrl;
 
     @ManyToMany(mappedBy = "watchlist")
     @JsonIgnore
@@ -54,31 +54,31 @@ public class Movie {
     @ManyToMany
     @JoinTable(
             name = "movie_actors",
-            joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "actor_id"))
+            joinColumns = @JoinColumn(name = "MOV_ID"),
+            inverseJoinColumns = @JoinColumn(name = "ACT_ID"))
     private List<Actor> actors; // ok if actors contained multiple times -> multiple roles! (impl in future)
 
     public Movie() {
 
     }
 
-    public Movie(String title, String director, LocalDate release_date, String runtime,
-                 String genre, String country, String imdb_id, String poster_url) {
+    public Movie(String title, String director, LocalDate releaseDate, String runtime,
+                 String genre, String country, String imdbId, String posterUrl) {
         this.title = title;
         this.director = director;
-        this.release_date = release_date;
+        this.releaseDate = releaseDate;
         this.runtime = runtime;
         this.genre = genre;
         this.country = country;
-        this.imdb_id = imdb_id;
-        this.poster_url = poster_url;
+        this.imdbId = imdbId;
+        this.posterUrl = posterUrl;
     }
 
-    public Long getMovie_id() {
-        return movie_id;
+    public Long getId() {
+        return id;
     }
 
-    public void setMovie_id(Long movie_id) { this.movie_id = movie_id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getTitle() {
         return title;
@@ -88,16 +88,16 @@ public class Movie {
         this.title = title;
     }
 
-    public LocalDate getRelease_date() {
-        return release_date;
+    public LocalDate getReleaseDate() {
+        return releaseDate;
     }
 
     public int getReleaseYear() {
-        return poster_url != null ? release_date.getYear() : 0;
+        return posterUrl != null ? releaseDate.getYear() : 0;
     }
 
-    public void setRelease_date(LocalDate release_date) {
-        this.release_date = release_date;
+    public void setReleaseDate(LocalDate releaseDate) {
+        this.releaseDate = releaseDate;
     }
 
     public String getRuntime() { return runtime; }
@@ -116,13 +116,13 @@ public class Movie {
 
     public void setCountry(String country) { this.country = country; }
 
-    public String getImdb_id() { return imdb_id; }
+    public String getImdbId() { return imdbId; }
 
-    public void setImdb_id(String imdb_id) { this.imdb_id = imdb_id; }
+    public void setImdbId(String imdbId) { this.imdbId = imdbId; }
 
-    public String getPoster_url() { return poster_url; }
+    public String getPosterUrl() { return posterUrl; }
 
-    public void setPoster_url(String poster_url) { this.poster_url = poster_url; }
+    public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
 
     public List<User> getUser() { return user; }
 
@@ -138,20 +138,20 @@ public class Movie {
 
     public void addActor(Actor actor) { this.actors.add(actor); }
 
-    public void removeActor(Long actor_id) { this.actors.removeIf(a -> Objects.equals(a.getActor_id(), actor_id)); }
+    public void removeActor(Long id) { this.actors.removeIf(a -> Objects.equals(a.getId(), id)); }
 
     @Override
     public String toString() {
         return "Movie{" +
-                "movie_id=" + movie_id +
+                "id=" + id +
                 ", title='" + title + '\'' +
-                ", release_date=" + release_date +
+                ", releaseDate=" + releaseDate +
                 ", runtime=" + runtime +
                 ", director='" + director + '\'' +
                 ", genre='" + genre + '\'' +
                 ", country='" + country + '\'' +
-                ", imdb_id='" + imdb_id + '\'' +
-                ", poster_url='" + poster_url + '\'' +
+                ", imdbId='" + imdbId + '\'' +
+                ", posterUrl='" + posterUrl + '\'' +
                 '}';
     }
 }

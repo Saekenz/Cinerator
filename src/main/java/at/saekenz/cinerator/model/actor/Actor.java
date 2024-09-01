@@ -14,16 +14,16 @@ public class Actor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long actor_id;
+    private Long id;
 
     @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
-    private LocalDate birth_date;
+    private LocalDate birthDate;
 
     @Column(nullable = false)
-    private String birth_country;
+    private String birthCountry;
 
     private int age;
 
@@ -33,11 +33,11 @@ public class Actor {
 
     public Actor() {}
 
-    public Actor(String name, LocalDate birth_date, String birth_country) {
+    public Actor(String name, LocalDate birthDate, String birthCountry) {
         this.name = name;
-        this.birth_date = birth_date;
-        this.birth_country = birth_country;
-        this.age = Period.between(birth_date, LocalDate.now()).getYears();
+        this.birthDate = birthDate;
+        this.birthCountry = birthCountry;
+        this.age = Period.between(birthDate, LocalDate.now()).getYears();
     }
 
     @PreRemove
@@ -47,12 +47,12 @@ public class Actor {
         }
     }
 
-    public void setActor_id(Long actorId) {
-        this.actor_id = actorId;
+    public void setId(Long actorId) {
+        this.id = actorId;
     }
 
-    public Long getActor_id() {
-        return actor_id;
+    public Long getId() {
+        return id;
     }
 
     public String getName() {
@@ -63,20 +63,20 @@ public class Actor {
         this.name = name;
     }
 
-    public LocalDate getBirth_date() {
-        return birth_date;
+    public LocalDate getBirthDate() {
+        return birthDate;
     }
 
-    public void setBirth_date(LocalDate birth_date) {
-        this.birth_date = birth_date;
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
     }
 
-    public String getBirth_country() {
-        return birth_country;
+    public String getBirthCountry() {
+        return birthCountry;
     }
 
-    public void setBirth_country(String birth_country) {
-        this.birth_country = birth_country;
+    public void setBirthCountry(String birthCountry) {
+        this.birthCountry = birthCountry;
     }
 
     public int getAge() {
@@ -94,10 +94,10 @@ public class Actor {
     @Override
     public String toString() {
         return "Actor{" +
-                "actor_id=" + actor_id +
+                "id=" + id +
                 ", name='" + name + '\'' +
-                ", birth_date=" + birth_date +
-                ", birth_country='" + birth_country + '\'' +
+                ", birthDate=" + birthDate +
+                ", birthCountry='" + birthCountry + '\'' +
                 ", age=" + age +
                 '}';
     }

@@ -52,19 +52,19 @@ public class UserControllerSpringBootIntegrationTest {
     @WithMockUser("test-user")
     @Test
     public void givenFindUserByIdRequest_shouldSucceedWith200() throws Exception {
-        Long user_id = 1L;
-        mockMvc.perform(get("/users/{user_id}", user_id).contentType(MediaType.APPLICATION_JSON))
+        Long userId = 1L;
+        mockMvc.perform(get("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.user_id").value(user_id));
+                .andExpect(jsonPath("$.id").value(userId));
     }
 
     @WithMockUser("test-user")
     @Test
     public void givenFindUserByIdRequest_shouldFailWith404() throws Exception {
-        Long user_id = -999L;
-        mockMvc.perform(get("/users/{user_id}", user_id).contentType(MediaType.APPLICATION_JSON))
+        Long userId = -999L;
+        mockMvc.perform(get("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("user: %s", user_id))));
+                .andExpect(content().string(containsString(String.format("user: %s", userId))));
     }
 
     @WithMockUser("test-user")
@@ -110,9 +110,9 @@ public class UserControllerSpringBootIntegrationTest {
         String encodedPassword = passwordEncoder.encode("password");
 
         User user = new User("fencingcliff",encodedPassword,"USER",true, Set.of());
-        String user_data = new ObjectMapper().writeValueAsString(user);
+        String userData = new ObjectMapper().writeValueAsString(user);
 
-        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(user_data))
+        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(userData))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.username").value("fencingcliff"))
                 .andExpect(jsonPath("$.password").value(encodedPassword))
@@ -127,7 +127,7 @@ public class UserControllerSpringBootIntegrationTest {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String encodedPassword = passwordEncoder.encode("password");
 
-        String user_data = String.format("""
+        String userData = String.format("""
                 {
                   "username": "haumeaweb",
                   "password": "%s",
@@ -137,7 +137,7 @@ public class UserControllerSpringBootIntegrationTest {
                   "reviews": []
                 }""", encodedPassword);
 
-        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(user_data))
+        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(userData))
                 .andExpect(status().isBadRequest())
                 .andDo(print());
     }
@@ -145,16 +145,16 @@ public class UserControllerSpringBootIntegrationTest {
     @WithMockUser("test-user")
     @Test
     public void givenDeleteUserRequest_shouldSucceedWith204() throws Exception {
-        Long user_id = 3L;
-        mockMvc.perform(delete("/users/{user_id}", user_id).contentType(MediaType.APPLICATION_JSON))
+        Long userId = 3L;
+        mockMvc.perform(delete("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
 
     @WithMockUser("test-user")
     @Test
     public void givenDeleteUserRequest_shouldFailWith404() throws Exception {
-        Long user_id = 999L;
-        mockMvc.perform(delete("/users/{user_id}", user_id).contentType(MediaType.APPLICATION_JSON))
+        Long userId = 999L;
+        mockMvc.perform(delete("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
@@ -162,10 +162,10 @@ public class UserControllerSpringBootIntegrationTest {
     @Test
     public void givenUpdateUserRequest_shouldSucceedWith201() throws Exception {
         User user = new User("updatedUser123","newPassword123","ADMIN",true,Set.of());
-        String user_data = new ObjectMapper().writeValueAsString(user);
-        Long user_id = 4L;
+        String userData = new ObjectMapper().writeValueAsString(user);
+        Long userId = 4L;
 
-        mockMvc.perform(put("/users/{user_id}", user_id).contentType(MediaType.APPLICATION_JSON).content(user_data))
+        mockMvc.perform(put("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON).content(userData))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.username").value("updatedUser123"))
                 .andExpect(jsonPath("$.password").value("newPassword123"))
@@ -175,25 +175,25 @@ public class UserControllerSpringBootIntegrationTest {
     }
 
     /**
-     * Attempts to retrieve the watchlist belonging to user with user_id 2.
-     * This user's watchlist should contain movies with movie_ids [2,3,7].
+     * Attempts to retrieve the watchlist belonging to user with userId 2.
+     * This user's watchlist should contain movies with movieIds [2,3,7].
      * @throws Exception
      */
     @WithMockUser("test-user")
     @Test
     public void givenFindWatchlistByUserRequest_shouldSucceedWith200() throws Exception {
-        Long user_id = 2L;
-        mockMvc.perform(get("/users/{user_id}/watchlist", user_id).contentType(MediaType.APPLICATION_JSON))
+        Long userId = 2L;
+        mockMvc.perform(get("/users/{userId}/watchlist", userId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.movieList.length()").value(3))
-                .andExpect(jsonPath("$._embedded.movieList[*].movie_id", hasItems(2,3,7)));
+                .andExpect(jsonPath("$._embedded.movieList[*].id", hasItems(2,3,7)));
     }
 
     @WithMockUser("test-user")
     @Test
     public void givenFindWatchlistByUserRequest_shouldFailWith404() throws Exception {
-        Long user_id = -999L;
-        mockMvc.perform(get("/users/{user_id}/watchlist", user_id).contentType(MediaType.APPLICATION_JSON))
+        Long userId = -999L;
+        mockMvc.perform(get("/users/{userId}/watchlist", userId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andDo(print());
     }
@@ -201,43 +201,43 @@ public class UserControllerSpringBootIntegrationTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenAddMovieToWatchlistRequest_shouldSucceedWith200() throws Exception {
-        Long user_id = 2L;
-        Long movie_id = 11L;
+        Long userId = 2L;
+        Long movieId = 11L;
 
-        mockMvc.perform(post("/users/{user_id}/watchlist", user_id, movie_id)
+        mockMvc.perform(post("/users/{userId}/watchlist", userId, movieId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(String.valueOf(movie_id)))
+                .content(String.valueOf(movieId)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath(String.format("$.watchlist[?(@.movie_id == %s)]", movie_id)).exists());
+                .andExpect(jsonPath(String.format("$.watchlist[?(@.id == %s)]", movieId)).exists());
     }
 
     /**
      * Performs request for adding a movie to a user's watchlist twice.
-     * The first time the request contains an invalid user_id and a valid movie_id.
-     * The second time the request contains a valid user_id and an in valid movie_id.
+     * The first time the request contains an invalid userId and a valid movieId.
+     * The second time the request contains a valid userId and an in valid movieId.
      * Both requests have to return HTTP code 404.
      * @throws Exception
      */
     @Test
     public void givenAddMovieToWatchlistRequest_shouldFailWith404() throws Exception {
-       Long user_id = -999L;
-       Long movie_id = 11L;
+       Long userId = -999L;
+       Long movieId = 11L;
 
-       mockMvc.perform(post("/users/{user_id}/watchlist", user_id, movie_id)
+       mockMvc.perform(post("/users/{userId}/watchlist", userId, movieId)
                .contentType(MediaType.APPLICATION_JSON)
-               .content(String.valueOf(movie_id)))
+               .content(String.valueOf(movieId)))
                .andExpect(status().isNotFound())
                .andExpect(content()
-                       .string(containsString(String.format("Could not find user: %s", user_id))));
+                       .string(containsString(String.format("Could not find user: %s", userId))));
 
-       user_id = 2L;
-       movie_id = -999L;
+       userId = 2L;
+       movieId = -999L;
 
-        mockMvc.perform(post("/users/{user_id}/watchlist", user_id, movie_id)
+        mockMvc.perform(post("/users/{userId}/watchlist", userId, movieId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(String.valueOf(movie_id)))
+                        .content(String.valueOf(movieId)))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movie_id))));
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
     }
 
     /**
@@ -250,75 +250,75 @@ public class UserControllerSpringBootIntegrationTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenRemoveMovieFromWatchlistRequest_shouldSucceedWith204() throws Exception {
-        Long user_id = 3L;
-        Long movie_id = 6L;
+        Long userId = 3L;
+        Long movieId = 6L;
 
-        mockMvc.perform(delete("/users/{user_id}/watchlist/{movie_id}", user_id, movie_id)
+        mockMvc.perform(delete("/users/{userId}/watchlist/{movieId}", userId, movieId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(delete("/users/{user_id}/watchlist/{movie_id}", user_id, movie_id)
+        mockMvc.perform(delete("/users/{userId}/watchlist/{movieId}", userId, movieId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     public void givenRemoveMovieFromWatchlistRequest_shouldFailWith404() throws Exception {
-        Long user_id = -999L;
-        Long movie_id = 11L;
+        Long userId = -999L;
+        Long movieId = 11L;
 
-        mockMvc.perform(delete("/users/{user_id}/watchlist/{movie_id}", user_id, movie_id)
+        mockMvc.perform(delete("/users/{userId}/watchlist/{movieId}", userId, movieId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(String.valueOf(movie_id)))
+                .content(String.valueOf(movieId)))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find user: %s", user_id))));
+                .andExpect(content().string(containsString(String.format("Could not find user: %s", userId))));
     }
 
     @Test
     public void givenFindMovieInWatchlistByIdRequest_shouldSucceedWith200() throws Exception {
-        Long user_id = 1L;
-        Long movie_id = 5L;
+        Long userId = 1L;
+        Long movieId = 5L;
 
-        mockMvc.perform(get("/users/{user_id}/watchlist/{movie_id}", user_id, movie_id)
+        mockMvc.perform(get("/users/{userId}/watchlist/{movieId}", userId, movieId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.movie_id").value(movie_id));
+                .andExpect(jsonPath("$.id").value(movieId));
     }
 
     @Test
     public void givenFindMovieInWatchlistByIdRequest_shouldFailWith404() throws Exception {
-        Long user_id = -999L;
-        Long movie_id = 5L;
+        Long userId = -999L;
+        Long movieId = 5L;
 
-        mockMvc.perform(get("/users/{user_id}/watchlist/{movie_id}", user_id, movie_id)
+        mockMvc.perform(get("/users/{userId}/watchlist/{movieId}", userId, movieId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find user: %s", user_id))));
+                .andExpect(content().string(containsString(String.format("Could not find user: %s", userId))));
 
-        user_id = 1L;
-        movie_id = -999L;
+        userId = 1L;
+        movieId = -999L;
 
-        mockMvc.perform(get("/users/{user_id}/watchlist/{movie_id}", user_id, movie_id)
+        mockMvc.perform(get("/users/{userId}/watchlist/{movieId}", userId, movieId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movie_id))));
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
     }
 
     @Test
     public void givenFindReviewsByUserRequest_shouldSucceedWith200() throws Exception {
-        Long user_id = 1L;
+        Long userId = 1L;
 
-        mockMvc.perform(get("/users/{user_id}/reviews", user_id)
+        mockMvc.perform(get("/users/{userId}/reviews", userId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.reviewList[*].review_id", hasItems(1,5,9,12,13)));
+                .andExpect(jsonPath("$._embedded.reviewList[*].id", hasItems(1,5,9,12,13)));
     }
 
     @Test
     public void givenFindReviewsByUserRequest_shouldFailWith404() throws Exception {
-        Long user_id = -999L;
+        Long userId = -999L;
 
-        mockMvc.perform(get("/users/{user_id}/reviews", user_id)
+        mockMvc.perform(get("/users/{userId}/reviews", userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }

@@ -18,8 +18,8 @@ async function submitActorForm() {
     const birth = document.getElementById('birth_date').value
     const formData = {
         name: document.getElementById('name').value,
-        birth_date: birth,
-        birth_country: document.getElementById('birth_country').value,
+        birthDate: birth,
+        birthCountry: document.getElementById('birth_country').value,
         age: calculateAge(birth)
     };
 

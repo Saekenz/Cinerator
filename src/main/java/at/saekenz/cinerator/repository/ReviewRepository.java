@@ -9,12 +9,12 @@ import java.util.List;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-    @Query("SELECT r FROM Review r WHERE r.user.user_id = :user_id")
-    List<Review> findByUserId(@Param("user_id") Long user_id);
+    @Query("SELECT r FROM Review r WHERE r.user.id = :userId")
+    List<Review> findByUserId(@Param("userId") Long userId);
 
-    @Query("SELECT r FROM Review r WHERE r.user.user_id = :user_id AND r.is_liked = true")
-    List<Review> findLikedByUserId(@Param("user_id") Long user_id);
+    @Query("SELECT r FROM Review r WHERE r.user.id = :userId AND r.isLiked = true")
+    List<Review> findLikedByUserId(@Param("userId") Long userId);
 
-    @Query("SELECT r FROM Review r WHERE r.user.user_id = :user_id AND r.rating = :rating")
-    List<Review> findRatedByUserId(@Param("user_id") Long user_id, @Param("rating") int rating);
+    @Query("SELECT r FROM Review r WHERE r.user.id = :userId AND r.rating = :rating")
+    List<Review> findRatedByUserId(@Param("userId") Long userId, @Param("rating") int rating);
 }

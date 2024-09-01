@@ -22,9 +22,9 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Query("SELECT m FROM Movie m WHERE LOWER(m.country) = LOWER(:country)")
     List<Movie> findByCountry(@Param("country") String country);
 
-    @Query("SELECT m FROM Movie m WHERE EXTRACT(YEAR FROM m.release_date) = :yearReleased")
+    @Query("SELECT m FROM Movie m WHERE EXTRACT(YEAR FROM m.releaseDate) = :yearReleased")
     List<Movie> findByYearReleased(@Param("yearReleased") int yearReleased);
 
-    @Query("SELECT m FROM Movie m WHERE LOWER(m.imdb_id) = LOWER(:imdb_id)")
-    Optional<Movie> findByImdb_id(@Param("imdb_id") String imdb_id);
+    @Query("SELECT m FROM Movie m WHERE LOWER(m.imdbId) = LOWER(:imdbId)")
+    Optional<Movie> findByImdbId(@Param("imdbId") String imdbId);
 }

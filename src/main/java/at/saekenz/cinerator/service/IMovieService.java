@@ -26,7 +26,7 @@ public interface IMovieService {
 
     List<Movie> findByYear(int year);
 
-    Optional<Movie> findByImdb_id(String imdb_id);
+    Optional<Movie> findByImdbId(String imdbId);
 
     Page<Movie> findAll(int page, int size, String sortBy, String sortDirection);
 }

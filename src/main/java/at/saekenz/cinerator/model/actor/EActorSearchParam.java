@@ -2,8 +2,8 @@ package at.saekenz.cinerator.model.actor;
 
 public enum EActorSearchParam {
     NAME("name"),
-    BIRTH_DATE("birth_date"),
-    BIRTH_COUNTRY("birth_country"),
+    BIRTH_DATE("birthDate"),
+    BIRTH_COUNTRY("birthCountry"),
     AGE("age");
 
     private final String paramName;

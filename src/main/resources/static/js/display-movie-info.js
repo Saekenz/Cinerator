@@ -18,9 +18,9 @@ function displayMovieData(movieData) {
                         <strong>Director:</strong> <a href="${movie._links.director.href}">${movie.director}</a><br>
                         <strong>Genre:</strong> <a href="${movie._links.genre.href}">${movie.genre}</a><br>
                         <strong>Country:</strong> <a href="${movie._links.country.href}">${movie.country}</a><br>
-                        <strong>Release Date:</strong> ${movie.release_date}<br>
+                        <strong>Release Date:</strong> ${movie.releaseDate}<br>
                         <strong>Runtime:</strong> ${movie.runtime}<br>
-                        <strong>IMDb ID:</strong> <a href="https://www.imdb.com/title/${movie.imdb_id}" target="_blank">${movie.imdb_id}</a><br>
+                        <strong>IMDb ID:</strong> <a href="https://www.imdb.com/title/${movie.imdbId}" target="_blank">${movie.imdbId}</a><br>
                 </div>
                 <div class="movie-reviews"/>
             </div>
@@ -43,13 +43,13 @@ function displayMovieData(movieData) {
 
             const heartIcon = document.createElement('span');
             heartIcon.classList.add('heart');
-            heartIcon.innerHTML = review.is_liked ? '&#10084;' : '&#9825;';
+            heartIcon.innerHTML = review.isLiked ? '&#10084;' : '&#9825;';
             ratingContainer.appendChild(heartIcon);
 
             reviewDiv.innerHTML += `<strong>Review by:</strong> ${review.username}<br>`;
             reviewDiv.appendChild(ratingContainer);
             reviewDiv.innerHTML += `
-                        <br>${review.review_date}<br>
+                        <br>${review.reviewDate}<br>
                         ${review.comment}<br>
                     `;
             movieReviews.appendChild(reviewDiv);
@@ -59,7 +59,7 @@ function displayMovieData(movieData) {
         const description = movie.title + ' poster';
         posterDiv.classList.add('movie-poster');
         posterDiv.innerHTML = `
-            <img class="poster" src="${movie.poster_url}" alt="${description}" style="width:200px;height:297px;">
+            <img class="poster" src="${movie.posterUrl}" alt="${description}" style="width:200px;height:297px;">
         `;
         movieDiv.append(posterDiv);
 

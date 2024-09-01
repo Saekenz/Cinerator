@@ -52,15 +52,15 @@ public class ActorControllerSpringBootIntegrationTest {
     @Test
     public void givenFindActorByIdRequest_shouldSucceedWith200() throws Exception {
         Long actorId = 1L;
-        mockMvc.perform(get("/actors/{actor_id}", actorId).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/actors/{actorId}", actorId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.actor_id").value(actorId));
+                .andExpect(jsonPath("$.id").value(actorId));
     }
 
     @Test
     public void givenFindActorByIdRequest_shouldFailWith404() throws Exception {
         Long actorId = -999L;
-        mockMvc.perform(get("/actors/{actor_id}", actorId).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/actors/{actorId}", actorId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
@@ -83,33 +83,33 @@ public class ActorControllerSpringBootIntegrationTest {
     @Test
     public void givenFindActorsByBirthDateRequest_shouldSucceedWith200() throws Exception {
         LocalDate birthday = LocalDate.of(1974, 4, 28); // Penelope Cruz
-        mockMvc.perform(get("/actors/birth_date/{birth_date}", birthday).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/actors/birthDate/{birthDate}", birthday).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.actorList[*].birth_date", everyItem(containsStringIgnoringCase(birthday.toString()))));
+                .andExpect(jsonPath("$._embedded.actorList[*].birthDate", everyItem(containsStringIgnoringCase(birthday.toString()))));
     }
 
     @Test
     public void givenFindActorsByBirthDateRequest_shouldFailWith404() throws Exception {
         LocalDate birthday = LocalDate.now();
-        mockMvc.perform(get("/actors/birth_date/{birth_date}", birthday).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/actors/birthDate/{birthDate}", birthday).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("birth_date: %s", birthday))));
+                .andExpect(content().string(containsString(String.format("birthDate: %s", birthday))));
     }
 
     @Test
     public void givenFindActorsByBirthCountryRequest_shouldSucceedWith200() throws Exception {
         String country = "Spain";
-        mockMvc.perform(get("/actors/birth_country/{birth_country}", country).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/actors/birthCountry/{birthCountry}", country).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.actorList[*].birth_country", everyItem(containsStringIgnoringCase(country))));
+                .andExpect(jsonPath("$._embedded.actorList[*].birthCountry", everyItem(containsStringIgnoringCase(country))));
     }
 
     @Test
     public void givenFindActorsByBirthCountryRequest_shouldFailWith404() throws Exception {
         String country = "Wonderland";
-        mockMvc.perform(get("/actors/birth_country/{birth_country}", country).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/actors/birthCountry/{birthCountry}", country).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("birth_country: %s", country))));
+                .andExpect(content().string(containsString(String.format("birthCountry: %s", country))));
     }
 
     @Test
@@ -133,66 +133,66 @@ public class ActorControllerSpringBootIntegrationTest {
     public void givenCreateActorRequest_shouldSucceedWith201() throws Exception {
         Actor actor = new Actor("Brad Pitt",LocalDate.of(1963,12,18),"United States");
         ObjectMapper om = new ObjectMapper().findAndRegisterModules();
-        String actor_data = om.writeValueAsString(actor);
+        String actorData = om.writeValueAsString(actor);
 
-        mockMvc.perform(post("/actors").contentType(MediaType.APPLICATION_JSON).content(actor_data))
+        mockMvc.perform(post("/actors").contentType(MediaType.APPLICATION_JSON).content(actorData))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value(actor.getName()))
-                .andExpect(jsonPath("$.birth_date").value(actor.getBirth_date().toString()))
-                .andExpect(jsonPath("$.birth_country").value(actor.getBirth_country()))
+                .andExpect(jsonPath("$.birthDate").value(actor.getBirthDate().toString()))
+                .andExpect(jsonPath("$.birthCountry").value(actor.getBirthCountry()))
                 .andExpect(jsonPath("$.age").value(actor.getAge()));
     }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateActorRequest_shouldSucceedWith201() throws Exception {
-        Long old_actor_id = 5L; // replace "Cate Blanchett"
+        Long oldActorId = 5L; // replace "Cate Blanchett"
         Actor actor = new Actor("Brad Pitt",LocalDate.of(1963,12,18),"United States");
         ObjectMapper om = new ObjectMapper().findAndRegisterModules();
-        String actor_data = om.writeValueAsString(actor);
+        String actorData = om.writeValueAsString(actor);
 
-        mockMvc.perform(put("/actors/{actor_id}",old_actor_id).contentType(MediaType.APPLICATION_JSON)
-                        .content(actor_data))
+        mockMvc.perform(put("/actors/{actorId}",oldActorId).contentType(MediaType.APPLICATION_JSON)
+                        .content(actorData))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value(actor.getName()))
-                .andExpect(jsonPath("$.birth_date").value(actor.getBirth_date().toString()))
-                .andExpect(jsonPath("$.birth_country").value(actor.getBirth_country()))
+                .andExpect(jsonPath("$.birthDate").value(actor.getBirthDate().toString()))
+                .andExpect(jsonPath("$.birthCountry").value(actor.getBirthCountry()))
                 .andExpect(jsonPath("$.age").value(actor.getAge()));
     }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenDeleteActorRequest_shouldSucceedWith204() throws Exception {
-        Long actor_id = 4L;
-        mockMvc.perform(delete("/actors/{actor_id}",actor_id).contentType(MediaType.APPLICATION_JSON))
+        Long actorId = 4L;
+        mockMvc.perform(delete("/actors/{actorId}",actorId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     public void givenDeleteActorRequest_shouldFailWith404() throws Exception {
-        Long actor_id = -999L;
-        mockMvc.perform(delete("/actors/{actor_id}",actor_id).contentType(MediaType.APPLICATION_JSON))
+        Long actorId = -999L;
+        mockMvc.perform(delete("/actors/{actorId}",actorId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     public void givenActorSearchRequest_shouldSucceedWith200() throws Exception {
         Actor actor = new Actor("Daniel Day-Lewis", LocalDate.of(1957, 4, 29), "United Kingdom");
-        mockMvc.perform(get("/actors/search?name={name}&birth_date={birth_date}&birth_country={birth_country}&age={age}",
-                actor.getName(),actor.getBirth_date(),actor.getBirth_country(), actor.getAge())
+        mockMvc.perform(get("/actors/search?name={name}&birthDate={birthDate}&birthCountry={birthCountry}&age={age}",
+                actor.getName(),actor.getBirthDate(),actor.getBirthCountry(), actor.getAge())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.actorList[*].name", everyItem(containsStringIgnoringCase(actor.getName()))))
-                .andExpect(jsonPath("$._embedded.actorList[*].birth_date", everyItem(containsString(actor.getBirth_date().toString()))))
-                .andExpect(jsonPath("$._embedded.actorList[*].birth_country", everyItem(containsStringIgnoringCase(actor.getBirth_country()))))
+                .andExpect(jsonPath("$._embedded.actorList[*].birthDate", everyItem(containsString(actor.getBirthDate().toString()))))
+                .andExpect(jsonPath("$._embedded.actorList[*].birthCountry", everyItem(containsStringIgnoringCase(actor.getBirthCountry()))))
                 .andExpect(jsonPath("$._embedded.actorList[*].age", everyItem(comparesEqualTo(actor.getAge()))))
                 .andDo(print());
     }
 
     @Test
     public void givenFindMoviesByIdRequest_shouldSucceedWith200() throws Exception {
-        long actor_id = 2L;
-        MvcResult result = mockMvc.perform(get("/actors/{actor_id}/movies",actor_id)
+        long actorId = 2L;
+        MvcResult result = mockMvc.perform(get("/actors/{actorId}/movies",actorId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -207,7 +207,7 @@ public class ActorControllerSpringBootIntegrationTest {
             JsonNode actors = movie.path("actors");
 
             for (JsonNode actor : actors) {
-                if (actor.path("actor_id").asLong() == actor_id) {
+                if (actor.path("id").asLong() == actorId) {
                     containsActor = true;
                     break;
                 }
@@ -215,37 +215,37 @@ public class ActorControllerSpringBootIntegrationTest {
             if (!containsActor) { break; }
         }
 
-        assertTrue(String.format("Actor with actor_id = %s not present in all movies!", actor_id), containsActor);
+        assertTrue(String.format("Actor with actorId = %s not present in all movies!", actorId), containsActor);
     }
 
     @Test
     public void givenFindMoviesByIdRequest_shouldFailWith404() throws Exception {
-        Long actor_id = -999L;
-        mockMvc.perform(get("/actors/{actor_id}/movies",actor_id).contentType(MediaType.APPLICATION_JSON))
+        Long actorId = -999L;
+        mockMvc.perform(get("/actors/{actorId}/movies",actorId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("actor with id: %s", actor_id))));
+                .andExpect(content().string(containsString(String.format("actor with id: %s", actorId))));
     }
 
     @Test
     public void givenFindMovieByIdRequest_shouldSucceedWith200() throws Exception {
-        Long actor_id = 2L;
-        Long movie_id = 2L;
+        Long actorId = 2L;
+        Long movieId = 2L;
 
-        mockMvc.perform(get("/actors/{actor_id}/movies/{movie_id}",actor_id,movie_id)
+        mockMvc.perform(get("/actors/{actorId}/movies/{movieId}",actorId,movieId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.movie_id").value(movie_id));
+                .andExpect(jsonPath("$.id").value(movieId));
     }
 
     @Test
     public void givenFindMovieByIdRequest_shouldFailWith404() throws Exception {
-        Long actor_id = -999L;
-        Long movie_id = 2L;
+        Long actorId = -999L;
+        Long movieId = 2L;
 
-        mockMvc.perform(get("/actors/{actor_id}/movies/{movie_id}",actor_id,movie_id)
+        mockMvc.perform(get("/actors/{actorId}/movies/{movieId}",actorId,movieId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("actor with id: %s", actor_id))));
+                .andExpect(content().string(containsString(String.format("actor with id: %s", actorId))));
     }
 }
 

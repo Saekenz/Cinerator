@@ -179,7 +179,7 @@ public class UserController {
         User user = userService.findById(user_id).orElseThrow(() -> new UserNotFoundException(user_id));
 
         Movie movie = user.getWatchlist().stream()
-                .filter(m -> Objects.equals(m.getMovie_id(), movie_id)).findFirst().orElseThrow(() -> new MovieNotFoundException(movie_id));
+                .filter(m -> Objects.equals(m.getId(), movie_id)).findFirst().orElseThrow(() -> new MovieNotFoundException(movie_id));
 
         return ResponseEntity.ok(movieAssembler.toModel(movie));
     }

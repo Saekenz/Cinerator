@@ -3,13 +3,13 @@ document.getElementById('create-movie').addEventListener('click', submitForm);
 async function submitForm() {
     const formData = {
         title: document.getElementById('title').value,
-        release_date: document.getElementById('release_date').value,
+        releaseDate: document.getElementById('release_date').value,
         runtime: document.getElementById('runtime').value + ' min',
         director: document.getElementById('director').value,
         genre: document.getElementById('genre').value,
         country: document.getElementById('country').value,
-        imdb_id: document.getElementById('imdb_id').value,
-        poster_url: document.getElementById('poster_url').value
+        imdbId: document.getElementById('imdb_id').value,
+        posterUrl: document.getElementById('poster_url').value
     };
 
     const username = 'UserA';

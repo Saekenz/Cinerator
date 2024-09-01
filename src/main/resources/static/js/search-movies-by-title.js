@@ -6,7 +6,7 @@ async function fetchMovieData() {
 
     let url;
     if (checkIfTitleIsImdbId(movieTitle)) {
-        url = `http://localhost:8080/movies/imdb_id/${encodeURIComponent(movieTitle)}`;
+        url = `http://localhost:8080/movies/imdbId/${encodeURIComponent(movieTitle)}`;
     } else {
         url = `http://localhost:8080/movies/title/${encodeURIComponent(movieTitle)}`;
     }

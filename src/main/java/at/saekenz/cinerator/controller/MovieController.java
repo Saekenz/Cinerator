@@ -91,12 +91,12 @@ public class MovieController {
                         movie -> {
                             movie.setTitle(newMovie.getTitle());
                             movie.setDirector(newMovie.getDirector());
-                            movie.setRelease_date(newMovie.getRelease_date());
+                            movie.setReleaseDate(newMovie.getReleaseDate());
                             movie.setRuntime(newMovie.getRuntime());
                             movie.setGenre(newMovie.getGenre());
                             movie.setCountry(newMovie.getCountry());
-                            movie.setImdb_id(newMovie.getImdb_id());
-                            movie.setPoster_url(newMovie.getPoster_url());
+                            movie.setImdbId(newMovie.getImdbId());
+                            movie.setPosterUrl(newMovie.getPosterUrl());
                             movie.setReviews(newMovie.getReviews());
                             return movieService.save(movie);
                         })
@@ -187,9 +187,9 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
-    @GetMapping("/imdb_id/{imdb_id}")
-    public ResponseEntity<EntityModel<Movie>> findByImdbId(@PathVariable String imdb_id) {
-        Movie movie = movieService.findByImdb_id(imdb_id).orElseThrow(() -> new MovieNotFoundException(imdb_id));
+    @GetMapping("/imdbId/{imdbId}")
+    public ResponseEntity<EntityModel<Movie>> findByImdbId(@PathVariable String imdbId) {
+        Movie movie = movieService.findByImdbId(imdbId).orElseThrow(() -> new MovieNotFoundException(imdbId));
         return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
@@ -248,20 +248,20 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
-    @GetMapping("/{movie_id}/actors/{actor_id}")
-    public ResponseEntity<EntityModel<Actor>> findActorById(@PathVariable Long movie_id, @PathVariable Long actor_id) {
-        Movie movie = movieService.findById(movie_id).orElseThrow(() -> new MovieNotFoundException(movie_id));
+    @GetMapping("/{movieId}/actors/{actorId}")
+    public ResponseEntity<EntityModel<Actor>> findActorById(@PathVariable Long movieId, @PathVariable Long actorId) {
+        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
         Actor actor = movie.getActors().stream()
-                .filter(a -> Objects.equals(a.getActor_id(), actor_id)).findFirst().orElseThrow(() -> new ActorNotFoundException(actor_id));
+                .filter(a -> Objects.equals(a.getId(), actorId)).findFirst().orElseThrow(() -> new ActorNotFoundException(actorId));
 
         return ResponseEntity.ok(actorAssembler.toModel(actor));
 
     }
 
-    @PostMapping("/{movie_id}/actors")
-    public ResponseEntity<EntityModel<Movie>> addActorToMovie(@PathVariable Long movie_id, @RequestBody Long actor_id) {
-        Movie movie = movieService.findById(movie_id).orElseThrow(() -> new MovieNotFoundException(movie_id));
-        Actor actor = actorService.findById(actor_id).orElseThrow(() -> new ActorNotFoundException(actor_id));
+    @PostMapping("/{movieId}/actors")
+    public ResponseEntity<EntityModel<Movie>> addActorToMovie(@PathVariable Long movieId, @RequestBody Long actorId) {
+        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+        Actor actor = actorService.findById(actorId).orElseThrow(() -> new ActorNotFoundException(actorId));
 
         movie.getActors().add(actor);
         movieService.save(movie);
@@ -269,11 +269,11 @@ public class MovieController {
         return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
-    @DeleteMapping("/{movie_id}/actors/{actor_id}")
-    public ResponseEntity<EntityModel<Movie>> removeActorFromMovie(@PathVariable Long movie_id, @PathVariable Long actor_id) {
-        Movie movie = movieService.findById(movie_id).orElseThrow(() -> new MovieNotFoundException(movie_id));
+    @DeleteMapping("/{movieId}/actors/{actorId}")
+    public ResponseEntity<EntityModel<Movie>> removeActorFromMovie(@PathVariable Long movieId, @PathVariable Long actorId) {
+        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
 
-        movie.removeActor(actor_id);
+        movie.removeActor(actorId);
         movieService.save(movie);
 
         return ResponseEntity.ok(movieAssembler.toModel(movie));
@@ -290,7 +290,7 @@ public class MovieController {
     @GetMapping("/all")
     public ResponseEntity<PagedModel<EntityModel<Movie>>> allMovies(@RequestParam(name = "page", defaultValue = "0") int page,
                                                                     @RequestParam(name = "size", defaultValue = "5") int size,
-                                                                    @RequestParam(name = "sortBy", defaultValue = "movie_id") String sortBy,
+                                                                    @RequestParam(name = "sortBy", defaultValue = "id") String sortBy,
                                                                     @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
 
         Page<Movie> movies = movieService.findAll(page, size, sortBy, sortDirection);

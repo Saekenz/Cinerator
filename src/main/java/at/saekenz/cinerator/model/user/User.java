@@ -15,7 +15,7 @@ public class User {
 
    @Id
    @GeneratedValue(strategy = GenerationType.IDENTITY)
-   private Long user_id;
+   private Long id;
 
    @Column(nullable = false)
    private String username;
@@ -32,8 +32,8 @@ public class User {
    @ManyToMany
    @JoinTable(
            name = "user_watchlist",
-           joinColumns = @JoinColumn(name = "user_id"),
-           inverseJoinColumns = @JoinColumn(name = "movie_id")
+           joinColumns = @JoinColumn(name = "USR_ID"),
+           inverseJoinColumns = @JoinColumn(name = "MOV_ID")
    )
    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
    private Set<Movie> watchlist;
@@ -56,12 +56,12 @@ public class User {
       return this.watchlist.add(movie);
    }
 
-   public boolean removeMovieFromWatchlist(Long movie_id) {
-      return this.watchlist.removeIf(m -> Objects.equals(m.getMovie_id(), movie_id)); }
+   public boolean removeMovieFromWatchlist(Long movieId) {
+      return this.watchlist.removeIf(m -> Objects.equals(m.getId(), movieId)); }
 
-   public Long getUser_id() { return user_id; }
+   public Long getId() { return id; }
 
-   public void setUser_id(Long user_id) { this.user_id = user_id; }
+   public void setId(Long id) { this.id = id; }
 
    public String getUsername() { return username; }
 
@@ -90,7 +90,7 @@ public class User {
    @Override
    public String toString() {
       return "User{" +
-              "user_id=" + user_id +
+              "id=" + id +
               ", username='" + username + '\'' +
               ", password='" + password + '\'' +
               ", role='" + role + '\'' +

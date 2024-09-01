@@ -17,22 +17,22 @@ public interface ActorRepository extends JpaRepository<Actor, Long> {
 
     List<Actor> findByNameAndAge(String name, int age);
 
-    @Query("SELECT a FROM Actor a WHERE a.birth_date = :birth_date")
-    List<Actor> findByBirthDate(@Param("birth_date") LocalDate birth_date);
+    @Query("SELECT a FROM Actor a WHERE a.birthDate = :birthDate")
+    List<Actor> findByBirthDate(@Param("birthDate") LocalDate birthDate);
 
-    @Query("SELECT a FROM Actor a WHERE a.birth_country = :country")
+    @Query("SELECT a FROM Actor a WHERE a.birthCountry = :country")
     List<Actor> findByBirthCountry(@Param("country") String country);
 
-    @Query("SELECT a FROM Actor a WHERE EXTRACT(YEAR FROM a.birth_date) = :birth_year")
-    List<Actor> findByBirthYear(@Param("birth_year") int birth_year);
+    @Query("SELECT a FROM Actor a WHERE EXTRACT(YEAR FROM a.birthDate) = :birthYear")
+    List<Actor> findByBirthYear(@Param("birthYear") int birthYear);
 
     @Query("SELECT a FROM Actor a WHERE " +
             "(LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL) AND " +
-            "(a.birth_date = :birth_date OR CAST(:birth_date as timestamp) IS NULL) AND " +
-            "(LOWER(a.birth_country) = LOWER(:birth_country) OR :birth_country IS NULL) AND " +
+            "(a.birthDate = :birthDate OR CAST(:birthDate as timestamp) IS NULL) AND " +
+            "(LOWER(a.birthCountry) = LOWER(:birthCountry) OR :birthCountry IS NULL) AND " +
             "(a.age = :age OR :age IS NULL)")
     List<Actor> findActorsBySearchParams(@Param("name") String name,
-                                         @Param("birth_date") LocalDate birth_date,
-                                         @Param("birth_country") String birth_country,
+                                         @Param("birthDate") LocalDate birthDate,
+                                         @Param("birthCountry") String birthCountry,
                                          @Param("age") Integer age);
 }

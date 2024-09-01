@@ -15,24 +15,24 @@ public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long review_id;
+    private Long id;
 
     private String comment;
     private int rating;
 
     @Column(nullable = false)
-    private LocalDate review_date;
+    private LocalDate reviewDate;
 
-    private boolean is_liked;
+    private boolean isLiked;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "USR_ID")
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonBackReference(value = "user_id")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "movie_id")
+    @JoinColumn(name = "MOV_ID")
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonBackReference(value = "movie_id")
     private Movie movie;
@@ -40,17 +40,17 @@ public class Review {
     public Review() {
     }
 
-    public Review(String comment, int rating, LocalDate review_date, boolean is_liked, User user, Movie movie) {
+    public Review(String comment, int rating, LocalDate reviewDate, boolean isLiked, User user, Movie movie) {
         this.comment = comment;
         this.rating = rating;
-        this.review_date = review_date;
-        this.is_liked = is_liked;
+        this.reviewDate = reviewDate;
+        this.isLiked = isLiked;
         this.user = user;
         this.movie = movie;
     }
 
-    public Long getReview_id() {
-        return review_id;
+    public Long getId() {
+        return id;
     }
 
     public String getComment() {
@@ -69,12 +69,12 @@ public class Review {
         this.rating = rating;
     }
 
-    public LocalDate getReview_date() {
-        return review_date;
+    public LocalDate getReviewDate() {
+        return reviewDate;
     }
 
-    public void setReview_date(LocalDate review_date) {
-        this.review_date = review_date;
+    public void setReviewDate(LocalDate reviewDate) {
+        this.reviewDate = reviewDate;
     }
 
     public User getUser() {
@@ -93,12 +93,12 @@ public class Review {
         this.movie = movie;
     }
 
-    public boolean isIs_liked() {
-        return is_liked;
+    public boolean isLiked() {
+        return isLiked;
     }
 
-    public void setIs_liked(boolean is_liked) {
-        this.is_liked = is_liked;
+    public void setIsLiked(boolean isLiked) {
+        this.isLiked = isLiked;
     }
 
     public String getUsername() { return user.getUsername(); }
@@ -106,11 +106,11 @@ public class Review {
     @Override
     public String toString() {
         return "Review{" +
-                "review_id=" + review_id +
+                "id=" + id +
                 ", comment='" + comment + '\'' +
                 ", rating=" + rating +
-                ", review_date=" + review_date +
-                ", is_liked=" + is_liked +
+                ", reviewDate=" + reviewDate +
+                ", isLiked=" + isLiked +
                 '}';
     }
 }

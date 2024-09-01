@@ -16,10 +16,10 @@ public class ReviewModelAssembler implements RepresentationModelAssembler<Review
     @Override
     public EntityModel<Review> toModel(Review review) {
         return EntityModel.of(review,
-                linkTo(methodOn(ReviewController.class).findById(review.getReview_id())).withSelfRel(),
-                linkTo(methodOn(UserController.class).findById(review.getUser().getUser_id())).withRel("author"),
-                linkTo(methodOn(MovieController.class).findById(review.getMovie().getMovie_id())).withRel("movie"),
+                linkTo(methodOn(ReviewController.class).findById(review.getId())).withSelfRel(),
+                linkTo(methodOn(UserController.class).findById(review.getUser().getId())).withRel("author"),
+                linkTo(methodOn(MovieController.class).findById(review.getMovie().getId())).withRel("movie"),
                 linkTo(methodOn(ReviewController.class).findAll()).withRel("reviews"),
-                linkTo(methodOn(ReviewController.class).deleteReview(review.getReview_id())).withRel("delete"));
+                linkTo(methodOn(ReviewController.class).deleteReview(review.getId())).withRel("delete"));
     }
 }
