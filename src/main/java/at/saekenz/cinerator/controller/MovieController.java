@@ -13,10 +13,10 @@ import at.saekenz.cinerator.service.IActorService;
 import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.IanaLinkRelations;
-import org.springframework.hateoas.Link;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +42,10 @@ public class MovieController {
     private final MovieModelAssembler movieAssembler;
     private final ReviewModelAssembler reviewAssembler;
     private final ActorModelAssembler actorAssembler;
+
+    // Workaround since using the @Autowired annotation causes Intellij to report an error
+    private final PagedResourcesAssembler<Movie> pagedResourcesAssembler = new PagedResourcesAssembler<>(
+            new HateoasPageableHandlerMethodArgumentResolver(), null);
 
     public MovieController(MovieModelAssembler movieAssembler, ReviewModelAssembler reviewAssembler,
                            ActorModelAssembler actorAssembler) {
@@ -275,19 +279,22 @@ public class MovieController {
         return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
+    /**
+     *
+     * @param page number of the page returned
+     * @param size number of movies listed in every page
+     * @param sortBy attribute which determines how movies will be sorted
+     * @param sortDirection order of sorting. Can be ASC or DESC
+     * @return {@link PagedModel} object with sorted/filtered movies wrapped in {@link ResponseEntity<>}
+     */
     @GetMapping("/all")
-    public ResponseEntity<CollectionModel<EntityModel<Movie>>> allMovies(@RequestParam(name = "page", defaultValue = "0") int page,
-                                 @RequestParam(name = "size", defaultValue = "5") int size,
-                                 @RequestParam(name = "sortBy", defaultValue = "movie_id") String sortBy,
-                                 @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+    public ResponseEntity<PagedModel<EntityModel<Movie>>> allMovies(@RequestParam(name = "page", defaultValue = "0") int page,
+                                                                    @RequestParam(name = "size", defaultValue = "5") int size,
+                                                                    @RequestParam(name = "sortBy", defaultValue = "movie_id") String sortBy,
+                                                                    @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
 
-        List<Movie> movies = movieService.findAll(page, size, sortBy, sortDirection).getContent();
-        if (movies.isEmpty()) { return ResponseEntity.ok().build(); }
-
-        CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
-                linkTo(methodOn(MovieController.class).allMovies(page, size, sortBy, sortDirection)).withSelfRel());
-
-        return ResponseEntity.ok(collectionModel);
+        Page<Movie> movies = movieService.findAll(page, size, sortBy, sortDirection);
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(movies,movieAssembler));
     }
 
 }

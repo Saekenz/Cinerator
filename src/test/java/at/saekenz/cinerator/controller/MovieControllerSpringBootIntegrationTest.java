@@ -431,4 +431,21 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(String.format("Could not find movie: %s", movie_id))));
     }
+
+    @Test
+    public void givenFindAllMoviesPaged_shouldSucceedWith200() throws Exception {
+        int page = 3;
+        int size = 3;
+        String sortBy = "title";
+        String sortDirection = "desc";
+
+        mockMvc.perform(get("/movies/all?page={page}&size={size}&sortBy={sortBy}&sortDirection={sortDirection}",
+                        page, size, sortBy, sortDirection)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.movieList").isNotEmpty())
+                .andExpect(jsonPath("$._links").isNotEmpty())
+                .andExpect(jsonPath("$.page.size").value(size))
+                .andExpect(jsonPath("$.page.number").value(page));
+    }
 }
