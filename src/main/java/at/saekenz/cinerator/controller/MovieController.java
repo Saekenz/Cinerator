@@ -288,6 +288,21 @@ public class MovieController {
 
     /**
      *
+     * @param movieId number of the movie from which the review is to be retrieved
+     * @param reviewId number of the review that is to be retrieved from the movie
+     * @return {@link Review} and HTTP code 200 if the review was found. HTTP code 404 otherwise
+     */
+    @GetMapping("/{movieId}/reviews/{reviewId}")
+    public ResponseEntity<EntityModel<Review>> findReviewById(@PathVariable Long movieId, @PathVariable Long reviewId) {
+        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+        Review review = movie.getReviews().stream().filter(r -> Objects.equals(r.getId(), reviewId)).findFirst()
+                .orElseThrow(() -> new ReviewNotFoundException(reviewId));
+
+        return ResponseEntity.ok(reviewAssembler.toModel(review));
+    }
+
+    /**
+     *
      * @param id number of the {@link Movie} to which the new {@link Review} will be added
      * @param reviewDTO {@link ReviewDTO} object that will be created and added to the {@link Movie}
      * @return HTTP code 201 and the created {@link Review}. HTTP code 404 if the {@link Movie} was not found
@@ -321,6 +336,25 @@ public class MovieController {
         reviewService.save(review);
 
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     *
+     * @param movieId identifies the movie from which the review is to be removed
+     * @param reviewId identifies the review that is to be removed
+     * @return HTTP code 204 if the review was successfully removed or HTTP code 404 if the movie was not found
+     */
+    @DeleteMapping("/{movieId}/reviews/{reviewId}")
+    public ResponseEntity<?> deleteReviewById(@PathVariable Long movieId, @PathVariable Long reviewId) {
+        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+
+        if (movie.getReviews().stream().anyMatch(r -> Objects.equals(r.getId(), reviewId))) {
+            reviewService.deleteById(reviewId);
+            return ResponseEntity.noContent().build();
+        }
+        else {
+            throw new ReviewNotFoundException(reviewId);
+        }
     }
 
 // ---------------------------------------- ACTORS --------------------------------------------------------------------
@@ -384,7 +418,7 @@ public class MovieController {
      *
      * @param movieId identifies the movie from which the actor is to be removed
      * @param actorId identifies the actor that is to be removed
-     * @return {@link Movie} and HTTP code 200 if the actor was successfully removed or HTTP code 404 if the movie was not found
+     * @return HTTP code 204 if the actor was successfully removed or HTTP code 404 if the movie was not found
      */
     @DeleteMapping("/{movieId}/actors/{actorId}")
     public ResponseEntity<EntityModel<Movie>> removeActorFromMovie(@PathVariable Long movieId, @PathVariable Long actorId) {
@@ -393,7 +427,7 @@ public class MovieController {
         movie.removeActor(actorId);
         movieService.save(movie);
 
-        return ResponseEntity.ok(movieAssembler.toModel(movie));
+        return ResponseEntity.noContent().build();
     }
 
     /**

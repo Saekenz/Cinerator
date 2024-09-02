@@ -267,6 +267,49 @@ public class MovieControllerSpringBootIntegrationTest {
     }
 
     /**
+     * Performs a request for retrieving a specific {@link Review} of a specific {@link Movie}.
+     * The request has to return HTTP status code 200.
+     * @throws Exception
+     */
+    @Test
+    public void givenFindReviewByIdRequest_shouldSucceedWith200() throws Exception {
+        Long movieId = 5L;
+        Long reviewId = 5L;
+
+        mockMvc.perform(get("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.movieId").value(movieId))
+                .andExpect(jsonPath("$.id").value(reviewId));
+    }
+
+    /**
+     * Performs a request to retrieve {@link Review} data for a specific {@link Movie}.
+     * The first time the request contains an invalid movieId and a valid reviewId.
+     * The second time the request contains a valid movieId and an invalid reviewId.
+     * Both requests have to return HTTP code 404.
+     * @throws Exception
+     */
+    @Test
+    public void givenFindReviewByIdRequest_shouldFailWith404() throws Exception {
+        Long movieId = 999L;
+        Long reviewId = 3L;
+
+        mockMvc.perform(get("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+
+        movieId = 2L;
+        reviewId = 999L;
+
+        mockMvc.perform(get("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find review: %s", reviewId))));
+    }
+
+    /**
      * Attempts to create a new {@link Review} and add it to the {@link Movie} specified by movieId.
      * The request made in the method has to return HTTP code 201.
      * @throws Exception
@@ -380,6 +423,55 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(content().string(containsString(String.format("Could not find review: %s", reviewId))));
     }
 
+    /**
+     * Performs a request for deleting a specific {@link Review} of a specific {@link Movie}.
+     * Verifies that the {@link Review} has been deleted by then querying for the deleted {@link Review}.
+     * The delete request has to return HTTP status code 204 while the get request has to return HTTP code 404.
+     * @throws Exception
+     */
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenDeleteReviewByIdRequest_shouldSucceedWith204() throws Exception {
+        Long movieId = 7L;
+        Long reviewId = 7L;
+
+        mockMvc.perform(delete("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/reviews/{reviewId}", reviewId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    /**
+     * Performs a request to delete a {@link Review} for a specific {@link Movie}.
+     * The first time the request contains an invalid movieId and a valid reviewId.
+     * The second time the request contains a valid movieId and an invalid reviewId.
+     * Both requests have to return HTTP code 404.
+     * @throws Exception
+     */
+    @Test
+    public void givenDeleteReviewByIdRequest_shouldFailWith404() throws Exception {
+        Long movieId = 999L;
+        Long reviewId = 3L;
+
+        mockMvc.perform(delete("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+
+        movieId = 2L;
+        reviewId = 999L;
+
+        mockMvc.perform(delete("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find review: %s", reviewId))));
+    }
+
+// ------------------------------------------- ACTORS ----------------------------------------------------------------
+
     @Test
     public void givenFindActorsByIdRequest_shouldSucceedWith200() throws Exception {
         Long movieId = 1L;
@@ -462,14 +554,13 @@ public class MovieControllerSpringBootIntegrationTest {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void givenDeleteActorFromMovieRequest_shouldSucceedWith200() throws Exception {
+    public void givenDeleteActorFromMovieRequest_shouldSucceedWith204() throws Exception {
         Long movieId = 2L;
         Long actorId = 2L;
 
         mockMvc.perform(delete("/movies/{movieId}/actors/{actorId}", movieId, actorId)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(String.format("$.actors[?(@.id == %s)]", actorId)).isEmpty());
+                .andExpect(status().isNoContent());
     }
 
     @Test
