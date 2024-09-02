@@ -54,6 +54,10 @@ public class MovieController {
         this.actorAssembler = actorAssembler;
     }
 
+    /**
+     *
+     * @return HTTP code 200 and a list of {@link Movie} objects currently stored in the database
+     */
     @GetMapping
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findAll() {
         List<Movie> movies = movieService.findAll();
@@ -70,12 +74,22 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     *
+     * @param id number of the {@link Movie} that is to be retrieved
+     * @return HTTP code 200 and the {@link Movie} object if it was found. HTTP code 404 otherwise
+     */
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<Movie>> findById(@PathVariable Long id) {
         Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
         return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
+    /**
+     *
+     * @param newMovie information about the movie that is to be added to the database
+     * @return HTTP code 201 and the {@link Movie} object that was created
+     */
     @PostMapping()
     public ResponseEntity<?> createMovie(@RequestBody Movie newMovie) {
         EntityModel<Movie> entityModel = movieAssembler.toModel(movieService.save(newMovie));
@@ -85,6 +99,12 @@ public class MovieController {
                 .body(entityModel);
     }
 
+    /**
+     *
+     * @param id number of the {@link Movie} that is to be updated (or added if the number does not exist in the database yet)
+     * @param newMovie information about the to be updated/added {@link Movie} object
+     * @return HTTP code 201 and the updated {@link Movie} object
+     */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateMovie(@PathVariable Long id, @RequestBody Movie newMovie) {
         Movie updatedMovie = movieService.findById(id).map(
@@ -108,6 +128,11 @@ public class MovieController {
                 .body(entityModel);
     }
 
+    /**
+     *
+     * @param id number of {@link Movie} that is to be removed from the database
+     * @return HTTP code 204 if {@link Movie} was deleted. HTTP code 404 if {@link Movie} was not found
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMovie(@PathVariable Long id) {
         if (movieService.findById(id).isPresent()) {
@@ -121,6 +146,11 @@ public class MovieController {
 
 // ----------------------------------- SEARCH ------------------------------------------------------------------------
 
+    /**
+     *
+     * @param title title of searched for {@link Movie} objects
+     * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
+     */
     @GetMapping("/title/{title}")
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByTitle(@PathVariable String title) {
         List<Movie> movies = movieService.findByTitle(title);
@@ -133,6 +163,11 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     *
+     * @param director person that directed searched for {@link Movie} objects
+     * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
+     */
     @GetMapping("/director/{director}")
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByDirector(@PathVariable String director) {
         List<Movie> movies = movieService.findByDirector(director);
@@ -145,6 +180,11 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     *
+     * @param genre genre with which searched for {@link Movie} objects are associated
+     * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
+     */
     @GetMapping("/genre/{genre}")
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByGenre(@PathVariable String genre) {
         List<Movie> movies = movieService.findByGenre(genre);
@@ -159,6 +199,11 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     *
+     * @param country country in which searched for {@link Movie} objects were created
+     * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
+     */
     @GetMapping("/country/{country}")
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByCountry(@PathVariable String country) {
         List<Movie> movies = movieService.findByCountry(country);
@@ -173,6 +218,11 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     *
+     * @param year year in which searched for {@link Movie} objects were released
+     * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
+     */
     @GetMapping("/year/{year}")
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByYearReleased(@PathVariable int year) {
         List<Movie> movies = movieService.findByYear(year);
@@ -187,6 +237,11 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     *
+     * @param imdbId IMDb ID of the {@link Movie} that shall be retrieved
+     * @return {@link Movie} and HTTP code 200 if a match was found. HTTP code 404 otherwise
+     */
     @GetMapping("/imdbId/{imdbId}")
     public ResponseEntity<EntityModel<Movie>> findByImdbId(@PathVariable String imdbId) {
         Movie movie = movieService.findByImdbId(imdbId).orElseThrow(() -> new MovieNotFoundException(imdbId));
@@ -205,6 +260,11 @@ public class MovieController {
 
 // -------------------------------------- REVIEWS ---------------------------------------------------------------------
 
+    /**
+     *
+     * @param id number of the {@link Movie} for which all reviews shall be retrieved
+     * @return list of all {@link Review} objects associated with the given {@link Movie}
+     */
     @GetMapping("/{id}/reviews")
     public ResponseEntity<CollectionModel<EntityModel<Review>>> findReviewsById(@PathVariable Long id) {
         Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
@@ -219,6 +279,12 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     *
+     * @param id number of the {@link Movie} to which the new {@link Review} will be added
+     * @param review {@link Review} object that will be created and added to the {@link Movie}
+     * @return HTTP code 201 and the created {@link Review}. HTTP code 404 if the {@link Movie} was not found
+     */
     @PostMapping("/{id}/reviews")
     public ResponseEntity<?> addReviewToMovie(@PathVariable Long id, @RequestBody Review review) {
         movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
@@ -231,6 +297,11 @@ public class MovieController {
 
 // ---------------------------------------- ACTORS --------------------------------------------------------------------
 
+    /**
+     *
+     * @param id number of the {@link Movie} for which all actors shall be retrieved
+     * @return list of all {@link Actor} objects associated with the given {@link Movie}
+     */
     @GetMapping("/{id}/actors")
     public ResponseEntity<CollectionModel<EntityModel<Actor>>> findActorsById(@PathVariable Long id) {
         Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
@@ -248,6 +319,12 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     *
+     * @param movieId number of the movie from which the actor is to be retrieved
+     * @param actorId number of the actor that is to be retrieved from the movie
+     * @return {@link Actor} and HTTP code 200 if the actor was found. HTTP code 404 otherwise
+     */
     @GetMapping("/{movieId}/actors/{actorId}")
     public ResponseEntity<EntityModel<Actor>> findActorById(@PathVariable Long movieId, @PathVariable Long actorId) {
         Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
@@ -258,6 +335,12 @@ public class MovieController {
 
     }
 
+    /**
+     *
+     * @param movieId identifies the movie to which the actor is to be added
+     * @param actorId identifies the actor which is to be added to the movie
+     * @return {@link Movie} and HTTP code 200 if the actor was successfully added or HTTP code 404 if the movie/actor was not found
+     */
     @PostMapping("/{movieId}/actors")
     public ResponseEntity<EntityModel<Movie>> addActorToMovie(@PathVariable Long movieId, @RequestBody Long actorId) {
         Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
@@ -269,6 +352,12 @@ public class MovieController {
         return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
+    /**
+     *
+     * @param movieId identifies the movie from which the actor is to be removed
+     * @param actorId identifies the actor that is to be removed
+     * @return {@link Movie} and HTTP code 200 if the actor was successfully removed or HTTP code 404 if the movie was not found
+     */
     @DeleteMapping("/{movieId}/actors/{actorId}")
     public ResponseEntity<EntityModel<Movie>> removeActorFromMovie(@PathVariable Long movieId, @PathVariable Long actorId) {
         Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
