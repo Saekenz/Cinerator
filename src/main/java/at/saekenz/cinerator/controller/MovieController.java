@@ -7,10 +7,7 @@ import at.saekenz.cinerator.model.movie.EMovieSearchParam;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
-import at.saekenz.cinerator.model.review.Review;
-import at.saekenz.cinerator.model.review.ReviewDTO;
-import at.saekenz.cinerator.model.review.ReviewMapper;
-import at.saekenz.cinerator.model.review.ReviewModelAssembler;
+import at.saekenz.cinerator.model.review.*;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserNotFoundException;
 import at.saekenz.cinerator.service.IActorService;
@@ -305,6 +302,25 @@ public class MovieController {
         return ResponseEntity
                 .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                 .body(entityModel);
+    }
+
+    /**
+     *
+     * @param movieId number of the {@link Movie} for which the to be edited {@link Review} was created
+     * @param reviewId number of the {@link Review} which will be edited
+     * @param reviewDTO {@link ReviewUpdateDTO} object containing the new information
+     * @return HTTP code 204 if the {@link Review} was updated. HTTP code 404 if the {@link Movie}/{@link Review} was not found
+     */
+    @PutMapping("/{movieId}/reviews/{reviewId}")
+    public ResponseEntity<?> editReviewById(@PathVariable Long movieId, @PathVariable Long reviewId,
+                                            @RequestBody ReviewUpdateDTO reviewDTO) {
+        movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+        Review review = reviewService.findById(reviewId).orElseThrow(() -> new ReviewNotFoundException(reviewId));
+
+        review.updateFromDTO(reviewDTO);
+        reviewService.save(review);
+
+        return ResponseEntity.noContent().build();
     }
 
 // ---------------------------------------- ACTORS --------------------------------------------------------------------

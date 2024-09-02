@@ -3,6 +3,7 @@ package at.saekenz.cinerator.controller;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.review.ReviewDTO;
+import at.saekenz.cinerator.model.review.ReviewUpdateDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -314,11 +315,69 @@ public class MovieControllerSpringBootIntegrationTest {
 
         movieId = 4L;
         reviewDTO.setUserId(-999L);
+
         reviewJsonData = om.writeValueAsString(reviewDTO);
         mockMvc.perform(post("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON)
                         .content(reviewJsonData))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(String.format("Could not find user: %s", reviewDTO.getUserId()))));
+    }
+
+    /**
+     * Performs a request for updating a specific {@link Review} of a specific {@link Movie}.
+     * Verifies that data has been updated by also performing a request to retrieve the data of the updated {@link Movie}.
+     * The update request has to return HTTP status code 204 while the get request has to return HTTP code 200.
+     * @throws Exception
+     */
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenEditReviewForMovieRequest_shouldSucceedWith204() throws Exception {
+        Long movieId = 3L;
+        Long reviewId = 3L;
+        ReviewUpdateDTO updateDTO = new ReviewUpdateDTO("Update test comment!", 1, false);
+        String updateReviewJsonData = new ObjectMapper().writeValueAsString(updateDTO);
+
+        mockMvc.perform(put("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateReviewJsonData))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/reviews/{reviewId}", reviewId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.comment").value(updateDTO.getComment()))
+                .andExpect(jsonPath("$.rating").value(updateDTO.getRating()))
+                .andExpect(jsonPath("$.liked").value(updateDTO.isLiked()));
+    }
+
+    /**
+     * Performs a request to update {@link Review} data for a specific {@link Movie}.
+     * The first time the request contains an invalid movieId and a valid reviewId.
+     * The second time the request contains a valid movieId and an invalid reviewId.
+     * Both requests have to return HTTP code 404.
+     * @throws Exception
+     */
+    @Test
+    public void givenEditReviewForMovieRequest_shouldFailWith404() throws Exception {
+        Long movieId = 999L;
+        Long reviewId = 3L;
+        ReviewUpdateDTO updateDTO = new ReviewUpdateDTO("Update test comment!", 1, false);
+        String updateReviewJsonData = new ObjectMapper().writeValueAsString(updateDTO);
+
+        mockMvc.perform(put("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateReviewJsonData))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+
+        movieId = 2L;
+        reviewId = 999L;
+
+        mockMvc.perform(put("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateReviewJsonData))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find review: %s", reviewId))));
     }
 
     @Test

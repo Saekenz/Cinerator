@@ -99,6 +99,12 @@ public class Review {
 
     public String getUsername() { return user.getUsername(); }
 
+    public void updateFromDTO(ReviewUpdateDTO reviewUpdateDTO) {
+        setComment(reviewUpdateDTO.getComment());
+        setRating(reviewUpdateDTO.getRating());
+        setIsLiked(reviewUpdateDTO.isLiked());
+    }
+
     @Override
     public String toString() {
         return "Review{" +
