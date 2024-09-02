@@ -8,10 +8,15 @@ import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.model.review.Review;
+import at.saekenz.cinerator.model.review.ReviewDTO;
+import at.saekenz.cinerator.model.review.ReviewMapper;
 import at.saekenz.cinerator.model.review.ReviewModelAssembler;
+import at.saekenz.cinerator.model.user.User;
+import at.saekenz.cinerator.model.user.UserNotFoundException;
 import at.saekenz.cinerator.service.IActorService;
 import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IReviewService;
+import at.saekenz.cinerator.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
@@ -39,9 +44,13 @@ public class MovieController {
     @Autowired
     IReviewService reviewService;
 
+    @Autowired
+    IUserService userService;
+
     private final MovieModelAssembler movieAssembler;
     private final ReviewModelAssembler reviewAssembler;
     private final ActorModelAssembler actorAssembler;
+    private final ReviewMapper reviewMapper;
 
     // Workaround since using the @Autowired annotation causes Intellij to report an error
     private final PagedResourcesAssembler<Movie> pagedResourcesAssembler = new PagedResourcesAssembler<>(
@@ -52,6 +61,7 @@ public class MovieController {
         this.movieAssembler = movieAssembler;
         this.reviewAssembler = reviewAssembler;
         this.actorAssembler = actorAssembler;
+        this.reviewMapper = new ReviewMapper();
     }
 
     /**
@@ -282,14 +292,16 @@ public class MovieController {
     /**
      *
      * @param id number of the {@link Movie} to which the new {@link Review} will be added
-     * @param review {@link Review} object that will be created and added to the {@link Movie}
+     * @param reviewDTO {@link ReviewDTO} object that will be created and added to the {@link Movie}
      * @return HTTP code 201 and the created {@link Review}. HTTP code 404 if the {@link Movie} was not found
      */
     @PostMapping("/{id}/reviews")
-    public ResponseEntity<?> addReviewToMovie(@PathVariable Long id, @RequestBody Review review) {
-        movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
-        EntityModel<Review> entityModel = reviewAssembler.toModel(reviewService.save(review));
-        // TODO: optimize this
+    public ResponseEntity<?> addReviewToMovie(@PathVariable Long id, @RequestBody ReviewDTO reviewDTO) {
+        Movie reviewedMovie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
+        User reviewingUser = userService.findById(reviewDTO.getUserId()).orElseThrow(() -> new UserNotFoundException(reviewDTO.getUserId()));
+        Review newReview = reviewMapper.toReview(reviewDTO, reviewingUser, reviewedMovie);
+
+        EntityModel<Review> entityModel = reviewAssembler.toModel(reviewService.save(newReview));
         return ResponseEntity
                 .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                 .body(entityModel);

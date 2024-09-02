@@ -77,29 +77,25 @@ public class Review {
         this.reviewDate = reviewDate;
     }
 
-    public User getUser() {
-        return user;
-    }
+    public User getUser() { return user; }
+
+    public Long getUserId() { return user.getId(); }
 
     public void setUser(User user) {
         this.user = user;
     }
 
-    public Movie getMovie() {
-        return movie;
-    }
+    public Movie getMovie() { return movie; }
+
+    public Long getMovieId() { return movie.getId(); }
 
     public void setMovie(Movie movie) {
         this.movie = movie;
     }
 
-    public boolean isLiked() {
-        return isLiked;
-    }
+    public boolean isLiked() { return isLiked; }
 
-    public void setIsLiked(boolean isLiked) {
-        this.isLiked = isLiked;
-    }
+    public void setIsLiked(boolean isLiked) { this.isLiked = isLiked; }
 
     public String getUsername() { return user.getUsername(); }
 

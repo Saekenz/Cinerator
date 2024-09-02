@@ -2,7 +2,7 @@ package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.review.Review;
-import at.saekenz.cinerator.model.user.User;
+import at.saekenz.cinerator.model.review.ReviewDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -266,60 +265,60 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
-    // TODO -> fix DataIntegrityViolation
-//    @WithMockUser("test-user")
-//    @Test
-//    public void givenAddReviewToMovieRequest_shouldSucceedWith201() throws Exception {
-//        Long movieId = 1L;
-//
-//        User user = new User("UserA","password","USER",true, List.of());
-//        user.setUser_id(3L);
-//        Movie movie = new Movie("Sicario", "Denis Villeneuve", LocalDate.of(2015,10,1), "122 min",
-//                "Thriller","United States","tt3397884","https://upload.wikimedia.org/wikipedia/en/4/4b/Sicario_poster.jpg");
-//        movie.setmovieId(movieId);
-//
-//        Review review = new Review();
-//        review.setComment("Test review comment");
-//        review.setReview_date(LocalDate.now());
-//        review.setIs_liked(false);
-//        review.setRating(5);
-//        review.setUser(user);
-//        review.setMovie(movie);
-//
-//        ObjectMapper om = new ObjectMapper();
-//        om.findAndRegisterModules();
-//        String json_data = om.writeValueAsString(review);
-//        System.out.println(json_data);
-//
-//        mockMvc.perform(post("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON)
-//                        .content(json_data))
-//                .andExpect(status().isCreated())
-//                .andExpect(jsonPath("$.comment").value(review.getComment()))
-//                .andExpect(jsonPath("$.review_date").value(review.getReview_date()))
-//                .andExpect(jsonPath("$.is_liked").value(review.isIs_liked()))
-//                .andExpect(jsonPath("$.rating").value(review.getRating()))
-//                .andDo(print());
-//    }
+    /**
+     * Attempts to create a new {@link Review} and add it to the {@link Movie} specified by movieId.
+     * The request made in the method has to return HTTP code 201.
+     * @throws Exception
+     */
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenAddReviewToMovieRequest_shouldSucceedWith201() throws Exception {
+        Long movieId = 1L;
+        ReviewDTO reviewDTO = new ReviewDTO("Test create and insert review with reviewDTO.",
+                2, LocalDate.of(2024,9,1), true, 3L);
 
-    @WithMockUser("test-user")
+        ObjectMapper om = new ObjectMapper().findAndRegisterModules();
+        String reviewJsonData = om.writeValueAsString(reviewDTO);
+
+        mockMvc.perform(post("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON)
+                        .content(reviewJsonData))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.comment").value(reviewDTO.getComment()))
+                .andExpect(jsonPath("$.reviewDate").value(reviewDTO.getReviewDate().toString()))
+                .andExpect(jsonPath("$.liked").value(reviewDTO.isLiked()))
+                .andExpect(jsonPath("$.rating").value(reviewDTO.getRating()))
+                .andExpect(jsonPath("$.userId").value(reviewDTO.getUserId()))
+                .andExpect(jsonPath("$.movieId").value(movieId));
+    }
+
+    /**
+     * Performs request for creating and adding a review to a movie twice.
+     * The first time the request contains an invalid movieId and a valid userId.
+     * The second time the request contains a valid movieId and an invalid userId.
+     * Both requests have to return HTTP code 404.
+     * @throws Exception
+     */
     @Test
     public void givenAddReviewToMovieRequest_shouldFailWith404() throws Exception {
-    Long movieId = 999L;
-    User user = new User("UserA","password","USER",true, Set.of());
-    Movie movie = new Movie();
-    Review review = new Review();
-    review.setUser(user);
-    review.setMovie(movie);
+        Long movieId = -999L;
+        ReviewDTO reviewDTO = new ReviewDTO("Test create and insert review with reviewDTO.",
+                2, LocalDate.of(2024,9,1), true, 3L);
 
-    ObjectMapper om = new ObjectMapper();
-    om.findAndRegisterModules();
-    String json_data = om.writeValueAsString(review);
+        ObjectMapper om = new ObjectMapper().findAndRegisterModules();
+        String reviewJsonData = om.writeValueAsString(reviewDTO);
 
-    mockMvc.perform(post("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON)
-                    .content(json_data))
-            .andExpect(status().isNotFound())
-            .andDo(print());
+        mockMvc.perform(post("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON)
+                        .content(reviewJsonData))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
 
+        movieId = 4L;
+        reviewDTO.setUserId(-999L);
+        reviewJsonData = om.writeValueAsString(reviewDTO);
+        mockMvc.perform(post("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON)
+                        .content(reviewJsonData))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find user: %s", reviewDTO.getUserId()))));
     }
 
     @Test
