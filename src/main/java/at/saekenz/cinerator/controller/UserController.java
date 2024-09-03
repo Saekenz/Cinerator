@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -60,9 +62,7 @@ public class UserController {
     public ResponseEntity<CollectionModel<EntityModel<User>>> findAll() {
         List<User> users = userService.findAll();
 
-        if (users.isEmpty()) {
-            throw new UserNotFoundException();
-        }
+        if (users.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
         List<EntityModel<User>> userModels = users.stream()
                 .map(assembler::toModel)
@@ -89,7 +89,8 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User newUser) {
-        User updatedUser = userService.findById(id).map(
+        Optional<User> existingUser = userService.findById(id);
+        User updatedUser = existingUser.map(
                 user -> {
                     user.setUsername(newUser.getUsername());
                     user.setPassword(newUser.getPassword());
@@ -100,11 +101,16 @@ public class UserController {
                     return userService.save(user);
                 })
                 .orElseGet(() -> userService.save(newUser));
-        EntityModel<User> entityModel = assembler.toModel(updatedUser);
 
-        return ResponseEntity
-                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                .body(entityModel);
+        if (existingUser.isPresent()) {
+            return ResponseEntity.noContent().build();
+        }
+        else {
+            EntityModel<User> entityModel = assembler.toModel(updatedUser);
+            return ResponseEntity
+                    .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                    .body(entityModel);
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -162,13 +168,16 @@ public class UserController {
     @GetMapping("/{id}/watchlist")
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findWatchlistByUser(@PathVariable Long id) {
         User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        Set<Movie> movies = user.getWatchlist();
 
-        List<EntityModel<Movie>> movies = user.getWatchlist()
+        if (movies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
+
+        List<EntityModel<Movie>> movieModels = movies
                 .stream()
                 .map(movieAssembler::toModel)
                 .toList();
 
-        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(movies,
+        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(movieModels,
                 linkTo(methodOn(UserController.class).findWatchlistByUser(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
@@ -214,10 +223,9 @@ public class UserController {
     @GetMapping("/{user_id}/reviews")
     public ResponseEntity<CollectionModel<EntityModel<Review>>> findReviewsByUser(@PathVariable Long user_id) {
        User user = userService.findById(user_id).orElseThrow(() -> new UserNotFoundException(user_id));
-
        List<Review> reviews = user.getReviews();
 
-       if (reviews.isEmpty()) { return ResponseEntity.ok().build(); }
+       if (reviews.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
        List<EntityModel<Review>> reviewModels = reviews.stream()
                .map(reviewAssembler::toModel)

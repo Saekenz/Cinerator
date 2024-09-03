@@ -160,10 +160,11 @@ public class UserControllerSpringBootIntegrationTest {
 
     @WithMockUser("test-user")
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateUserRequest_shouldSucceedWith201() throws Exception {
         User user = new User("updatedUser123","newPassword123","ADMIN",true,Set.of());
         String userData = new ObjectMapper().writeValueAsString(user);
-        Long userId = 4L;
+        Long userId = 99L;
 
         mockMvc.perform(put("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON).content(userData))
                 .andExpect(status().isCreated())
@@ -172,6 +173,17 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$.role").value("ADMIN"))
                 .andExpect(jsonPath("$.enabled").value(true))
                 .andDo(print());
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenUpdateUserRequest_shouldSucceedWith204() throws Exception {
+        User user = new User("updatedUser123","newPassword123","ADMIN",true,Set.of());
+        String userData = new ObjectMapper().writeValueAsString(user);
+        Long userId = 3L;
+
+        mockMvc.perform(put("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON).content(userData))
+                .andExpect(status().isNoContent());
     }
 
     /**
