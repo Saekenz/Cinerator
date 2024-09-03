@@ -181,6 +181,7 @@ public class MovieControllerSpringBootIntegrationTest {
 
     @WithMockUser("test-user")
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenCreateNewMovieRequest_shouldSucceedWith201() throws Exception {
         String json_data = """
                 {
@@ -208,9 +209,69 @@ public class MovieControllerSpringBootIntegrationTest {
             .andDo(print());
     }
 
-    @WithMockUser("test-user")
+    /**
+     * Creates a request for adding a new {@link Movie} that is missing the 'director' property.
+     * The request has to return HTTP code 400 since this property must not be null.
+     * @throws Exception
+     */
     @Test
+    public void givenCreateNewMovieRequest_shouldFailWith400() throws Exception {
+        String json_data = """
+                {
+                  "title": "Nightcrawler",
+                  "releaseDate": "2014-10-31",
+                  "runtime": "118 min",
+                  "genre": "Thriller",
+                  "country": "United States",
+                  "imdbId": "tt287271",
+                  "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg",
+                  "reviews": []
+                }""";
+
+        mockMvc.perform(post("/movies").contentType(MediaType.APPLICATION_JSON).content(json_data))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString(("The property 'director' in entity"))));
+    }
+
+    /**
+     * Creates a request to update a {@link Movie}.
+     * The {@link Movie} will be created instead of updated since it is not yet stored in the database.
+     * The request has to return HTTP code 201.
+     * @throws Exception
+     */
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateMovieRequest_shouldSucceedWith201() throws Exception {
+        Movie updatedMovie = new Movie("The Shawshank Redemption","Frank Darabont", LocalDate.of(1994, 9, 23),
+                "142 min","Drama","United States","tt0111161",
+                "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg");
+
+        ObjectMapper om = new ObjectMapper();
+        om.findAndRegisterModules();
+        String json_data = om.writeValueAsString(updatedMovie);
+
+        Long movieId = 35L; // Id that does not exist in the database yet
+        mockMvc.perform(put("/movies/{id}", movieId).contentType(MediaType.APPLICATION_JSON).content(json_data))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value(updatedMovie.getTitle()))
+                .andExpect(jsonPath("$.releaseDate").value(updatedMovie.getReleaseDate().toString()))
+                .andExpect(jsonPath("$.runtime").value(updatedMovie.getRuntime()))
+                .andExpect(jsonPath("$.director").value(updatedMovie.getDirector()))
+                .andExpect(jsonPath("$.genre").value(updatedMovie.getGenre()))
+                .andExpect(jsonPath("$.country").value(updatedMovie.getCountry()))
+                .andExpect(jsonPath("$.imdbId").value(updatedMovie.getImdbId()))
+                .andExpect(jsonPath("$.posterUrl").value(updatedMovie.getPosterUrl()));
+    }
+
+    /**
+     * Creates a request to update a {@link Movie}.
+     * The {@link Movie} will be updated since it is already stored in the database.
+     * The request has to return HTTP code 204.
+     * @throws Exception
+     */
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenUpdateMovieRequest_shouldSucceedWith204() throws Exception {
         Movie updatedMovie = new Movie("The Shawshank Redemption","Frank Darabont", LocalDate.of(1994, 9, 23),
                 "142 min","Drama","United States","tt0111161",
                 "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg");
@@ -221,20 +282,12 @@ public class MovieControllerSpringBootIntegrationTest {
 
         Long movieId = 3L;
         mockMvc.perform(put("/movies/{id}", movieId).contentType(MediaType.APPLICATION_JSON).content(json_data))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value("The Shawshank Redemption"))
-                .andExpect(jsonPath("$.releaseDate").value("1994-09-23"))
-                .andExpect(jsonPath("$.runtime").value("142 min"))
-                .andExpect(jsonPath("$.director").value("Frank Darabont"))
-                .andExpect(jsonPath("$.genre").value("Drama"))
-                .andExpect(jsonPath("$.country").value("United States"))
-                .andExpect(jsonPath("$.imdbId").value("tt0111161"))
-                .andExpect(jsonPath("$.posterUrl")
-                        .value("https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg"));
+                .andExpect(status().isNoContent());
     }
 
     @WithMockUser("test-user")
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenDeleteMovieRequest_shouldSucceedWith204() throws Exception {
         Long movieId = 3L;
         mockMvc.perform(delete("/movies/{movieId}", movieId).contentType(MediaType.APPLICATION_JSON))
@@ -248,6 +301,8 @@ public class MovieControllerSpringBootIntegrationTest {
         mockMvc.perform(delete("/movies/{movieId}", movieId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
+
+// --------------------------------------- REVIEWS --------------------------------------------------------------------
 
     @WithMockUser("test-user")
     @Test
