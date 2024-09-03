@@ -216,7 +216,7 @@ public class MovieControllerSpringBootIntegrationTest {
      */
     @Test
     public void givenCreateNewMovieRequest_shouldFailWith400() throws Exception {
-        String json_data = """
+        String movieJsonData = """
                 {
                   "title": "Nightcrawler",
                   "releaseDate": "2014-10-31",
@@ -228,7 +228,7 @@ public class MovieControllerSpringBootIntegrationTest {
                   "reviews": []
                 }""";
 
-        mockMvc.perform(post("/movies").contentType(MediaType.APPLICATION_JSON).content(json_data))
+        mockMvc.perform(post("/movies").contentType(MediaType.APPLICATION_JSON).content(movieJsonData))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString(("The property 'director' in entity"))));
     }

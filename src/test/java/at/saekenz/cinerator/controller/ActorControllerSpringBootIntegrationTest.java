@@ -143,10 +143,36 @@ public class ActorControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$.age").value(actor.getAge()));
     }
 
+    /**
+     * Creates a request for adding a new {@link Actor} that is missing the 'birthDate' property.
+     * The request has to return HTTP code 400 since this property must not be null.
+     * @throws Exception
+     */
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenCreateActorRequest_shouldFailWith400() throws Exception {
+        String actorJsonData = """
+                {
+                  "name": "Scarlett Johansson",
+                  "birthCountry": "United States",
+                  "age": 39
+                }""";
+
+        mockMvc.perform(post("/actors").contentType(MediaType.APPLICATION_JSON).content(actorJsonData))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString(("The property 'birthDate' in entity"))));
+    }
+
+    /**
+     * Creates a request to update an {@link Actor}.
+     * The {@link Actor} will be created instead of updated since it is not yet stored in the database.
+     * The request has to return HTTP code 201.
+     * @throws Exception
+     */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateActorRequest_shouldSucceedWith201() throws Exception {
-        Long oldActorId = 5L; // replace "Cate Blanchett"
+        Long oldActorId = 99L; // id not yet stored in the database
         Actor actor = new Actor("Brad Pitt",LocalDate.of(1963,12,18),"United States");
         ObjectMapper om = new ObjectMapper().findAndRegisterModules();
         String actorData = om.writeValueAsString(actor);
@@ -158,6 +184,25 @@ public class ActorControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$.birthDate").value(actor.getBirthDate().toString()))
                 .andExpect(jsonPath("$.birthCountry").value(actor.getBirthCountry()))
                 .andExpect(jsonPath("$.age").value(actor.getAge()));
+    }
+
+    /**
+     * Creates a request to update a {@link Actor}.
+     * The {@link Actor} will be updated since it is already stored in the database.
+     * The request has to return HTTP code 204.
+     * @throws Exception
+     */
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenUpdateActorRequest_shouldSucceedWith204() throws Exception {
+        Long oldActorId = 5L; // replace "Cate Blanchett"
+        Actor actor = new Actor("Brad Pitt",LocalDate.of(1963,12,18),"United States");
+        ObjectMapper om = new ObjectMapper().findAndRegisterModules();
+        String actorData = om.writeValueAsString(actor);
+
+        mockMvc.perform(put("/actors/{actorId}",oldActorId).contentType(MediaType.APPLICATION_JSON)
+                        .content(actorData))
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -176,7 +221,7 @@ public class ActorControllerSpringBootIntegrationTest {
     }
 
     @Test
-    public void givenActorSearchRequest_shouldSucceedWith200() throws Exception {
+    public void givenActorSearchRequest_shouldSucceedWith200AndReturnListOfActors() throws Exception {
         Actor actor = new Actor("Daniel Day-Lewis", LocalDate.of(1957, 4, 29), "United Kingdom");
         mockMvc.perform(get("/actors/search?name={name}&birthDate={birthDate}&birthCountry={birthCountry}&age={age}",
                 actor.getName(),actor.getBirthDate(),actor.getBirthCountry(), actor.getAge())
@@ -190,7 +235,18 @@ public class ActorControllerSpringBootIntegrationTest {
     }
 
     @Test
-    public void givenFindMoviesByIdRequest_shouldSucceedWith200() throws Exception {
+    public void givenActorSearchRequest_shouldSucceedWith200AndReturnEmptyList() throws Exception {
+        String actorName = "Brad Pitt";
+
+        mockMvc.perform(get("/actors/search?name={name}",
+                        actorName)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(is("{}")));
+    }
+
+    @Test
+    public void givenFindMoviesByIdRequest_shouldSucceedWith200AndReturnListOfMovies() throws Exception {
         long actorId = 2L;
         MvcResult result = mockMvc.perform(get("/actors/{actorId}/movies",actorId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -216,6 +272,25 @@ public class ActorControllerSpringBootIntegrationTest {
         }
 
         assertTrue(String.format("Actor with actorId = %s not present in all movies!", actorId), containsActor);
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenFindMoviesByIdRequest_shouldSucceedWith200AndReturnEmptyList() throws Exception {
+        Actor newActor = new Actor("Scarlett Johansson",
+                LocalDate.of(1984, 11, 22),
+                "United States");
+        Long actorId = 6L;
+        ObjectMapper om = new ObjectMapper().findAndRegisterModules();
+        String actorData = om.writeValueAsString(newActor);
+
+        mockMvc.perform(post("/actors").contentType(MediaType.APPLICATION_JSON).content(actorData))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/actors/{actorId}/movies",actorId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(is("{}")));
     }
 
     @Test

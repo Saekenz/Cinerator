@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -145,7 +146,7 @@ public class ActorController {
         List<Actor> actors = actorService.searchActors(name, birthDate, birthCountry, age);
 
         // return empty body if no actors were found
-        if (actors.isEmpty()) { return ResponseEntity.ok().build(); }
+        if (actors.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
         List<EntityModel<Actor>> actorModels = actors.stream()
                 .map(actorAssembler::toModel)
@@ -168,7 +169,9 @@ public class ActorController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateActor(@PathVariable Long id, @RequestBody Actor newActor) {
-        Actor updatedActor = actorService.findById(id).map(
+        Optional<Actor> existingActor = actorService.findById(id);
+
+        Actor updatedActor = existingActor.map(
                 actor -> {
                     actor.setName(newActor.getName());
                     actor.setBirthDate(newActor.getBirthDate());
@@ -177,11 +180,16 @@ public class ActorController {
                     return actorService.save(actor);
                 })
                 .orElseGet(() -> actorService.save(newActor));
-        EntityModel<Actor> entityModel = actorAssembler.toModel(updatedActor);
 
-        return ResponseEntity
-                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                .body(entityModel);
+        if (existingActor.isPresent()) {
+            return ResponseEntity.noContent().build();
+        }
+        else {
+            EntityModel<Actor> entityModel = actorAssembler.toModel(updatedActor);
+            return ResponseEntity
+                    .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                    .body(entityModel);
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -200,12 +208,11 @@ public class ActorController {
         Actor actor = actorService.findById(id).orElseThrow(() -> new ActorNotFoundException(id));
 
         List<Movie> movies = actor.getMovies();
-        if (movies.isEmpty()) { return ResponseEntity.ok().build(); }
+        if (movies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
         List<EntityModel<Movie>> movieModels = movies.stream()
                 .map(movieAssembler::toModel)
                 .toList();
-
 
         CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(movieModels,
                 linkTo(methodOn(ActorController.class).findMoviesById(id)).withSelfRel());
