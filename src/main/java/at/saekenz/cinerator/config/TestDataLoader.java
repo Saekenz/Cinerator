@@ -2,15 +2,14 @@ package at.saekenz.cinerator.config;
 
 import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
+import at.saekenz.cinerator.model.follow.Follow;
+import at.saekenz.cinerator.model.follow.FollowKey;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserNotFoundException;
-import at.saekenz.cinerator.repository.ActorRepository;
-import at.saekenz.cinerator.repository.MovieRepository;
-import at.saekenz.cinerator.repository.ReviewRepository;
-import at.saekenz.cinerator.repository.UserRepository;
+import at.saekenz.cinerator.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -20,6 +19,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -193,6 +193,28 @@ public class TestDataLoader {
           for(Actor a : actorRepository.saveAll(List.of(a1, a2, a3, a4, a5))) {
               log.info("Created actor: {}", a);
           }
+        };
+    }
+
+    @Bean
+    @Order(5)
+    public CommandLineRunner initFollowers(FollowRepository followRepository, UserRepository userRepository) {
+        return args -> {
+            log.info("Initializing followers...");
+
+            User u1 = userRepository.findById(1L).orElseThrow(() -> new UserNotFoundException(1L));
+            User u2 = userRepository.findById(2L).orElseThrow(() -> new UserNotFoundException(2L));
+            User u3 = userRepository.findById(3L).orElseThrow(() -> new UserNotFoundException(3L));
+            User u4 = userRepository.findById(4L).orElseThrow(() -> new UserNotFoundException(4L));
+
+            Follow f1 = new Follow(new FollowKey(u1.getId(),u2.getId()), u1, u2, LocalDateTime.now());
+            Follow f2 = new Follow(new FollowKey(u2.getId(),u1.getId()), u2, u1, LocalDateTime.now());
+            Follow f3 = new Follow(new FollowKey(u2.getId(),u3.getId()), u2, u3, LocalDateTime.now());
+            Follow f4 = new Follow(new FollowKey(u2.getId(),u4.getId()), u2, u4, LocalDateTime.now());
+
+            for (Follow f : followRepository.saveAll(List.of(f1, f2, f3, f4))) {
+                log.info("Created follow: {}", f);
+            }
         };
     }
 }

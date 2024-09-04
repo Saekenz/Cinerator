@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.model.user;
 
+import at.saekenz.cinerator.model.follow.Follow;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.review.Review;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -49,6 +50,12 @@ public class User {
 
    @OneToMany(mappedBy = "user")
    private List<Review> reviews;
+
+   @OneToMany(mappedBy = "follower")
+   private Set<Follow> follows;
+
+   @OneToMany(mappedBy = "user")
+   private Set<Follow> followers;
 
    public User() {
    }
@@ -112,6 +119,14 @@ public class User {
    public String getBio() { return bio; }
 
    public void setBio(String bio) { this.bio = bio; }
+
+   public Set<Follow> getFollows() { return follows; }
+
+   public void setFollows(Set<Follow> follows) { this.follows = follows; }
+
+   public Set<Follow> getFollowers() { return followers; }
+
+   public void setFollowers(Set<Follow> followers) { this.followers = followers; }
 
    @Override
    public String toString() {

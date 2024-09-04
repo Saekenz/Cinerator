@@ -18,6 +18,8 @@ public class UserDTOAssembler implements RepresentationModelAssembler<UserDTO, E
                 linkTo(methodOn(UserController.class).findById(userDTO.getId())).withSelfRel(),
                 linkTo(methodOn(UserController.class).findWatchlistByUser(userDTO.getId())).withRel("watchlist"),
                 linkTo(methodOn(UserController.class).findReviewsByUser(userDTO.getId())).withRel("reviews"),
+                linkTo(methodOn(UserController.class).findFollowingByUser(userDTO.getId())).withRel("following"),
+                linkTo(methodOn(UserController.class).findFollowersByUser(userDTO.getId())).withRel("followers"),
                 linkTo(methodOn(UserController.class).findMoviesLikedByUser(userDTO.getId())).withRel("likedMovies"));
     }
 }

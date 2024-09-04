@@ -418,7 +418,7 @@ public class UserControllerSpringBootIntegrationTest {
 
     /**
      * Creates a request to retrieve {@link Movie} objects liked by {@link User} with id = 4.
-     * Returns an empty list of and HTTP code 200.
+     * Returns an empty list and HTTP code 200.
      * @throws Exception
      */
     @Test
@@ -430,4 +430,68 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(is("{}")));
     }
+
+// -------------------------------------- FOLLOWERS -------------------------------------------------------------------
+
+    /**
+     * Creates a request to retrieve {@link User} objects which follow {@link User} with id = 2.
+     * Returns a list of {@link User} objects and HTTP code 200.
+     * @throws Exception
+     */
+    @Test
+    public void givenFindFollowersByUser_shouldSucceedWith200() throws Exception {
+        Long userId = 2L;
+
+        mockMvc.perform(get("/users/{userId}/followers", userId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.userDTOList[*].id", hasItems(1,3,4)));
+
+    }
+
+    /**
+     * Creates a request to retrieve {@link User} objects which follow {@link User} with id = -999.
+     * Returns HTTP code 404 since this {@link User} does not exist.
+     * @throws Exception
+     */
+    @Test
+    public void givenFindFollowersByUser_shouldFailWith404() throws Exception {
+        Long userId = -999L;
+
+        mockMvc.perform(get("/users/{userId}/followers", userId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find user: %s", userId))));
+    }
+
+    /**
+     * Creates a request to retrieve {@link User} objects which {@link User} with id = 2 follows.
+     * Returns a list of {@link User} objects and HTTP code 200.
+     * @throws Exception
+     */
+    @Test
+    public void givenFindFollowingByUser_shouldSucceedWith200() throws Exception {
+        Long userId = 2L;
+
+        mockMvc.perform(get("/users/{userId}/following", userId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.userDTOList[*].id", hasItem(1)));
+    }
+
+    /**
+     * Creates a request to retrieve {@link User} objects which {@link User} with id = -999 follows.
+     * Returns HTTP code 404 since this {@link User} does not exist.
+     * @throws Exception
+     */
+    @Test
+    public void givenFindFollowingByUser_shouldFailWith404() throws Exception {
+        Long userId = -999L;
+
+        mockMvc.perform(get("/users/{userId}/following", userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find user: %s", userId))));
+    }
+
 }

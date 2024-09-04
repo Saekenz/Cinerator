@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.follow.Follow;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -280,6 +280,56 @@ public class UserController {
 
         CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(likedMovieModels,
                 linkTo(methodOn(UserController.class).findMoviesLikedByUser(userId)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+// ----------------------------------------- FOLLOWERS ----------------------------------------------------------------
+
+    /**
+     *
+     * @param id number of the {@link User} for which followers are to be retrieved
+     * @return List of {@link User} objects (or empty list) and HTTP code 200 or HTTP code
+     * 404 if the {@link User} does not exist
+     */
+    @GetMapping("/{id}/followers")
+    public ResponseEntity<CollectionModel<EntityModel<UserDTO>>> findFollowersByUser(@PathVariable Long id) {
+        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        Set<Follow> followers = user.getFollowers();
+
+        if (followers.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
+
+        List<EntityModel<UserDTO>> userModels = followers.stream()
+                .map(follow -> userMapper.toDTO(follow.getFollower()))
+                .map(userDTOAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<UserDTO>> collectionModel = CollectionModel.of(userModels,
+                linkTo(methodOn(UserController.class).findFollowersByUser(user.getId())).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    /**
+     *
+     * @param id number of the {@link User} of which users they follow are to be retrieved
+     * @return List of {@link User} objects (or empty list) and HTTP code 200 or HTTP code
+     * 404 if the {@link User} does not exist
+     */
+    @GetMapping("/{id}/following")
+    public ResponseEntity<CollectionModel<EntityModel<UserDTO>>> findFollowingByUser(@PathVariable Long id) {
+        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        Set<Follow> following = user.getFollows();
+
+        if (following.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
+
+        List<EntityModel<UserDTO>> userModels = following.stream()
+                .map(follow -> userMapper.toDTO(follow.getUser()))
+                .map(userDTOAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<UserDTO>> collectionModel = CollectionModel.of(userModels,
+                linkTo(methodOn(UserController.class).findFollowingByUser(user.getId())).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
