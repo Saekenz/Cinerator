@@ -23,6 +23,8 @@ public class Review {
     @Column(nullable = false)
     private LocalDate reviewDate;
 
+    @Column(nullable = false,
+    name = "isLiked")
     private boolean isLiked;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

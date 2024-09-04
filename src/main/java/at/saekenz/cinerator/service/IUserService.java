@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.service;
 
+import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.user.User;
 
 import java.util.List;
@@ -22,4 +23,6 @@ public interface IUserService {
     List<User> findByUsername(String username);
 
     List<User> findUsersByRole(String role);
+
+    List<Movie> findMoviesLikedByUser(Long userId);
 }

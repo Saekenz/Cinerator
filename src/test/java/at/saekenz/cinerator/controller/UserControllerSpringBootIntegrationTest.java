@@ -1,5 +1,7 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.movie.Movie;
+import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.user.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -187,6 +189,53 @@ public class UserControllerSpringBootIntegrationTest {
     }
 
     /**
+     * Create a request to update a {@link User}. The API has to return HTTP code 400 since
+     * the updated data does not contain a password value
+     * @throws Exception
+     */
+    @Test
+    public void givenUpdateUserRequest_shouldFailWith400() throws Exception {
+        Long userId = 2L;
+        String userData = """
+                {
+                  "username": "haumeaweb",
+                  "role": "USER",
+                  "enabled": "true",
+                  "watchlist": [],
+                  "reviews": []
+                }""";
+
+        mockMvc.perform(put("/users/{userId}", userId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(userData))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString(("The property 'password' in entity"))));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenEnableUserRequest_shouldSucceedWith204() throws Exception {
+        Long userId = 1L;
+
+        mockMvc.perform(put("/users/{userId}/enable", userId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void givenEnableUserRequest_shouldFailWith404() throws Exception {
+        Long userId = 99L;
+
+        mockMvc.perform(put("/users/{userId}/enable", userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content()
+                        .string(containsString(String.format("Could not find user: %s", userId))));
+    }
+
+// ------------------------------------- WATCHLIST ------------------------------------------------------------------
+
+    /**
      * Attempts to retrieve the watchlist belonging to user with userId 2.
      * This user's watchlist should contain movies with movieIds [2,3,7].
      * @throws Exception
@@ -316,6 +365,13 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
     }
 
+// ------------------------------------ REVIEWS -----------------------------------------------------------------------
+
+    /**
+     * Creates a request to retrieve all reviews created by {@link User} with id = 1.
+     * Returns a list of {@link Review} objects and HTTP code 200.
+     * @throws Exception
+     */
     @Test
     public void givenFindReviewsByUserRequest_shouldSucceedWith200() throws Exception {
         Long userId = 1L;
@@ -326,6 +382,11 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$._embedded.reviewList[*].id", hasItems(1,5,9,12,13)));
     }
 
+    /**
+     * Creates a request to retrieve all reviews created by {@link User} with id = -999.
+     * Since this user does not exist in the database the request returns HTTP code 404.
+     * @throws Exception
+     */
     @Test
     public void givenFindReviewsByUserRequest_shouldFailWith404() throws Exception {
         Long userId = -999L;
@@ -333,5 +394,35 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/users/{userId}/reviews", userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    /**
+     * Creates a request to retrieve {@link Movie} objects liked by {@link User} with id = 1.
+     * Returns a list of liked {@link Movie} objects and HTTP code 200.
+     * @throws Exception
+     */
+    @Test
+    public void givenFindMoviesLikedByUserRequest_shouldSucceedWith200AndReturnListOfMovies() throws Exception {
+        Long userId = 1L;
+
+        mockMvc.perform(get("/users/{userId}/movies/liked", userId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.movieList[*].id", hasItems(1,2,5,9)));
+    }
+
+    /**
+     * Creates a request to retrieve {@link Movie} objects liked by {@link User} with id = 4.
+     * Returns an empty list of and HTTP code 200.
+     * @throws Exception
+     */
+    @Test
+    public void givenFindMoviesLikedByUserRequest_shouldSucceedWith200AndReturnEmptyList() throws Exception {
+        Long userId = 4L;
+
+        mockMvc.perform(get("/users/{userId}/movies/liked", userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(is("{}")));
     }
 }

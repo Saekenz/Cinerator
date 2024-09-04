@@ -404,7 +404,6 @@ public class MovieController {
                 .filter(a -> Objects.equals(a.getId(), actorId)).findFirst().orElseThrow(() -> new ActorNotFoundException(actorId));
 
         return ResponseEntity.ok(actorAssembler.toModel(actor));
-
     }
 
     /**

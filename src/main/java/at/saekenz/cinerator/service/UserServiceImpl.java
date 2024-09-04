@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.service;
 
+import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,11 @@ public class UserServiceImpl implements IUserService {
     @Override
     public List<User> findUsersByRole(String role) {
         return userRepository.findUsersByRole(role);
+    }
+
+    @Override
+    public List<Movie> findMoviesLikedByUser(Long userId) {
+        return userRepository.findMoviesLikedByUser(userId);
     }
 
 
