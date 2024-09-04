@@ -5,10 +5,7 @@ import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.review.ReviewModelAssembler;
-import at.saekenz.cinerator.model.user.EUserSearchParam;
-import at.saekenz.cinerator.model.user.User;
-import at.saekenz.cinerator.model.user.UserModelAssembler;
-import at.saekenz.cinerator.model.user.UserNotFoundException;
+import at.saekenz.cinerator.model.user.*;
 import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IUserService;
 import org.slf4j.Logger;
@@ -39,17 +36,20 @@ public class UserController {
     @Autowired
     IMovieService movieService;
 
-    private final UserModelAssembler assembler;
     private final MovieModelAssembler movieAssembler;
     private final ReviewModelAssembler reviewAssembler;
 
+    private final UserMapper userMapper;
+    private final UserDTOAssembler userDTOAssembler;
+
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
-    UserController(UserModelAssembler assembler, MovieModelAssembler movieAssembler,
+    UserController(UserDTOAssembler userDTOAssembler, MovieModelAssembler movieAssembler,
                    ReviewModelAssembler reviewAssembler) {
-        this.assembler = assembler;
         this.movieAssembler = movieAssembler;
         this.reviewAssembler = reviewAssembler;
+        this.userDTOAssembler = userDTOAssembler;
+        this.userMapper = new UserMapper();
     }
 
     // for testing only
@@ -58,59 +58,54 @@ public class UserController {
         return authentication.getName();
     }
 
+    /**
+     *
+     * @return List of {@link UserDTO} objects (or empty list if no users have been saved yet) and
+     * HTTP code 200
+     */
     @GetMapping
-    public ResponseEntity<CollectionModel<EntityModel<User>>> findAll() {
+    public ResponseEntity<CollectionModel<EntityModel<UserDTO>>> findAll() {
         List<User> users = userService.findAll();
 
         if (users.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        List<EntityModel<User>> userModels = users.stream()
-                .map(assembler::toModel)
+        List<EntityModel<UserDTO>> userModels = users.stream()
+                .map(userMapper::toDTO)
+                .map(userDTOAssembler::toModel)
                 .toList();
 
-        CollectionModel<EntityModel<User>> collectionModel = CollectionModel.of(userModels,
+        CollectionModel<EntityModel<UserDTO>> collectionModel = CollectionModel.of(userModels,
                 linkTo(methodOn(UserController.class).findAll()).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EntityModel<User>> findById(@PathVariable Long id) {
-        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        return ResponseEntity.ok(assembler.toModel(user));
+    public ResponseEntity<EntityModel<UserDTO>> findById(@PathVariable Long id) {
+        UserDTO userDTO = userMapper.toDTO(userService.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
+        return ResponseEntity.ok(userDTOAssembler.toModel(userDTO));
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody User user) {
-        EntityModel<User> entityModel = assembler.toModel(userService.save(user));
+    public ResponseEntity<?> createUser(@RequestBody UserCreationDTO userCreationDTO) {
+        User user = userMapper.toUser(userCreationDTO);
+        EntityModel<UserDTO> entityModel = userDTOAssembler.toModel(userMapper.toDTO(userService.save(user)));
         return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                 .body(entityModel);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User newUser) {
-        Optional<User> existingUser = userService.findById(id);
-        User updatedUser = existingUser.map(
-                user -> {
-                    user.setUsername(newUser.getUsername());
-                    user.setPassword(newUser.getPassword());
-                    user.setEnabled(newUser.isEnabled());
-                    user.setRole(newUser.getRole());
-                    user.setWatchlist(newUser.getWatchlist());
-                    user.setReviews(newUser.getReviews());
-                    return userService.save(user);
-                })
-                .orElseGet(() -> userService.save(newUser));
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserDTO updatedUser) {
+        User existingUser = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
-        if (existingUser.isPresent()) {
-            return ResponseEntity.noContent().build();
-        }
-        else {
-            EntityModel<User> entityModel = assembler.toModel(updatedUser);
-            return ResponseEntity
-                    .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                    .body(entityModel);
-        }
+        existingUser.setUsername(updatedUser.getUsername());
+        existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setName(updatedUser.getName());
+        existingUser.setBio(updatedUser.getBio());
+
+        userService.save(existingUser);
+
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
@@ -142,37 +137,38 @@ public class UserController {
 // ------------------------------------ SEARCH ---------------------------------------------------------------------
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<CollectionModel<EntityModel<User>>> findByUsername(@PathVariable String username) {
+    public ResponseEntity<CollectionModel<EntityModel<UserDTO>>> findByUsername(@PathVariable String username) {
         List<User> usersByUsername = userService.findByUsername(username);
 
         if (usersByUsername.isEmpty()) {
             throw new UserNotFoundException(EUserSearchParam.USERNAME, username);
         }
 
-        List<EntityModel<User>> userModels = usersByUsername.stream()
-                .map(assembler::toModel)
+        List<EntityModel<UserDTO>> userModels = usersByUsername.stream()
+                .map(userMapper::toDTO)
+                .map(userDTOAssembler::toModel)
                 .toList();
 
-        CollectionModel<EntityModel<User>> collectionModel = CollectionModel.of(userModels,
+        CollectionModel<EntityModel<UserDTO>> collectionModel = CollectionModel.of(userModels,
                 linkTo(methodOn(UserController.class).findByUsername(username)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/role/{role}")
-    public ResponseEntity<CollectionModel<EntityModel<User>>> findUsersByRole(@PathVariable String role) {
+    public ResponseEntity<CollectionModel<EntityModel<UserDTO>>> findUsersByRole(@PathVariable String role) {
         List<User> usersByRole = userService.findUsersByRole(role);
 
         if (usersByRole.isEmpty()) {
             throw new UserNotFoundException(EUserSearchParam.ROLE, role);
         }
 
-        List<EntityModel<User>> userModels = usersByRole
-                .stream()
-                .map(assembler::toModel)
+        List<EntityModel<UserDTO>> userModels = usersByRole.stream()
+                .map(userMapper::toDTO)
+                .map(userDTOAssembler::toModel)
                 .toList();
 
-        CollectionModel<EntityModel<User>> collectionModel = CollectionModel.of(userModels,
+        CollectionModel<EntityModel<UserDTO>> collectionModel = CollectionModel.of(userModels,
                 linkTo(methodOn(UserController.class).findUsersByRole(role)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
@@ -209,7 +205,7 @@ public class UserController {
     }
 
     @PostMapping("/{id}/watchlist")
-    public ResponseEntity<EntityModel<User>> addMovieToWatchlist(@PathVariable Long id, @RequestBody Long movieId) {
+    public ResponseEntity<CollectionModel<EntityModel<Movie>>> addMovieToWatchlist(@PathVariable Long id, @RequestBody Long movieId) {
         User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
 
@@ -218,11 +214,18 @@ public class UserController {
             userService.save(user);
         }
 
-        return ResponseEntity.ok(assembler.toModel(user));
+        List<EntityModel<Movie>> movieModels = user.getWatchlist().stream()
+                .map(movieAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(movieModels,
+                linkTo(methodOn(UserController.class).findWatchlistByUser(id)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @DeleteMapping("/{userId}/watchlist/{movieId}")
-    public ResponseEntity<EntityModel<User>> removeMovieFromWatchlist(@PathVariable Long userId, @PathVariable Long movieId) {
+    public ResponseEntity<?> removeMovieFromWatchlist(@PathVariable Long userId, @PathVariable Long movieId) {
         User user = userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
         if (user.removeMovieFromWatchlist(movieId)) {

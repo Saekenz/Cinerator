@@ -3,6 +3,8 @@ package at.saekenz.cinerator.controller;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.user.User;
+import at.saekenz.cinerator.model.user.UserCreationDTO;
+import at.saekenz.cinerator.model.user.UserDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +50,7 @@ public class UserControllerSpringBootIntegrationTest {
     public void givenFindAllUsersRequest_shouldSucceedWith200() throws Exception {
         mockMvc.perform(get("/users").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.userList").isNotEmpty());
+                .andExpect(jsonPath("$._embedded.userDTOList").isNotEmpty());
     }
 
     @WithMockUser("test-user")
@@ -75,7 +77,7 @@ public class UserControllerSpringBootIntegrationTest {
         String username = "UserD";
         mockMvc.perform(get("/users/username/{username}", username).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.userList[*].username", everyItem(equalToIgnoringCase(username))));
+                .andExpect(jsonPath("$._embedded.userDTOList[*].username", everyItem(equalToIgnoringCase(username))));
     }
 
     @WithMockUser("test-user")
@@ -93,7 +95,7 @@ public class UserControllerSpringBootIntegrationTest {
         String role = "admin";
         mockMvc.perform(get("/users/role/{role}", role).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.userList[*].role", everyItem(equalToIgnoringCase(role))));
+                .andExpect(jsonPath("$._embedded.userDTOList[*].role", everyItem(equalToIgnoringCase(role))));
     }
 
     @WithMockUser("test-user")
@@ -107,20 +109,22 @@ public class UserControllerSpringBootIntegrationTest {
 
     @WithMockUser("test-user")
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenCreateUserRequest_shouldSucceedWith201() throws Exception {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String encodedPassword = passwordEncoder.encode("password");
 
-        User user = new User("fencingcliff",encodedPassword,"USER",true, Set.of());
+        UserCreationDTO user = new UserCreationDTO("michael.brown@example.com", "fencingcliff", encodedPassword);
         String userData = new ObjectMapper().writeValueAsString(user);
 
         mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(userData))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.username").value("fencingcliff"))
-                .andExpect(jsonPath("$.password").value(encodedPassword))
+                .andExpect(jsonPath("$.username").value(user.getUsername()))
+                .andExpect(jsonPath("$.name").value(""))
+                .andExpect(jsonPath("$.email").value(user.getEmail()))
+                .andExpect(jsonPath("$.bio").value(""))
                 .andExpect(jsonPath("$.role").value("USER"))
-                .andExpect(jsonPath("$.enabled").value(true))
-                .andDo(print());
+                .andExpect(jsonPath("$.enabled").value(false));
     }
 
     @WithMockUser("test-user")
@@ -131,21 +135,17 @@ public class UserControllerSpringBootIntegrationTest {
 
         String userData = String.format("""
                 {
-                  "username": "haumeaweb",
-                  "password": "%s",
-                  "role": "USER",
-                  "enabled": "peter",
-                  "watchlist": [],
-                  "reviews": []
+                  "email": "olivia.martin@example.com",
+                  "password": "%s"
                 }""", encodedPassword);
 
         mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(userData))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
+                .andExpect(status().isBadRequest());
     }
 
     @WithMockUser("test-user")
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenDeleteUserRequest_shouldSucceedWith204() throws Exception {
         Long userId = 3L;
         mockMvc.perform(delete("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON))
@@ -160,32 +160,35 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    /**
+     * Create a request to update a {@link User} which expects an HTTP code 204 response from the API.
+     * To verify the {@link User} was successfully updated, a get request is then performed which expects
+     * an HTTP code 200 response.
+     * @throws Exception
+     */
     @WithMockUser("test-user")
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void givenUpdateUserRequest_shouldSucceedWith201() throws Exception {
-        User user = new User("updatedUser123","newPassword123","ADMIN",true,Set.of());
-        String userData = new ObjectMapper().writeValueAsString(user);
-        Long userId = 99L;
-
-        mockMvc.perform(put("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON).content(userData))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.username").value("updatedUser123"))
-                .andExpect(jsonPath("$.password").value("newPassword123"))
-                .andExpect(jsonPath("$.role").value("ADMIN"))
-                .andExpect(jsonPath("$.enabled").value(true))
-                .andDo(print());
-    }
-
-    @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateUserRequest_shouldSucceedWith204() throws Exception {
-        User user = new User("updatedUser123","newPassword123","ADMIN",true,Set.of());
-        String userData = new ObjectMapper().writeValueAsString(user);
+        UserDTO updatedUser = new UserDTO();
+
+        updatedUser.setUsername("updatedUser123");
+        updatedUser.setName("Updated Name");
+        updatedUser.setEmail("updatedUser@example.com");
+        updatedUser.setBio("Updated bio");
+
+        String userData = new ObjectMapper().writeValueAsString(updatedUser);
         Long userId = 3L;
 
         mockMvc.perform(put("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON).content(userData))
                 .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value(updatedUser.getUsername()))
+                .andExpect(jsonPath("$.name").value(updatedUser.getName()))
+                .andExpect(jsonPath("$.email").value(updatedUser.getEmail()))
+                .andExpect(jsonPath("$.bio").value(updatedUser.getBio()));
     }
 
     /**
@@ -198,18 +201,16 @@ public class UserControllerSpringBootIntegrationTest {
         Long userId = 2L;
         String userData = """
                 {
-                  "username": "haumeaweb",
-                  "role": "USER",
-                  "enabled": "true",
-                  "watchlist": [],
-                  "reviews": []
+                  "username": "updatedUser123",
+                  "name": "Updated Name",
+                  "email": "updatedUser@example.com"
                 }""";
 
         mockMvc.perform(put("/users/{userId}", userId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(userData))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString(("The property 'password' in entity"))));
+                .andExpect(content().string(containsString(("The property 'bio' in entity"))));
     }
 
     @Test
@@ -265,11 +266,15 @@ public class UserControllerSpringBootIntegrationTest {
         Long userId = 2L;
         Long movieId = 11L;
 
-        mockMvc.perform(post("/users/{userId}/watchlist", userId, movieId)
+        mockMvc.perform(post("/users/{userId}/watchlist", userId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(String.valueOf(movieId)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/users/{userId}/watchlist", userId)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath(String.format("$.watchlist[?(@.id == %s)]", movieId)).exists());
+                .andExpect(jsonPath(String.format("$._embedded.movieList[?(@.id == %s)]", movieId)).exists());
     }
 
     /**

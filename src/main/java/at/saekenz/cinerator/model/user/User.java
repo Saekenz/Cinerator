@@ -20,8 +20,17 @@ public class User {
    @Column(nullable = false)
    private String username;
 
+   @Column(nullable = false)
+   private String name;
+
    @Column(nullable = false, length = 100)
    private String password;
+
+   @Column(nullable = false)
+   private String email;
+
+   @Column(nullable = false)
+   private String bio;
 
    @Column(nullable = false)
    private String role;
@@ -44,9 +53,14 @@ public class User {
    public User() {
    }
 
-   public User(String username, String password, String role, boolean enabled, Set<Movie> watchlist) {
+   public User(String username, String name, String password,
+               String email, String bio, String role,
+               boolean enabled, Set<Movie> watchlist) {
       this.username = username;
+      this.name = name;
       this.password = password;
+      this.email = email;
+      this.bio = bio;
       this.role = role;
       this.enabled = enabled;
       this.watchlist = watchlist;
@@ -86,6 +100,18 @@ public class User {
    public List<Review> getReviews() { return reviews; }
 
    public void setReviews(List<Review> reviews) { this.reviews = reviews; }
+
+   public String getName() { return name; }
+
+   public void setName(String name) { this.name = name; }
+
+   public String getEmail() { return email; }
+
+   public void setEmail(String email) { this.email = email; }
+
+   public String getBio() { return bio; }
+
+   public void setBio(String bio) { this.bio = bio; }
 
    @Override
    public String toString() {
