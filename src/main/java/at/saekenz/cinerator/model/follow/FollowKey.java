@@ -41,4 +41,12 @@ public class FollowKey implements Serializable {
     public int hashCode() {
         return Objects.hash(userId, followerId);
     }
+
+    @Override
+    public String toString() {
+        return "FollowKey{" +
+                "userId=" + userId +
+                ", followerId=" + followerId +
+                '}';
+    }
 }

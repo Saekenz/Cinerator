@@ -1,12 +1,15 @@
 package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.follow.Follow;
+import at.saekenz.cinerator.model.follow.FollowDTO;
+import at.saekenz.cinerator.model.follow.FollowKey;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.review.ReviewModelAssembler;
 import at.saekenz.cinerator.model.user.*;
+import at.saekenz.cinerator.service.IFollowService;
 import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IUserService;
 import org.slf4j.Logger;
@@ -15,10 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -35,6 +40,9 @@ public class UserController {
 
     @Autowired
     IMovieService movieService;
+
+    @Autowired
+    IFollowService followService;
 
     private final MovieModelAssembler movieAssembler;
     private final ReviewModelAssembler reviewAssembler;
@@ -231,9 +239,11 @@ public class UserController {
         if (user.removeMovieFromWatchlist(movieId)) {
             userService.save(user);
             log.info(String.format("Movie with id %s removed from watchlist", movieId));
+            return ResponseEntity.noContent().build();
         }
-
-        return ResponseEntity.noContent().build();
+        else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 // ------------------------------------------ REVIEWS -----------------------------------------------------------------
@@ -333,5 +343,45 @@ public class UserController {
 
         return ResponseEntity.ok(collectionModel);
     }
+
+    /**
+     *
+     * @param id number of the {@link User} that will be followed
+     * @param followDTO contains the id of {@link User} that wants to follow
+     * @return HTTP code 201 or HTTP code 404 if one of the users is not found in the database
+     */
+    @PostMapping("/{id}/follow")
+    public ResponseEntity<?> followAnotherUser(@PathVariable Long id, @RequestBody FollowDTO followDTO) {
+        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+
+        Long followerId = followDTO.getFollowerId();
+        User follower = userService.findById(followerId).orElseThrow(() -> new UserNotFoundException(followerId));
+
+        Follow follow = new Follow(new FollowKey(id, followerId), user, follower, LocalDateTime.now());
+        followService.save(follow);
+
+        return new ResponseEntity<>(String.format("User %s is now following user %s", follower, id), HttpStatus.CREATED);
+    }
+
+    /**
+     *
+     * @param id number of the {@link User} that will be unfollowed
+     * @param followDTO contains the id of {@link User} that wants to unfollow
+     * @return HTTP code 204 or HTTP code 404 if one of the users is not found in the database
+     */
+    @DeleteMapping("/{id}/unfollow")
+    public ResponseEntity<?> unfollowAnotherUser(@PathVariable Long id, @RequestBody FollowDTO followDTO) {
+        Long followerId = followDTO.getFollowerId();
+
+        userService.findById(followerId).orElseThrow(() -> new UserNotFoundException(followerId));
+        userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        followService.deleteByKey(new FollowKey(id, followerId));
+
+        return ResponseEntity.noContent().build();
+    }
+
+
+
+
 
 }

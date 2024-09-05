@@ -128,6 +128,14 @@ public class User {
 
    public void setFollowers(Set<Follow> followers) { this.followers = followers; }
 
+   public void addFollower(Follow follower) {
+      this.followers.add(follower);
+   }
+
+   public void removeFollower(Follow follower) {
+      this.followers.remove(follower);
+   }
+
    @Override
    public String toString() {
       return "User{" +

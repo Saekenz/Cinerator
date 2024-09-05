@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.follow.FollowDTO;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.user.User;
@@ -309,8 +310,8 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      *
      * Attempts to remove a movie from a user's watchlist by id.
-     * Request is made twice to ensure HTTP code 204 is returned even if the to be deleted
-     * resource does not exist anymore.
+     * Request is made twice and should return HTTP code 404 the for the second request because the
+     * resource is already deleted
      * @throws Exception
      */
     @Test
@@ -325,7 +326,7 @@ public class UserControllerSpringBootIntegrationTest {
 
         mockMvc.perform(delete("/users/{userId}/watchlist/{movieId}", userId, movieId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -492,6 +493,114 @@ public class UserControllerSpringBootIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(String.format("Could not find user: %s", userId))));
+    }
+
+    /**
+     * Creates a request to follow a {@link User} which returns HTTP code 201.
+     * Checks if the {@link User} has been followed by retrieving all the user's followers.
+     * @throws Exception
+     */
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenFollowAnotherUserRequest_shouldSucceedWith200() throws Exception {
+        FollowDTO followDTO = new FollowDTO(4L,2L);
+        String jsonData = new ObjectMapper().writeValueAsString(followDTO);
+
+        mockMvc.perform(post("/users/{userId}/follow", followDTO.getUserId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonData))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/users/{userId}/followers", followDTO.getUserId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.userDTOList[*].id", hasItem(2)));
+    }
+
+    /**
+     * Performs request for following another {@link User}.
+     * The first time the request contains an invalid userId and a valid followerId.
+     * The second time the request contains a valid userId and an invalid followerId.
+     * Both requests have to return HTTP code 404.
+     * @throws Exception
+     */
+    @Test
+    public void givenFollowAnotherUserRequest_shouldFailWith404() throws Exception {
+        FollowDTO followDTO = new FollowDTO(-999L,2L);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonData = objectMapper.writeValueAsString(followDTO);
+
+        mockMvc.perform(post("/users/{userId}/follow", followDTO.getUserId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonData))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(
+                        String.format("Could not find user: %s", followDTO.getUserId()))));;
+
+        followDTO.setUserId(2L);
+        followDTO.setFollowerId(-999L);
+        jsonData = objectMapper.writeValueAsString(followDTO);
+
+        mockMvc.perform(post("/users/{userId}/follow", followDTO.getUserId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonData))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(
+                        String.format("Could not find user: %s", followDTO.getFollowerId()))));;
+    }
+
+    /**
+     * Creates a request to unfollow a {@link User} which returns HTTP code 204.
+     * Checks if the {@link User} has been unfollowed by retrieving all the user's followers.
+     * @throws Exception
+     */
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenUnfollowAnotherUserRequest_shouldSucceedWith204() throws Exception {
+        FollowDTO followDTO = new FollowDTO(2L,3L);
+        String jsonData = new ObjectMapper().writeValueAsString(followDTO);
+
+        mockMvc.perform(delete("/users/{userId}/unfollow", followDTO.getUserId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonData))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/users/{userId}/followers", followDTO.getUserId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.userDTOList[*].id", not(contains(3))));
+    }
+
+    /**
+     * Performs request for unfollowing another {@link User}.
+     * The first time the request contains an invalid userId and a valid followerId.
+     * The second time the request contains a valid userId and an invalid followerId.
+     * Both requests have to return HTTP code 404.
+     * @throws Exception
+     */
+    @Test
+    public void givenUnfollowAnotherUserRequest_shouldFailWith404() throws Exception {
+        FollowDTO followDTO = new FollowDTO(-999L,2L);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonData = objectMapper.writeValueAsString(followDTO);
+
+        mockMvc.perform(delete("/users/{userId}/unfollow", followDTO.getUserId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonData))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(
+                        String.format("Could not find user: %s", followDTO.getUserId()))));;
+
+        followDTO.setUserId(2L);
+        followDTO.setFollowerId(-999L);
+        jsonData = objectMapper.writeValueAsString(followDTO);
+
+        mockMvc.perform(delete("/users/{userId}/unfollow", followDTO.getUserId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonData))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(
+                        String.format("Could not find user: %s", followDTO.getFollowerId()))));;
     }
 
 }

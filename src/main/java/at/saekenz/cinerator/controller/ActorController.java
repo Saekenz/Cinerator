@@ -63,6 +63,8 @@ public class ActorController {
         return ResponseEntity.ok(actorAssembler.toModel(actor));
     }
 
+// ---------------------------------------- SEARCH -------------------------------------------------------------------
+
     @GetMapping("/name/{name}")
     public ResponseEntity<CollectionModel<EntityModel<Actor>>> findByName(@PathVariable String name) {
         List<Actor> actors = actorService.findByName(name);
