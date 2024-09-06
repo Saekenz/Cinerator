@@ -1,8 +1,10 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.follow.Follow;
 import at.saekenz.cinerator.model.follow.FollowDTO;
 import at.saekenz.cinerator.model.follow.FollowKey;
+import at.saekenz.cinerator.model.follow.FollowModelAssembler;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
@@ -12,12 +14,14 @@ import at.saekenz.cinerator.model.user.*;
 import at.saekenz.cinerator.service.IFollowService;
 import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IUserService;
+import at.saekenz.cinerator.util.ResponseBuilderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -44,8 +48,12 @@ public class UserController {
     @Autowired
     IFollowService followService;
 
+    @Autowired
+    ResponseBuilderService responseBuilderService;
+
     private final MovieModelAssembler movieAssembler;
     private final ReviewModelAssembler reviewAssembler;
+    private final FollowModelAssembler followAssembler;
 
     private final UserMapper userMapper;
     private final UserDTOAssembler userDTOAssembler;
@@ -53,9 +61,10 @@ public class UserController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     UserController(UserDTOAssembler userDTOAssembler, MovieModelAssembler movieAssembler,
-                   ReviewModelAssembler reviewAssembler) {
+                   ReviewModelAssembler reviewAssembler, FollowModelAssembler followAssembler) {
         this.movieAssembler = movieAssembler;
         this.reviewAssembler = reviewAssembler;
+        this.followAssembler = followAssembler;
         this.userDTOAssembler = userDTOAssembler;
         this.userMapper = new UserMapper();
     }
@@ -88,20 +97,37 @@ public class UserController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     *
+     * @param id number of the {@link User} that is to be retrieved
+     * @return HTTP code 200 and the {@link User} object if it was found. HTTP code 404 otherwise
+     */
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<UserDTO>> findById(@PathVariable Long id) {
         UserDTO userDTO = userMapper.toDTO(userService.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
         return ResponseEntity.ok(userDTOAssembler.toModel(userDTO));
     }
 
+    /**
+     *
+     * @param userCreationDTO information about the {@link User} that is to be added to the database
+     * @return HTTP code 201 and the {@link User} object that was created
+     */
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody UserCreationDTO userCreationDTO) {
         User user = userMapper.toUser(userCreationDTO);
         EntityModel<UserDTO> entityModel = userDTOAssembler.toModel(userMapper.toDTO(userService.save(user)));
+
         return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                 .body(entityModel);
     }
 
+    /**
+     *
+     * @param id number of the {@link User} that will be updated
+     * @param updatedUser contains data that will be used for the update
+     * @return HTTP code 404 if the {@link User} object is not found otherwise HTTP code 204
+     */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserDTO updatedUser) {
         User existingUser = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
@@ -111,20 +137,22 @@ public class UserController {
         existingUser.setName(updatedUser.getName());
         existingUser.setBio(updatedUser.getBio());
 
-        userService.save(existingUser);
+        EntityModel<UserDTO> entityModel = userDTOAssembler.toModel(userMapper.toDTO(userService.save(existingUser)));
 
-        return ResponseEntity.noContent().build();
+        return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
     }
 
+    /**
+     *
+     * @param id number of {@link User} that is to be removed from the database
+     * @return HTTP code 204 if {@link User} was deleted. HTTP code 404 if {@link User} was not found
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        if (userService.findById(id).isPresent()) {
-            userService.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        else {
-            throw new UserNotFoundException(id);
-        }
+        userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        userService.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -137,13 +165,18 @@ public class UserController {
         User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
         user.setEnabled(true);
-        userService.save(user);
+        EntityModel<UserDTO> entityModel = userDTOAssembler.toModel(userMapper.toDTO(userService.save(user)));
 
-        return ResponseEntity.noContent().build();
+        return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
     }
 
 // ------------------------------------ SEARCH ---------------------------------------------------------------------
 
+    /**
+     *
+     * @param username username of searched for {@link User} objects
+     * @return list of {@link User} objects and HTTP code 200 if any users were found. HTTP code 404 otherwise
+     */
     @GetMapping("/username/{username}")
     public ResponseEntity<CollectionModel<EntityModel<UserDTO>>> findByUsername(@PathVariable String username) {
         List<User> usersByUsername = userService.findByUsername(username);
@@ -163,6 +196,12 @@ public class UserController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     *
+     * @param role level of permissions that the searched for {@link User} objects possess
+     * @return list of {@link User} objects and HTTP code 200 if any users were found.
+     * HTTP code 404 otherwise
+     */
     @GetMapping("/role/{role}")
     public ResponseEntity<CollectionModel<EntityModel<UserDTO>>> findUsersByRole(@PathVariable String role) {
         List<User> usersByRole = userService.findUsersByRole(role);
@@ -184,6 +223,12 @@ public class UserController {
 
 // ---------------------------------------- WATCHLIST -----------------------------------------------------------------
 
+    /**
+     *
+     * @param id of the {@link User} for which the watchlist is to be fetched
+     * @return HTTP code 200 and a list of {@link Movie} objects or HTTP code 404 if the {@link User}
+     * does not exist
+     */
     @GetMapping("/{id}/watchlist")
     public ResponseEntity<CollectionModel<EntityModel<Movie>>> findWatchlistByUser(@PathVariable Long id) {
         User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
@@ -202,6 +247,13 @@ public class UserController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     *
+     * @param userId number of the {@link User} for which the {@link Movie} is to be fetched
+     * @param movieId number of the {@link Movie} that is to be fetched
+     * @return HTTP code 200 and a {@link Movie} object or HTTP code 404 if
+     * the {@link User} or {@link Movie} do not exist
+     */
     @GetMapping("/{userId}/watchlist/{movieId}")
     public ResponseEntity<EntityModel<Movie>> findMovieInWatchlistById(@PathVariable Long userId, @PathVariable Long movieId) {
         User user = userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
@@ -212,26 +264,31 @@ public class UserController {
         return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
-    @PostMapping("/{id}/watchlist")
-    public ResponseEntity<CollectionModel<EntityModel<Movie>>> addMovieToWatchlist(@PathVariable Long id, @RequestBody Long movieId) {
+    /**
+     *
+     * @param id number of the {@link User} for which the {@link Movie} is to be added to the watchlist
+     * @param movieId number of the {@link Movie} that is to be added to the watchlist
+     * @return HTTP code 204 if the {@link Movie} was successfully added
+     * or HTTP code 404 if the {@link User}/{@link Movie} was not found
+     */
+    @PutMapping("/{id}/watchlist")
+    public ResponseEntity<?> addMovieToWatchlist(@PathVariable Long id, @RequestBody Long movieId) {
         User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
 
-        if (user.addMovieToWatchlist(movie)) {
-            log.info(String.format("Movie with id %s added to watchlist", movieId));
-            userService.save(user);
-        }
+        user.addMovieToWatchlist(movie);
+        EntityModel<UserDTO> entityModel = userDTOAssembler.toModel(userMapper.toDTO(userService.save(user)));
 
-        List<EntityModel<Movie>> movieModels = user.getWatchlist().stream()
-                .map(movieAssembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(movieModels,
-                linkTo(methodOn(UserController.class).findWatchlistByUser(id)).withSelfRel());
-
-        return ResponseEntity.ok(collectionModel);
+        return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
     }
 
+    /**
+     *
+     * @param userId identifies the {@link User} that owns the watchlist
+     * @param movieId identifies the {@link Movie} that is to be removed
+     * @return HTTP code 204 (or HTTP code 404 if the {@link User} does not exist or
+     * the watchlist does not contain the {@link Movie})
+     */
     @DeleteMapping("/{userId}/watchlist/{movieId}")
     public ResponseEntity<?> removeMovieFromWatchlist(@PathVariable Long userId, @PathVariable Long movieId) {
         User user = userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
@@ -352,15 +409,18 @@ public class UserController {
      */
     @PostMapping("/{id}/follow")
     public ResponseEntity<?> followAnotherUser(@PathVariable Long id, @RequestBody FollowDTO followDTO) {
-        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-
         Long followerId = followDTO.getFollowerId();
+
+        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         User follower = userService.findById(followerId).orElseThrow(() -> new UserNotFoundException(followerId));
+        Follow follow = followService.save(new Follow(new FollowKey(id, followerId), user, follower, LocalDateTime.now()));
 
-        Follow follow = new Follow(new FollowKey(id, followerId), user, follower, LocalDateTime.now());
-        followService.save(follow);
+        EntityModel<FollowDTO> entityModel = followAssembler
+                .toModel(new FollowDTO(follow.getId().getUserId(), follow.getId().getFollowerId()));
 
-        return new ResponseEntity<>(String.format("User %s is now following user %s", follower, id), HttpStatus.CREATED);
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
     }
 
     /**

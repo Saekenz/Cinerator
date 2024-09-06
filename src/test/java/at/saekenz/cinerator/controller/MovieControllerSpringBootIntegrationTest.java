@@ -579,11 +579,15 @@ public class MovieControllerSpringBootIntegrationTest {
         Long movieId = 13L;
         Long actorId = 5L;
 
-        mockMvc.perform(post("/movies/{movieId}/actors", movieId)
+        mockMvc.perform(put("/movies/{movieId}/actors", movieId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(String.valueOf(actorId)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/movies/{movieId}/actors/{actorId}", movieId, actorId)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath(String.format("$.actors[?(@.id == %s)]",actorId)).exists());
+                .andExpect(jsonPath("$.id").value(actorId));
     }
 
     @Test
@@ -591,7 +595,7 @@ public class MovieControllerSpringBootIntegrationTest {
         Long movieId = -999L;
         Long actorId = 5L;
 
-        mockMvc.perform(post("/movies/{movieId}/actors", movieId)
+        mockMvc.perform(put("/movies/{movieId}/actors", movieId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.valueOf(actorId)))
                 .andExpect(status().isNotFound())
@@ -600,7 +604,7 @@ public class MovieControllerSpringBootIntegrationTest {
         movieId = 13L;
         actorId = -999L;
 
-        mockMvc.perform(post("/movies/{movieId}/actors", movieId)
+        mockMvc.perform(put("/movies/{movieId}/actors", movieId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.valueOf(actorId)))
                 .andExpect(status().isNotFound())

@@ -21,8 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.Set;
-
 import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -267,10 +265,10 @@ public class UserControllerSpringBootIntegrationTest {
         Long userId = 2L;
         Long movieId = 11L;
 
-        mockMvc.perform(post("/users/{userId}/watchlist", userId)
+        mockMvc.perform(put("/users/{userId}/watchlist", userId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(String.valueOf(movieId)))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/users/{userId}/watchlist", userId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -290,7 +288,7 @@ public class UserControllerSpringBootIntegrationTest {
        Long userId = -999L;
        Long movieId = 11L;
 
-       mockMvc.perform(post("/users/{userId}/watchlist", userId, movieId)
+       mockMvc.perform(put("/users/{userId}/watchlist", userId, movieId)
                .contentType(MediaType.APPLICATION_JSON)
                .content(String.valueOf(movieId)))
                .andExpect(status().isNotFound())
@@ -300,7 +298,7 @@ public class UserControllerSpringBootIntegrationTest {
        userId = 2L;
        movieId = -999L;
 
-        mockMvc.perform(post("/users/{userId}/watchlist", userId, movieId)
+        mockMvc.perform(put("/users/{userId}/watchlist", userId, movieId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.valueOf(movieId)))
                 .andExpect(status().isNotFound())

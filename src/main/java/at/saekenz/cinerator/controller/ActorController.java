@@ -8,6 +8,7 @@ import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.service.IActorService;
+import at.saekenz.cinerator.util.ResponseBuilderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.CollectionModel;
@@ -34,6 +35,9 @@ public class ActorController {
 
     private final ActorModelAssembler actorAssembler;
     private final MovieModelAssembler movieAssembler;
+
+    @Autowired
+    private ResponseBuilderService responseBuilderService;
 
     public ActorController(ActorModelAssembler actorAssembler,
                            MovieModelAssembler movieAssembler) {
@@ -169,6 +173,12 @@ public class ActorController {
                 .body(actorModel);
     }
 
+    /**
+     *
+     * @param id number of the {@link Actor} that is to be updated (or added if the number does not exist in the database yet)
+     * @param newActor information about the to be updated/added {@link Actor} object
+     * @return HTTP code 201 and the created {@link Actor} object (or HTTP code 204 if an existing {@link Actor} object was updated)
+     */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateActor(@PathVariable Long id, @RequestBody Actor newActor) {
         Optional<Actor> existingActor = actorService.findById(id);
@@ -183,26 +193,29 @@ public class ActorController {
                 })
                 .orElseGet(() -> actorService.save(newActor));
 
+        EntityModel<Actor> entityModel = actorAssembler.toModel(updatedActor);
+
         if (existingActor.isPresent()) {
-            return ResponseEntity.noContent().build();
+            return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
         }
         else {
-            EntityModel<Actor> entityModel = actorAssembler.toModel(updatedActor);
             return ResponseEntity
                     .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                     .body(entityModel);
         }
     }
 
+    /**
+     *
+     * @param id number of {@link Actor} that is to be removed from the database
+     * @return HTTP code 204 if {@link Actor} was deleted. HTTP code 404 if {@link Movie} was not found
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteActor(@PathVariable Long id) {
-        if (actorService.findById(id).isPresent()) {
-            actorService.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        else {
-            throw new ActorNotFoundException(id);
-        }
+        actorService.findById(id).orElseThrow(() -> new ActorNotFoundException(id));
+        actorService.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/movies")

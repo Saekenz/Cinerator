@@ -14,6 +14,7 @@ import at.saekenz.cinerator.service.IActorService;
 import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IReviewService;
 import at.saekenz.cinerator.service.IUserService;
+import at.saekenz.cinerator.util.ResponseBuilderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
@@ -44,6 +45,9 @@ public class MovieController {
 
     @Autowired
     IUserService userService;
+
+    @Autowired
+    ResponseBuilderService responseBuilderService;
 
     private final MovieModelAssembler movieAssembler;
     private final ReviewModelAssembler reviewAssembler;
@@ -95,7 +99,7 @@ public class MovieController {
 
     /**
      *
-     * @param newMovie information about the movie that is to be added to the database
+     * @param newMovie information about the {@link Movie} that is to be added to the database
      * @return HTTP code 201 and the {@link Movie} object that was created
      */
     @PostMapping()
@@ -111,7 +115,7 @@ public class MovieController {
      *
      * @param id number of the {@link Movie} that is to be updated (or added if the number does not exist in the database yet)
      * @param newMovie information about the to be updated/added {@link Movie} object
-     * @return HTTP code 201 and the updated {@link Movie} object
+     * @return HTTP code 201 and the created {@link Movie} object (or HTTP code 204 if an existing {@link Movie} object was updated)
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateMovie(@PathVariable Long id, @RequestBody Movie newMovie) {
@@ -132,11 +136,12 @@ public class MovieController {
                         })
                 .orElseGet(() -> movieService.save(newMovie));
 
+        EntityModel<Movie> entityModel = movieAssembler.toModel(updatedMovie);
+
         if (existingMovie.isPresent()) {
-            return ResponseEntity.noContent().build();
+            return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
         }
         else {
-            EntityModel<Movie> entityModel = movieAssembler.toModel(updatedMovie);
             return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                     .body(entityModel);
         }
@@ -149,13 +154,10 @@ public class MovieController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMovie(@PathVariable Long id) {
-        if (movieService.findById(id).isPresent()) {
-            movieService.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        else {
-            throw new MovieNotFoundException(id);
-        }
+        movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
+        movieService.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
 // ----------------------------------- SEARCH ------------------------------------------------------------------------
@@ -298,8 +300,8 @@ public class MovieController {
 
     /**
      *
-     * @param movieId number of the movie from which the review is to be retrieved
-     * @param reviewId number of the review that is to be retrieved from the movie
+     * @param movieId number of the {@link Movie} from which the review is to be retrieved
+     * @param reviewId number of the review that is to be retrieved from the {@link Movie}
      * @return {@link Review} and HTTP code 200 if the review was found. HTTP code 404 otherwise
      */
     @GetMapping("/{movieId}/reviews/{reviewId}")
@@ -343,16 +345,16 @@ public class MovieController {
         Review review = reviewService.findById(reviewId).orElseThrow(() -> new ReviewNotFoundException(reviewId));
 
         review.updateFromDTO(reviewDTO);
-        reviewService.save(review);
+        EntityModel<Review> entityModel = reviewAssembler.toModel(reviewService.save(reviewService.save(review)));
 
-        return ResponseEntity.noContent().build();
+        return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
     }
 
     /**
      *
-     * @param movieId identifies the movie from which the review is to be removed
+     * @param movieId identifies the {@link Movie} from which the review is to be removed
      * @param reviewId identifies the review that is to be removed
-     * @return HTTP code 204 if the review was successfully removed or HTTP code 404 if the movie was not found
+     * @return HTTP code 204 if the review was successfully removed or HTTP code 404 if the {@link Movie} was not found
      */
     @DeleteMapping("/{movieId}/reviews/{reviewId}")
     public ResponseEntity<?> deleteReviewById(@PathVariable Long movieId, @PathVariable Long reviewId) {
@@ -393,9 +395,9 @@ public class MovieController {
 
     /**
      *
-     * @param movieId number of the movie from which the actor is to be retrieved
-     * @param actorId number of the actor that is to be retrieved from the movie
-     * @return {@link Actor} and HTTP code 200 if the actor was found. HTTP code 404 otherwise
+     * @param movieId number of the {@link Movie} from which the {@link Actor} is to be retrieved
+     * @param actorId number of the {@link Actor} that is to be retrieved from the {@link Movie}
+     * @return {@link Actor} and HTTP code 200 if the {@link Actor} was found. HTTP code 404 otherwise
      */
     @GetMapping("/{movieId}/actors/{actorId}")
     public ResponseEntity<EntityModel<Actor>> findActorById(@PathVariable Long movieId, @PathVariable Long actorId) {
@@ -408,26 +410,27 @@ public class MovieController {
 
     /**
      *
-     * @param movieId identifies the movie to which the actor is to be added
-     * @param actorId identifies the actor which is to be added to the movie
-     * @return {@link Movie} and HTTP code 200 if the actor was successfully added or HTTP code 404 if the movie/actor was not found
+     * @param movieId identifies the {@link Movie} to which the {@link Actor} is to be added
+     * @param actorId identifies the {@link Actor} which is to be added to the {@link Movie}
+     * @return HTTP code 204 if the {@link Actor} was successfully added
+     * or HTTP code 404 if the {@link Movie}/{@link Actor} was not found
      */
-    @PostMapping("/{movieId}/actors")
-    public ResponseEntity<EntityModel<Movie>> addActorToMovie(@PathVariable Long movieId, @RequestBody Long actorId) {
+    @PutMapping("/{movieId}/actors")
+    public ResponseEntity<?> addActorToMovie(@PathVariable Long movieId, @RequestBody Long actorId) {
         Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
         Actor actor = actorService.findById(actorId).orElseThrow(() -> new ActorNotFoundException(actorId));
 
         movie.addActor(actor);
-        movieService.save(movie);
+        EntityModel<Movie> entityModel = movieAssembler.toModel(movieService.save(movie));
 
-        return ResponseEntity.ok(movieAssembler.toModel(movie));
+        return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
     }
 
     /**
      *
-     * @param movieId identifies the movie from which the actor is to be removed
-     * @param actorId identifies the actor that is to be removed
-     * @return HTTP code 204 if the actor was successfully removed or HTTP code 404 if the movie was not found
+     * @param movieId identifies the {@link Movie} from which the {@link Actor} is to be removed
+     * @param actorId identifies the {@link Actor} that is to be removed
+     * @return HTTP code 204 if the {@link Actor} was successfully removed or HTTP code 404 if the {@link Movie} was not found
      */
     @DeleteMapping("/{movieId}/actors/{actorId}")
     public ResponseEntity<EntityModel<Movie>> removeActorFromMovie(@PathVariable Long movieId, @PathVariable Long actorId) {

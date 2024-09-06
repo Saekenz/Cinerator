@@ -4,6 +4,7 @@ import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.review.ReviewModelAssembler;
 import at.saekenz.cinerator.model.review.ReviewNotFoundException;
 import at.saekenz.cinerator.service.IReviewService;
+import at.saekenz.cinerator.util.ResponseBuilderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -22,6 +24,9 @@ public class ReviewController {
 
     @Autowired
     IReviewService reviewService;
+
+    @Autowired
+    ResponseBuilderService responseBuilderService;
 
     private final ReviewModelAssembler assembler;
 
@@ -62,13 +67,17 @@ public class ReviewController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteReview(@PathVariable Long id) {
+        reviewService.findById(id).orElseThrow(() -> new ReviewNotFoundException(id));
         reviewService.deleteById(id);
+
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateReview(@PathVariable Long id, @RequestBody Review newReview) {
-        Review updatedReview = reviewService.findById(id).map(
+        Optional<Review> existingReview = reviewService.findById(id);
+
+        Review updatedReview = existingReview.map(
                 review -> {
                     review.setComment(newReview.getComment());
                     review.setRating(newReview.getRating());
@@ -78,8 +87,13 @@ public class ReviewController {
                 .orElseGet(() -> reviewService.save(newReview));
         EntityModel<Review> entityModel = assembler.toModel(updatedReview);
 
-        return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                .body(entityModel);
+        if (existingReview.isPresent()) {
+            return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
+        }
+        else {
+            return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                    .body(entityModel);
+        }
     }
 
     @GetMapping("/user/{user_id}")
