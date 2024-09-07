@@ -212,6 +212,11 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(content().string(containsString(("The property 'bio' in entity"))));
     }
 
+    /**
+     * Creates a request to set a user's account status to enabled.
+     * The API has to return HTTP code 204.
+     * @throws Exception
+     */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenEnableUserRequest_shouldSucceedWith204() throws Exception {
@@ -222,6 +227,11 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(status().isNoContent());
     }
 
+    /**
+     * Creates a request to set a user's account status to enabled.
+     * The API has to return HTTP code 404 since no user with id 99 exists.
+     * @throws Exception
+     */
     @Test
     public void givenEnableUserRequest_shouldFailWith404() throws Exception {
         Long userId = 99L;
@@ -250,6 +260,11 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$._embedded.movieList[*].id", hasItems(2,3,7)));
     }
 
+    /**
+     * Attempts to retrieve the watchlist belonging to user with userId -999.
+     * The API has to return HTTP code 404 since no user with such an userId exists in the database
+     * @throws Exception
+     */
     @WithMockUser("test-user")
     @Test
     public void givenFindWatchlistByUserRequest_shouldFailWith404() throws Exception {
@@ -259,6 +274,13 @@ public class UserControllerSpringBootIntegrationTest {
                 .andDo(print());
     }
 
+    /**
+     * Performs request for adding a movie to a user's watchlist.
+     * The API has to return HTTP code 204.
+     * To check if the movie was added correctly an HTTP GET is then
+     * made which has to return a list containing the newly added movie.
+     * @throws Exception
+     */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenAddMovieToWatchlistRequest_shouldSucceedWith200() throws Exception {
@@ -327,6 +349,11 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    /**
+     * Creates a request to remove a specific movie from a user's watchlist.
+     * Has to return HTTP code 404 since the user with id -999 does not exist in the database
+     * @throws Exception
+     */
     @Test
     public void givenRemoveMovieFromWatchlistRequest_shouldFailWith404() throws Exception {
         Long userId = -999L;
@@ -339,6 +366,11 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(content().string(containsString(String.format("Could not find user: %s", userId))));
     }
 
+    /**
+     * Creates a request to fetch a specific movie from a user's watchlist.
+     * Has to return HTTP code 200 and a JSON representation of the movie resource.
+     * @throws Exception
+     */
     @Test
     public void givenFindMovieInWatchlistByIdRequest_shouldSucceedWith200() throws Exception {
         Long userId = 1L;
@@ -350,6 +382,11 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$.id").value(movieId));
     }
 
+    /**
+     * Creates two requests to fetch a specific movie from a user's watchlist.
+     * Has to return HTTP code 404 since no user/movie with id -999 exists.
+     * @throws Exception
+     */
     @Test
     public void givenFindMovieInWatchlistByIdRequest_shouldFailWith404() throws Exception {
         Long userId = -999L;

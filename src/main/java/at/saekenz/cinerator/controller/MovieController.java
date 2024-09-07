@@ -264,6 +264,13 @@ public class MovieController {
         return ResponseEntity.ok(movieAssembler.toModel(movie));
     }
 
+    /**
+     *
+     * @param movies {@link List} of {@link Movie} objects that will be transformed to
+     * {@link List} of EntityModel<{@link Movie}>
+     * @param selfLink link to the resource
+     * @return CollectionModel that contains EntityModel<Movie> objects
+     */
     private CollectionModel<EntityModel<Movie>> createCollectionModelFromList(
             List<Movie> movies, Link selfLink) {
 
