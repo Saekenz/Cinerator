@@ -1,6 +1,6 @@
 package at.saekenz.cinerator.controller;
 
-import at.saekenz.cinerator.model.follow.FollowDTO;
+import at.saekenz.cinerator.model.follow.FollowActionDTO;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.user.User;
@@ -501,15 +501,18 @@ public class UserControllerSpringBootIntegrationTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenFollowAnotherUserRequest_shouldSucceedWith200() throws Exception {
-        FollowDTO followDTO = new FollowDTO(4L,2L);
+        Long userId = 4L;
+        Long followerId = 2L;
+
+        FollowActionDTO followDTO = new FollowActionDTO(followerId);
         String jsonData = new ObjectMapper().writeValueAsString(followDTO);
 
-        mockMvc.perform(post("/users/{userId}/follow", followDTO.getUserId())
+        mockMvc.perform(post("/users/{userId}/follow", userId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonData))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/users/{userId}/followers", followDTO.getUserId())
+        mockMvc.perform(get("/users/{userId}/followers", userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.userDTOList[*].id", hasItem(2)));
@@ -524,27 +527,29 @@ public class UserControllerSpringBootIntegrationTest {
      */
     @Test
     public void givenFollowAnotherUserRequest_shouldFailWith404() throws Exception {
-        FollowDTO followDTO = new FollowDTO(-999L,2L);
+        Long userId = -999L;
+
+        FollowActionDTO followDTO = new FollowActionDTO(2L);
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonData = objectMapper.writeValueAsString(followDTO);
 
-        mockMvc.perform(post("/users/{userId}/follow", followDTO.getUserId())
+        mockMvc.perform(post("/users/{userId}/follow", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonData))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", followDTO.getUserId()))));;
+                        String.format("Could not find user: %s", userId))));;
 
-        followDTO.setUserId(2L);
-        followDTO.setFollowerId(-999L);
+        userId = 2L;
+        followDTO = new FollowActionDTO(-999L);
         jsonData = objectMapper.writeValueAsString(followDTO);
 
-        mockMvc.perform(post("/users/{userId}/follow", followDTO.getUserId())
+        mockMvc.perform(post("/users/{userId}/follow", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonData))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", followDTO.getFollowerId()))));;
+                        String.format("Could not find user: %s", followDTO.followerId()))));;
     }
 
     /**
@@ -555,15 +560,17 @@ public class UserControllerSpringBootIntegrationTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUnfollowAnotherUserRequest_shouldSucceedWith204() throws Exception {
-        FollowDTO followDTO = new FollowDTO(2L,3L);
+        Long userId = 2L;
+
+        FollowActionDTO followDTO = new FollowActionDTO(3L);
         String jsonData = new ObjectMapper().writeValueAsString(followDTO);
 
-        mockMvc.perform(delete("/users/{userId}/unfollow", followDTO.getUserId())
+        mockMvc.perform(delete("/users/{userId}/unfollow", userId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonData))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/users/{userId}/followers", followDTO.getUserId())
+        mockMvc.perform(get("/users/{userId}/followers", userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.userDTOList[*].id", not(contains(3))));
@@ -578,27 +585,29 @@ public class UserControllerSpringBootIntegrationTest {
      */
     @Test
     public void givenUnfollowAnotherUserRequest_shouldFailWith404() throws Exception {
-        FollowDTO followDTO = new FollowDTO(-999L,2L);
+        Long userId = -999L;
+
+        FollowActionDTO followDTO = new FollowActionDTO(2L);
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonData = objectMapper.writeValueAsString(followDTO);
 
-        mockMvc.perform(delete("/users/{userId}/unfollow", followDTO.getUserId())
+        mockMvc.perform(delete("/users/{userId}/unfollow", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonData))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", followDTO.getUserId()))));;
+                        String.format("Could not find user: %s", userId))));;
 
-        followDTO.setUserId(2L);
-        followDTO.setFollowerId(-999L);
+        userId = 2L;
+        followDTO = new FollowActionDTO(-999L);
         jsonData = objectMapper.writeValueAsString(followDTO);
 
-        mockMvc.perform(delete("/users/{userId}/unfollow", followDTO.getUserId())
+        mockMvc.perform(delete("/users/{userId}/unfollow", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonData))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", followDTO.getFollowerId()))));;
+                        String.format("Could not find user: %s", followDTO.followerId()))));;
     }
 
 }

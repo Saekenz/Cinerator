@@ -12,21 +12,21 @@ import java.time.LocalDateTime;
 public class Follow {
 
     @EmbeddedId
-    FollowKey id;
+    private FollowKey id;
 
     @ManyToOne
     @MapsId("userId")
     @JoinColumn(name = "user_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    User user;
+    private User user;
 
     @ManyToOne
     @MapsId("followerId")
     @JoinColumn(name = "follower_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    User follower;
+    private User follower;
 
-    LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
     public Follow() {}
 
@@ -48,6 +48,10 @@ public class Follow {
     public User getFollower() { return follower; }
 
     public void setFollower(User follower) { this.follower = follower; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     @Override
     public String toString() {

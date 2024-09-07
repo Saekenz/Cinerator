@@ -1,10 +1,6 @@
 package at.saekenz.cinerator.controller;
 
-import at.saekenz.cinerator.model.actor.Actor;
-import at.saekenz.cinerator.model.follow.Follow;
-import at.saekenz.cinerator.model.follow.FollowDTO;
-import at.saekenz.cinerator.model.follow.FollowKey;
-import at.saekenz.cinerator.model.follow.FollowModelAssembler;
+import at.saekenz.cinerator.model.follow.*;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
@@ -21,8 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -53,6 +47,8 @@ public class UserController {
 
     private final MovieModelAssembler movieAssembler;
     private final ReviewModelAssembler reviewAssembler;
+
+    private final FollowMapper followMapper;
     private final FollowModelAssembler followAssembler;
 
     private final UserMapper userMapper;
@@ -64,6 +60,7 @@ public class UserController {
                    ReviewModelAssembler reviewAssembler, FollowModelAssembler followAssembler) {
         this.movieAssembler = movieAssembler;
         this.reviewAssembler = reviewAssembler;
+        this.followMapper = new FollowMapper();
         this.followAssembler = followAssembler;
         this.userDTOAssembler = userDTOAssembler;
         this.userMapper = new UserMapper();
@@ -404,34 +401,44 @@ public class UserController {
     /**
      *
      * @param id number of the {@link User} that will be followed
-     * @param followDTO contains the id of {@link User} that wants to follow
-     * @return HTTP code 201 or HTTP code 404 if one of the users is not found in the database
+     * @param followActionDTO contains the id of {@link User} that wants to follow
+     * @return HTTP code 201 if the request is successful, HTTP code 404 if one of the users is not found in the database
+     * and HTTP code 400 if the {@link User} is already following
      */
     @PostMapping("/{id}/follow")
-    public ResponseEntity<?> followAnotherUser(@PathVariable Long id, @RequestBody FollowDTO followDTO) {
-        Long followerId = followDTO.getFollowerId();
+    public ResponseEntity<?> followAnotherUser(@PathVariable Long id, @RequestBody FollowActionDTO followActionDTO) {
+        Long followerId = followActionDTO.followerId();
 
         User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         User follower = userService.findById(followerId).orElseThrow(() -> new UserNotFoundException(followerId));
-        Follow follow = followService.save(new Follow(new FollowKey(id, followerId), user, follower, LocalDateTime.now()));
+        FollowKey key = new FollowKey(id, followerId);
 
-        EntityModel<FollowDTO> entityModel = followAssembler
-                .toModel(new FollowDTO(follow.getId().getUserId(), follow.getId().getFollowerId()));
+        if (followService.findByKey(key).isEmpty()) {
+            Follow follow = followService.save(new Follow(new FollowKey(id, followerId), user, follower, LocalDateTime.now()));
 
-        return ResponseEntity
-                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                .body(entityModel);
+            EntityModel<FollowDTO> entityModel = followAssembler
+                    .toModel(followMapper.toDTO(follow));
+
+            return ResponseEntity
+                    .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                    .body(entityModel);
+        }
+        else {
+            return ResponseEntity
+                    .badRequest()
+                    .body(String.format("User %s is already following user %s!", followerId, id));
+        }
     }
 
     /**
      *
      * @param id number of the {@link User} that will be unfollowed
-     * @param followDTO contains the id of {@link User} that wants to unfollow
+     * @param followActionDTO contains the id of {@link User} that wants to unfollow
      * @return HTTP code 204 or HTTP code 404 if one of the users is not found in the database
      */
     @DeleteMapping("/{id}/unfollow")
-    public ResponseEntity<?> unfollowAnotherUser(@PathVariable Long id, @RequestBody FollowDTO followDTO) {
-        Long followerId = followDTO.getFollowerId();
+    public ResponseEntity<?> unfollowAnotherUser(@PathVariable Long id, @RequestBody FollowActionDTO followActionDTO) {
+        Long followerId = followActionDTO.followerId();
 
         userService.findById(followerId).orElseThrow(() -> new UserNotFoundException(followerId));
         userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
