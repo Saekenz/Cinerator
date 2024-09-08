@@ -17,6 +17,7 @@ public class UserMapper {
         userDTO.setBio(user.getBio());
         userDTO.setRole(user.getRole());
         userDTO.setEnabled(user.isEnabled());
+        userDTO.setCreatedAt(user.getCreatedAt());
 
         return userDTO;
     }

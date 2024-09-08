@@ -348,6 +348,32 @@ public class UserController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     *
+     * @param userId number of the {@link User} for which rated movies will be retrieved
+     * @param rating number the {@link User} has rated movies with
+     * @return List of {@link Movie} objects (empty list if the {@link User} has not rated
+     * any movies with this specific rating) and HTTP code 200
+     * or HTTP code 404 if the {@link User} does not exist
+     */
+    @GetMapping("/{userId}/movies/rated/{rating}")
+    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findMoviesRatedByUser(@PathVariable Long userId,
+                                                                                     @PathVariable Integer rating) {
+        userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        List<Movie> ratedMovies = userService.findMoviesRatedByUser(userId, rating);
+
+        if (ratedMovies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
+
+        List<EntityModel<Movie>> ratedMovieModels = ratedMovies.stream()
+                .map(movieAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(ratedMovieModels,
+                linkTo(methodOn(UserController.class).findMoviesRatedByUser(userId, rating)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
 // ----------------------------------------- FOLLOWERS ----------------------------------------------------------------
 
     /**

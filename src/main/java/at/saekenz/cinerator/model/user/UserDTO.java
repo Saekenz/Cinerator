@@ -1,5 +1,7 @@
 package at.saekenz.cinerator.model.user;
 
+import java.time.LocalDateTime;
+
 public class UserDTO {
 
     private Long id;
@@ -9,11 +11,12 @@ public class UserDTO {
     private String bio;
     private String role;
     private boolean enabled;
+    private LocalDateTime createdAt;
 
     public UserDTO() {}
 
     public UserDTO(Long id, String username, String name, String email,
-                   String bio, String role, boolean enabled) {
+                   String bio, String role, boolean enabled, LocalDateTime createdAt) {
         this.id = id;
         this.username = username;
         this.name = name;
@@ -21,6 +24,7 @@ public class UserDTO {
         this.bio = bio;
         this.role = role;
         this.enabled = enabled;
+        this.createdAt = createdAt;
     }
 
     public Long getId() { return id; }
@@ -51,6 +55,10 @@ public class UserDTO {
 
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
 
+    public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
     @Override
     public String toString() {
         return "UserDTO{" +
@@ -61,6 +69,7 @@ public class UserDTO {
                 ", bio='" + bio + '\'' +
                 ", role='" + role + '\'' +
                 ", enabled=" + enabled +
+                ", createdAt=" + createdAt +
                 '}';
     }
 }

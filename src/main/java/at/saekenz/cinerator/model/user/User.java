@@ -5,7 +5,10 @@ import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.review.Review;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -38,6 +41,13 @@ public class User {
 
    @Column(nullable = false)
    private boolean enabled;
+
+   @CreationTimestamp
+   @Column(updatable = false)
+   private LocalDateTime createdAt;
+
+   @UpdateTimestamp
+   private LocalDateTime updatedAt;
 
    @ManyToMany
    @JoinTable(
@@ -127,6 +137,10 @@ public class User {
    public Set<Follow> getFollowers() { return followers; }
 
    public void setFollowers(Set<Follow> followers) { this.followers = followers; }
+
+   public LocalDateTime getCreatedAt() { return createdAt; }
+
+   public LocalDateTime getUpdatedAt() { return updatedAt; }
 
    public void addFollower(Follow follower) {
       this.followers.add(follower);

@@ -26,4 +26,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "WHERE u.id = :id " +
             "AND r.isLiked = true")
     List<Movie> findMoviesLikedByUser(@Param("id") Long id);
+
+    @Query("SELECT m " +
+            "FROM Movie m " +
+            "INNER JOIN Review r ON m.id = r.movie.id " +
+            "INNER JOIN User u ON u.id = r.user.id " +
+            "WHERE u.id = :userId " +
+            "AND r.rating = :rating")
+    List<Movie> findMoviesRatedByUser(@Param("userId") Long userId, @Param("rating") Integer rating);
 }

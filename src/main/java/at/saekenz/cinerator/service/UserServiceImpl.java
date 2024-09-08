@@ -60,5 +60,10 @@ public class UserServiceImpl implements IUserService {
         return userRepository.findMoviesLikedByUser(userId);
     }
 
+    @Override
+    public List<Movie> findMoviesRatedByUser(Long userId, Integer rating) {
+        return userRepository.findMoviesRatedByUser(userId, rating);
+    }
+
 
 }

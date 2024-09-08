@@ -467,6 +467,37 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(content().string(is("{}")));
     }
 
+    /**
+     * Creates a request to retrieve {@link Movie} objects rated 3 by {@link User} with id = 1.
+     * Has to return movies with id 1 & 9 + HTTP code 200.
+     * @throws Exception
+     */
+    @Test
+    public void givenFindMoviesRatedByUserRequest_shouldSucceedWith200() throws Exception{
+        Long userId = 1L;
+        Integer rating = 3;
+
+        mockMvc.perform(get("/users/{userId}/movies/rated/{rating}", userId, rating)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.movieList[*].id", containsInAnyOrder(1,9)));
+    }
+
+    /**
+     * Creates a request to retrieve {@link Movie} objects rated 3 by {@link User} with id = -999L.
+     * Returns HTTP code 404 since this {@link User} does not exist in the database.
+     * @throws Exception
+     */
+    @Test
+    public void givenFindMoviesRatedByUserRequest_shouldFailWith404() throws Exception{
+        Long userId = -999L;
+        Integer rating = 3;
+
+        mockMvc.perform(get("/users/{userId}/movies/rated/{rating}", userId, rating)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
 // -------------------------------------- FOLLOWERS -------------------------------------------------------------------
 
     /**
