@@ -2,6 +2,7 @@ package at.saekenz.cinerator.model.follow;
 
 import at.saekenz.cinerator.model.user.User;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -26,15 +27,16 @@ public class Follow {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User follower;
 
+    @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
     public Follow() {}
 
-    public Follow(FollowKey id, User user, User follower, LocalDateTime createdAt) {
+    public Follow(FollowKey id, User user, User follower) {
         this.id = id;
         this.user = user;
         this.follower = follower;
-        this.createdAt = createdAt;
     }
 
     public FollowKey getId() { return id; }
@@ -50,8 +52,6 @@ public class Follow {
     public void setFollower(User follower) { this.follower = follower; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     @Override
     public String toString() {

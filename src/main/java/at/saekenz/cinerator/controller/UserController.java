@@ -440,7 +440,7 @@ public class UserController {
         FollowKey key = new FollowKey(id, followerId);
 
         if (followService.findByKey(key).isEmpty()) {
-            Follow follow = followService.save(new Follow(new FollowKey(id, followerId), user, follower, LocalDateTime.now()));
+            Follow follow = followService.save(new Follow(new FollowKey(id, followerId), user, follower));
 
             EntityModel<FollowDTO> entityModel = followAssembler
                     .toModel(followMapper.toDTO(follow));

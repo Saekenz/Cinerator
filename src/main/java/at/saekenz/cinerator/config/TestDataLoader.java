@@ -207,10 +207,10 @@ public class TestDataLoader {
             User u3 = userRepository.findById(3L).orElseThrow(() -> new UserNotFoundException(3L));
             User u4 = userRepository.findById(4L).orElseThrow(() -> new UserNotFoundException(4L));
 
-            Follow f1 = new Follow(new FollowKey(u1.getId(),u2.getId()), u1, u2, LocalDateTime.now());
-            Follow f2 = new Follow(new FollowKey(u2.getId(),u1.getId()), u2, u1, LocalDateTime.now());
-            Follow f3 = new Follow(new FollowKey(u2.getId(),u3.getId()), u2, u3, LocalDateTime.now());
-            Follow f4 = new Follow(new FollowKey(u2.getId(),u4.getId()), u2, u4, LocalDateTime.now());
+            Follow f1 = new Follow(new FollowKey(u1.getId(),u2.getId()), u1, u2);
+            Follow f2 = new Follow(new FollowKey(u2.getId(),u1.getId()), u2, u1);
+            Follow f3 = new Follow(new FollowKey(u2.getId(),u3.getId()), u2, u3);
+            Follow f4 = new Follow(new FollowKey(u2.getId(),u4.getId()), u2, u4);
 
             for (Follow f : followRepository.saveAll(List.of(f1, f2, f3, f4))) {
                 log.info("Created follow: {}", f);
