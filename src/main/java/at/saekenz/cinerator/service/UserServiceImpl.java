@@ -36,6 +36,11 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    public List<User> findAllById(Iterable<Long> ids) {
+        return userRepository.findAllById(ids);
+    }
+
+    @Override
     public User save(User user) {
         return userRepository.save(user);
     }

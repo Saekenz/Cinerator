@@ -16,6 +16,8 @@ public interface IUserService {
 
     Optional<User> findById(Long id);
 
+    List<User> findAllById(Iterable<Long> ids);
+
     User save(User user);
 
     void deleteById(Long id);

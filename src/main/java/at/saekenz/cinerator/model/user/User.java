@@ -3,6 +3,7 @@ package at.saekenz.cinerator.model.user;
 import at.saekenz.cinerator.model.follow.Follow;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.review.Review;
+import at.saekenz.cinerator.model.userlist.UserList;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -66,6 +67,9 @@ public class User {
 
    @OneToMany(mappedBy = "user")
    private Set<Follow> followers;
+
+   @OneToMany(mappedBy = "user")
+   private List<UserList> userlists;
 
    public User() {
    }
@@ -148,6 +152,22 @@ public class User {
 
    public void removeFollower(Follow follower) {
       this.followers.remove(follower);
+   }
+
+   public List<UserList> getUserlists() {
+      return userlists;
+   }
+
+   public void setUserlists(List<UserList> userlists) {
+      this.userlists = userlists;
+   }
+
+   public void setCreatedAt(LocalDateTime createdAt) {
+      this.createdAt = createdAt;
+   }
+
+   public void setUpdatedAt(LocalDateTime updatedAt) {
+      this.updatedAt = updatedAt;
    }
 
    @Override

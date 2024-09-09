@@ -9,6 +9,7 @@ import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserNotFoundException;
+import at.saekenz.cinerator.model.userlist.UserList;
 import at.saekenz.cinerator.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,7 +144,7 @@ public class TestDataLoader {
     @Bean
     @Order(4)
     public CommandLineRunner initReviews(ReviewRepository reviewRepository, UserRepository userRepository,
-                                         MovieRepository movieRepository) {
+                                         MovieRepository movieRepository, UserListRepository userListRepository) {
         return (args) -> {
             log.info("Initializing reviews...");
 
@@ -187,6 +188,12 @@ public class TestDataLoader {
             );
 
             reviewRepository.saveAll(reviews).forEach(review -> log.info("Created new review: {}", review));
+
+            // TESTING
+
+            List<Movie> moviesInUserList = new ArrayList<>(movies.subList(0, 5));
+            UserList userList = new UserList("Good movies", "Some absolute bangers", false, users.get(3), moviesInUserList);
+            userListRepository.save(userList);
         };
     }
 

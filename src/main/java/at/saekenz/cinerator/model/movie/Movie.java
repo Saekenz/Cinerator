@@ -3,6 +3,7 @@ package at.saekenz.cinerator.model.movie;
 import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.user.User;
+import at.saekenz.cinerator.model.userlist.UserList;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
@@ -47,6 +48,11 @@ public class Movie {
     @JsonIgnore
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<User> user;
+
+    @ManyToMany(mappedBy = "movielist")
+    @JsonIgnore
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private List<UserList> userlist;
 
     @OneToMany(mappedBy = "movie")
     private List<Review> reviews;
