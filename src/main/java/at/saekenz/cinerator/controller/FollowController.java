@@ -25,9 +25,9 @@ public class FollowController {
     @Autowired
     private FollowMapper followMapper;
 
-    private final FollowModelAssembler followAssembler;
+    private final FollowDTOModelAssembler followAssembler;
 
-    public FollowController(FollowModelAssembler followAssembler) {
+    public FollowController(FollowDTOModelAssembler followAssembler) {
         this.followAssembler = followAssembler;
     }
 

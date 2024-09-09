@@ -10,7 +10,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
-public class FollowModelAssembler implements RepresentationModelAssembler<FollowDTO, EntityModel<FollowDTO>> {
+public class FollowDTOModelAssembler implements RepresentationModelAssembler<FollowDTO, EntityModel<FollowDTO>> {
 
     @Override
     public EntityModel<FollowDTO> toModel(FollowDTO follow) {

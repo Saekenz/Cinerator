@@ -24,7 +24,7 @@ public class UserList {
     private String description;
 
     @Column(nullable = false)
-    private boolean privated;
+    private boolean isPrivate;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -44,11 +44,11 @@ public class UserList {
 
     public UserList() {}
 
-    public UserList(String name, String description, boolean privated,
+    public UserList(String name, String description, boolean isPrivate,
                     User user, List<Movie> movielist) {
         this.name = name;
         this.description = description;
-        this.privated = privated;
+        this.isPrivate = isPrivate;
         this.user = user;
         this.movielist = movielist;
     }
@@ -77,12 +77,12 @@ public class UserList {
         this.name = name;
     }
 
-    public boolean isPrivated() {
-        return privated;
+    public boolean isPrivate() {
+        return isPrivate;
     }
 
-    public void setPrivated(boolean privated) {
-        this.privated = privated;
+    public void setPrivate(boolean isPrivate) {
+        this.isPrivate = isPrivate;
     }
 
     public LocalDateTime getCreatedAt() {

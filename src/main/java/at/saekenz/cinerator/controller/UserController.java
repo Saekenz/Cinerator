@@ -7,6 +7,10 @@ import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.review.ReviewModelAssembler;
 import at.saekenz.cinerator.model.user.*;
+import at.saekenz.cinerator.model.userlist.UserList;
+import at.saekenz.cinerator.model.userlist.UserListDTO;
+import at.saekenz.cinerator.model.userlist.UserListDTOModelAssembler;
+import at.saekenz.cinerator.model.userlist.UserListMapper;
 import at.saekenz.cinerator.service.IFollowService;
 import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IUserService;
@@ -21,7 +25,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -45,19 +48,27 @@ public class UserController {
     @Autowired
     ResponseBuilderService responseBuilderService;
 
+    @Autowired
+    UserListMapper userListMapper;
+
+    @Autowired
+    UserListDTOModelAssembler userListDTOAssembler;
+
     private final MovieModelAssembler movieAssembler;
     private final ReviewModelAssembler reviewAssembler;
 
     private final FollowMapper followMapper;
-    private final FollowModelAssembler followAssembler;
+    private final FollowDTOModelAssembler followAssembler;
 
     private final UserMapper userMapper;
     private final UserDTOAssembler userDTOAssembler;
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
+    @Autowired
+    private UserListDTOModelAssembler userListDTOModelAssembler;
 
     UserController(UserDTOAssembler userDTOAssembler, MovieModelAssembler movieAssembler,
-                   ReviewModelAssembler reviewAssembler, FollowModelAssembler followAssembler) {
+                   ReviewModelAssembler reviewAssembler, FollowDTOModelAssembler followAssembler) {
         this.movieAssembler = movieAssembler;
         this.reviewAssembler = reviewAssembler;
         this.followMapper = new FollowMapper();
@@ -481,8 +492,28 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+// ---------------------------------------- LISTS ---------------------------------------------------------------------
 
+    /**
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}/lists")
+    public ResponseEntity<?> findListsByUser(@PathVariable Long id) {
+        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        List<UserList> userLists = user.getUserlists();
 
+        if (userLists.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
+        List<EntityModel<UserListDTO>> userListModels = userLists.stream()
+                .map(userListMapper::toDTO)
+                .map(userListDTOModelAssembler::toModel)
+                .toList();
 
+        CollectionModel<EntityModel<UserListDTO>> collectionModel = CollectionModel.of(userListModels,
+                linkTo(methodOn(UserController.class).findListsByUser(id)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
 }
