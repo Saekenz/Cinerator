@@ -163,7 +163,7 @@ public class UserControllerSpringBootIntegrationTest {
      * Create a request to update a {@link User} which expects an HTTP code 204 response from the API.
      * To verify the {@link User} was successfully updated, a get request is then performed which expects
      * an HTTP code 200 response.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @WithMockUser("test-user")
     @Test
@@ -193,7 +193,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Create a request to update a {@link User}. The API has to return HTTP code 400 since
      * the updated data does not contain a password value
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenUpdateUserRequest_shouldFailWith400() throws Exception {
@@ -215,7 +215,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to set a user's account status to enabled.
      * The API has to return HTTP code 204.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -230,7 +230,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to set a user's account status to enabled.
      * The API has to return HTTP code 404 since no user with id 99 exists.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenEnableUserRequest_shouldFailWith404() throws Exception {
@@ -248,7 +248,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Attempts to retrieve the watchlist belonging to user with userId 2.
      * This user's watchlist should contain movies with movieIds [2,3,7].
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @WithMockUser("test-user")
     @Test
@@ -263,7 +263,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Attempts to retrieve the watchlist belonging to user with userId -999.
      * The API has to return HTTP code 404 since no user with such an userId exists in the database
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @WithMockUser("test-user")
     @Test
@@ -279,7 +279,7 @@ public class UserControllerSpringBootIntegrationTest {
      * The API has to return HTTP code 204.
      * To check if the movie was added correctly an HTTP GET is then
      * made which has to return a list containing the newly added movie.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -303,7 +303,7 @@ public class UserControllerSpringBootIntegrationTest {
      * The first time the request contains an invalid userId and a valid movieId.
      * The second time the request contains a valid userId and an in valid movieId.
      * Both requests have to return HTTP code 404.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenAddMovieToWatchlistRequest_shouldFailWith404() throws Exception {
@@ -332,7 +332,7 @@ public class UserControllerSpringBootIntegrationTest {
      * Attempts to remove a movie from a user's watchlist by id.
      * Request is made twice and should return HTTP code 404 the for the second request because the
      * resource is already deleted
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -352,7 +352,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to remove a specific movie from a user's watchlist.
      * Has to return HTTP code 404 since the user with id -999 does not exist in the database
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenRemoveMovieFromWatchlistRequest_shouldFailWith404() throws Exception {
@@ -369,7 +369,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to fetch a specific movie from a user's watchlist.
      * Has to return HTTP code 200 and a JSON representation of the movie resource.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindMovieInWatchlistByIdRequest_shouldSucceedWith200() throws Exception {
@@ -385,7 +385,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates two requests to fetch a specific movie from a user's watchlist.
      * Has to return HTTP code 404 since no user/movie with id -999 exists.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindMovieInWatchlistByIdRequest_shouldFailWith404() throws Exception {
@@ -411,7 +411,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to retrieve all reviews created by {@link User} with id = 1.
      * Returns a list of {@link Review} objects and HTTP code 200.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindReviewsByUserRequest_shouldSucceedWith200() throws Exception {
@@ -426,7 +426,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to retrieve all reviews created by {@link User} with id = -999.
      * Since this user does not exist in the database the request returns HTTP code 404.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindReviewsByUserRequest_shouldFailWith404() throws Exception {
@@ -440,7 +440,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to retrieve {@link Movie} objects liked by {@link User} with id = 1.
      * Returns a list of liked {@link Movie} objects and HTTP code 200.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindMoviesLikedByUserRequest_shouldSucceedWith200AndReturnListOfMovies() throws Exception {
@@ -455,7 +455,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to retrieve {@link Movie} objects liked by {@link User} with id = 4.
      * Returns an empty list and HTTP code 200.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindMoviesLikedByUserRequest_shouldSucceedWith200AndReturnEmptyList() throws Exception {
@@ -470,7 +470,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to retrieve {@link Movie} objects rated 3 by {@link User} with id = 1.
      * Has to return movies with id 1 & 9 + HTTP code 200.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindMoviesRatedByUserRequest_shouldSucceedWith200() throws Exception{
@@ -486,7 +486,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to retrieve {@link Movie} objects rated 3 by {@link User} with id = -999L.
      * Returns HTTP code 404 since this {@link User} does not exist in the database.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindMoviesRatedByUserRequest_shouldFailWith404() throws Exception{
@@ -503,7 +503,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to retrieve {@link User} objects which follow {@link User} with id = 2.
      * Returns a list of {@link User} objects and HTTP code 200.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindFollowersByUser_shouldSucceedWith200() throws Exception {
@@ -519,7 +519,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to retrieve {@link User} objects which follow {@link User} with id = -999.
      * Returns HTTP code 404 since this {@link User} does not exist.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindFollowersByUser_shouldFailWith404() throws Exception {
@@ -534,7 +534,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to retrieve {@link User} objects which {@link User} with id = 2 follows.
      * Returns a list of {@link User} objects and HTTP code 200.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindFollowingByUser_shouldSucceedWith200() throws Exception {
@@ -549,7 +549,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to retrieve {@link User} objects which {@link User} with id = -999 follows.
      * Returns HTTP code 404 since this {@link User} does not exist.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindFollowingByUser_shouldFailWith404() throws Exception {
@@ -564,7 +564,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to follow a {@link User} which returns HTTP code 201.
      * Checks if the {@link User} has been followed by retrieving all the user's followers.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -591,7 +591,7 @@ public class UserControllerSpringBootIntegrationTest {
      * The first time the request contains an invalid userId and a valid followerId.
      * The second time the request contains a valid userId and an invalid followerId.
      * Both requests have to return HTTP code 404.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFollowAnotherUserRequest_shouldFailWith404() throws Exception {
@@ -623,7 +623,7 @@ public class UserControllerSpringBootIntegrationTest {
     /**
      * Creates a request to unfollow a {@link User} which returns HTTP code 204.
      * Checks if the {@link User} has been unfollowed by retrieving all the user's followers.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -649,7 +649,7 @@ public class UserControllerSpringBootIntegrationTest {
      * The first time the request contains an invalid userId and a valid followerId.
      * The second time the request contains a valid userId and an invalid followerId.
      * Both requests have to return HTTP code 404.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenUnfollowAnotherUserRequest_shouldFailWith404() throws Exception {
@@ -677,5 +677,7 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(content().string(containsString(
                         String.format("Could not find user: %s", followDTO.followerId()))));;
     }
+
+// --------------------------------- LISTS --------------------------------------------------------------------------
 
 }

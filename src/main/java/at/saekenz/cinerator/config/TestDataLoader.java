@@ -156,8 +156,8 @@ public class TestDataLoader {
 
             if (movies.size() < 11) { throw new MovieNotFoundException(); }
 
-            List<Movie> moviesInUser4List = new ArrayList<>(movies.subList(0, 5));
-            List<Movie> moviesInUser2List = new ArrayList<>(movies.subList(4, 9));
+            Set<Movie> moviesInUser4List = Set.copyOf(movies.subList(0, 5));
+            Set<Movie> moviesInUser2List = Set.copyOf(movies.subList(4, 9));
             UserList user4List = new UserList("Good movies", "Some absolute bangers", false, users.get(3), moviesInUser4List);
             UserList user2List = new UserList("My Top movies so far",
                     "Let's see how manic 2024 can be with an expected high volume of viewing pleasures in store for the senses.", false, users.get(1), moviesInUser2List);

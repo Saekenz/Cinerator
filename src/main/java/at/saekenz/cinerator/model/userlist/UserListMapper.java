@@ -3,7 +3,7 @@ package at.saekenz.cinerator.model.userlist;
 import at.saekenz.cinerator.model.user.User;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 
 @Component
 public class UserListMapper {
@@ -26,7 +26,7 @@ public class UserListMapper {
                 userListCreationDTO.description(),
                 userListCreationDTO.isPrivate(),
                 user,
-                List.of());
+                Set.of());
     }
 
     public UserList toUserList(UserListDTO userListDTO, User user) {
@@ -34,6 +34,6 @@ public class UserListMapper {
                 userListDTO.getDescription(),
                 userListDTO.isPrivate(),
                 user,
-                List.of());
+                Set.of());
     }
 }

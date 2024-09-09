@@ -8,7 +8,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "userlists")
@@ -40,12 +40,12 @@ public class UserList {
             name = "userlist_movie",
             joinColumns = @JoinColumn(name = "USRLIST_ID"),
             inverseJoinColumns = @JoinColumn(name = "MOV_ID"))
-    private List<Movie> movielist;
+    private Set<Movie> movielist;
 
     public UserList() {}
 
     public UserList(String name, String description, boolean isPrivate,
-                    User user, List<Movie> movielist) {
+                    User user, Set<Movie> movielist) {
         this.name = name;
         this.description = description;
         this.isPrivate = isPrivate;
@@ -101,11 +101,19 @@ public class UserList {
         this.user = user;
     }
 
-    public List<Movie> getMovielist() {
+    public Set<Movie> getMovielist() {
         return movielist;
     }
 
-    public void setMovielist(List<Movie> movielist) {
+    public void setMovielist(Set<Movie> movielist) {
         this.movielist = movielist;
+    }
+
+    public boolean addMovie(Movie movie) {
+        return movielist.add(movie);
+    }
+
+    public boolean removeMovieById(Long id) {
+        return movielist.removeIf(movie -> movie.getId().equals(id));
     }
 }

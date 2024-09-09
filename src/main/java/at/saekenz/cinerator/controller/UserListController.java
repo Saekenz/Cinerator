@@ -2,8 +2,10 @@ package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.movie.MovieModelAssembler;
+import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.model.user.*;
 import at.saekenz.cinerator.model.userlist.*;
+import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IUserListService;
 import at.saekenz.cinerator.service.IUserService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -30,6 +33,9 @@ public class UserListController {
 
     @Autowired
     IUserService userService;
+
+    @Autowired
+    IMovieService movieService;
 
     @Autowired
     UserListMapper userListMapper;
@@ -54,8 +60,10 @@ public class UserListController {
     }
 
     /**
+     * Fetches every {@link UserList} stored in the database.
      *
-     * @return
+     * @return ResponseEntity containing 200 Ok status and a collection of every
+     * {@link UserList} stored in the database.
      */
     @GetMapping
     public ResponseEntity<CollectionModel<EntityModel<UserListDTO>>> findAll() {
@@ -74,9 +82,11 @@ public class UserListController {
     }
 
     /**
+     * Fetches a {@link UserList} by its {@code id}.
      *
-     * @param id
-     * @return
+     * @param id the ID of the {@link UserList} to be retrieved
+     * @return ResponseEntity containing a 200 Ok status and the {@link UserList}.
+     * (Returns 404 Not Found if the {@link UserList} does not exist for this {@code id}.)
      */
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<UserListDTO>> findById(@PathVariable Long id) {
@@ -86,9 +96,11 @@ public class UserListController {
     }
 
     /**
+     * Creates a new {@link UserList}.
      *
-     * @param userListCreationDTO
-     * @return
+     * @param userListCreationDTO a DTO containing data of the new {@link UserList}
+     * @return ResponseEntity containing a 201 Created status and the created {@link UserList}.
+     * (Returns 404 Not Found if the {@link User} owning the new {@link UserList} does not exist in the database.)
      */
     @PostMapping
     public ResponseEntity<?> createUserList(@RequestBody UserListCreationDTO userListCreationDTO) {
@@ -103,10 +115,13 @@ public class UserListController {
     }
 
     /**
+     * Creates or updates a {@link UserList} based on its id.
      *
-     * @param id
-     * @param newUserList
-     * @return
+     * @param id the ID of the {@link UserList} to be created/updated
+     * @param newUserList a DTO containing the needed data
+     * @return ResponseEntity containing a 204 No Content status if a {@link UserList} was updated or
+     * 201 Created status if a new {@link UserList} was created. (Returns 404 Not Found if
+     * the {@link User} for a new {@link UserList} does not exist in the database.)
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUserList(@PathVariable Long id, @RequestBody UserListDTO newUserList) {
@@ -137,9 +152,11 @@ public class UserListController {
     }
 
     /**
+     * Deletes a {@link UserList} by its {@code id}.
      *
-     * @param id
-     * @return
+     * @param id the ID of the {@link UserList} to be deleted
+     * @return ResponseEntity containing a 204 No Content status (or a
+     * 404 Not Found status if no {@link UserList} exists with the specified {@code id}.)
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUserList(@PathVariable Long id) {
@@ -150,9 +167,11 @@ public class UserListController {
     }
 
     /**
+     * Fetches the {@link User} that owns the {@link UserList} specified by {@code id}.
      *
-     * @param id
-     * @return
+     * @param id the ID of the {@link UserList} for which the {@link User} is to be retrieved.
+     * @return ResponseEntity containing a 200 Ok status and the {@link User} (or a
+     * 404 Not Found status if no {@link UserList} exists with the specified {@code id}.)
      */
     @GetMapping("/{id}/user")
     public ResponseEntity<?> findUserByUserList(@PathVariable Long id) {
@@ -163,14 +182,16 @@ public class UserListController {
     }
 
     /**
+     * Fetches movies from a {@link UserList} specified by {@code id}.
      *
-     * @param id
-     * @return
+     * @param id the ID of the {@link UserList} for which the movies are to be retrieved
+     * @return ResponseEntity containing a 200 Ok status and the updated {@link UserList} (or a 404
+     * Not Found status if no {@link UserList} exists with the specified {@code id}.)
      */
     @GetMapping("/{id}/movies")
     public ResponseEntity<?> findMoviesByUserList(@PathVariable Long id) {
         UserList userList = userListService.findById(id).orElseThrow(() -> new ObjectNotFoundException(id, "UserList"));
-        List<Movie> moviesInUserList = userList.getMovielist();
+        Set<Movie> moviesInUserList = userList.getMovielist();
 
         if (moviesInUserList.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
@@ -183,24 +204,51 @@ public class UserListController {
     }
 
     /**
+     * Adds a {@link Movie} to the {@link UserList} specified by {@code id}.
      *
-     * @param id
-     * @return
+     * @param id the ID of the {@link UserList} to which the {@link Movie} is to be added
+     * @param movieId the ID of the {@link Movie} to be added
+     * @return ResponseEntity indicating the result of the put operation.
+     *  Typically, returns a 204 No Content status,
+     *  or a 400 Bad Request status if the {@link Movie} already was added. (Returns a 404 Not Found status
+     *  if the {@link Movie}/{@link UserList} does not exist.)
      */
     @PutMapping("/{id}/movies")
-    public ResponseEntity<?> addMovieToUserList(@PathVariable Long id) {
-        // TODO: implement
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> addMovieToUserList(@PathVariable Long id, @RequestBody Long movieId) {
+        UserList userList = userListService.findById(id).orElseThrow(() -> new ObjectNotFoundException(id, "UserList"));
+        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+
+        if (userList.addMovie(movie)) {
+            EntityModel<UserListDTO> entityModel = userListDTOAssembler.toModel(userListMapper
+                    .toDTO(userListService.save(userList)));
+            return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
+        }
+        else {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Adding movie failed. (Movie was already added)");
+        }
     }
 
     /**
+     * Deletes a {@link Movie} from the {@link UserList} specified by listId.
      *
-     * @param id
-     * @return
+     * @param listId the ID of the {@link UserList} from which the {@link Movie} is to be deleted
+     * @param movieId the ID of the {@link Movie} to be removed
+     * @return ResponseEntity indicating the result of the delete operation.
+     *  Typically, a 204 No Content status is returned if the deletion is successful,
+     *  or a 404 Not Found error status if the {@link Movie} was not part of the list.
      */
-    @DeleteMapping("{id}/movies")
-    public ResponseEntity<?> deleteMovieFromUserList(@PathVariable Long id) {
-        // TODO: implement
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("{listId}/movies/{movieId}")
+    public ResponseEntity<?> deleteMovieFromUserList(@PathVariable Long listId, @PathVariable Long movieId) {
+        UserList userList = userListService.findById(listId).orElseThrow(() -> new ObjectNotFoundException(listId, "UserList"));
+
+        if (userList.removeMovieById(movieId)) {
+            userListService.save(userList);
+            return ResponseEntity.noContent().build();
+        }
+        else {
+            throw new MovieNotFoundException(movieId);
+        }
     }
 }

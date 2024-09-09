@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.model.movie;
 
+import org.hibernate.ObjectNotFoundException;
 import org.hibernate.PropertyValueException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,15 @@ public class MovieNotFoundAdvice extends ResponseEntityExceptionHandler {
         log.error("JpaObjectRetrievalFailureException occurred: {}", ex.getMessage(), ex);
         String errorMessage = String.format("%s with id %s could not be found!",
                 ex.getPersistentClassName(), ex.getIdentifier());
+
+        return handleExceptionInternal(ex, errorMessage, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+    }
+
+    @ExceptionHandler(ObjectNotFoundException.class)
+    public ResponseEntity<Object> handleObjectNotFoundException(ObjectNotFoundException ex, WebRequest request) {
+        log.error("ObjectNotFoundException occurred: {}", ex.getMessage(), ex);
+        String errorMessage = String.format("%s with id %s could not be found!",
+                ex.getEntityName(), ex.getIdentifier());
 
         return handleExceptionInternal(ex, errorMessage, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
     }

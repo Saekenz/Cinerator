@@ -212,7 +212,7 @@ public class MovieControllerSpringBootIntegrationTest {
     /**
      * Creates a request for adding a new {@link Movie} that is missing the 'director' property.
      * The request has to return HTTP code 400 since this property must not be null.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenCreateNewMovieRequest_shouldFailWith400() throws Exception {
@@ -237,7 +237,7 @@ public class MovieControllerSpringBootIntegrationTest {
      * Creates a request to update a {@link Movie}.
      * The {@link Movie} will be created instead of updated since it is not yet stored in the database.
      * The request has to return HTTP code 201.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -267,7 +267,7 @@ public class MovieControllerSpringBootIntegrationTest {
      * Creates a request to update a {@link Movie}.
      * The {@link Movie} will be updated since it is already stored in the database.
      * The request has to return HTTP code 204.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -324,7 +324,7 @@ public class MovieControllerSpringBootIntegrationTest {
     /**
      * Performs a request for retrieving a specific {@link Review} of a specific {@link Movie}.
      * The request has to return HTTP status code 200.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindReviewByIdRequest_shouldSucceedWith200() throws Exception {
@@ -343,7 +343,7 @@ public class MovieControllerSpringBootIntegrationTest {
      * The first time the request contains an invalid movieId and a valid reviewId.
      * The second time the request contains a valid movieId and an invalid reviewId.
      * Both requests have to return HTTP code 404.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindReviewByIdRequest_shouldFailWith404() throws Exception {
@@ -367,7 +367,7 @@ public class MovieControllerSpringBootIntegrationTest {
     /**
      * Attempts to create a new {@link Review} and add it to the {@link Movie} specified by movieId.
      * The request made in the method has to return HTTP code 201.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -395,7 +395,7 @@ public class MovieControllerSpringBootIntegrationTest {
      * The first time the request contains an invalid movieId and a valid userId.
      * The second time the request contains a valid movieId and an invalid userId.
      * Both requests have to return HTTP code 404.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenAddReviewToMovieRequest_shouldFailWith404() throws Exception {
@@ -425,7 +425,7 @@ public class MovieControllerSpringBootIntegrationTest {
      * Performs a request for updating a specific {@link Review} of a specific {@link Movie}.
      * Verifies that data has been updated by also performing a request to retrieve the data of the updated {@link Movie}.
      * The update request has to return HTTP status code 204 while the get request has to return HTTP code 200.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -453,7 +453,7 @@ public class MovieControllerSpringBootIntegrationTest {
      * The first time the request contains an invalid movieId and a valid reviewId.
      * The second time the request contains a valid movieId and an invalid reviewId.
      * Both requests have to return HTTP code 404.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenEditReviewForMovieRequest_shouldFailWith404() throws Exception {
@@ -482,7 +482,7 @@ public class MovieControllerSpringBootIntegrationTest {
      * Performs a request for deleting a specific {@link Review} of a specific {@link Movie}.
      * Verifies that the {@link Review} has been deleted by then querying for the deleted {@link Review}.
      * The delete request has to return HTTP status code 204 while the get request has to return HTTP code 404.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -504,7 +504,7 @@ public class MovieControllerSpringBootIntegrationTest {
      * The first time the request contains an invalid movieId and a valid reviewId.
      * The second time the request contains a valid movieId and an invalid reviewId.
      * Both requests have to return HTTP code 404.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenDeleteReviewByIdRequest_shouldFailWith404() throws Exception {

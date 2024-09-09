@@ -146,7 +146,7 @@ public class ActorControllerSpringBootIntegrationTest {
     /**
      * Creates a request for adding a new {@link Actor} that is missing the 'birthDate' property.
      * The request has to return HTTP code 400 since this property must not be null.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -167,7 +167,7 @@ public class ActorControllerSpringBootIntegrationTest {
      * Creates a request to update an {@link Actor}.
      * The {@link Actor} will be created instead of updated since it is not yet stored in the database.
      * The request has to return HTTP code 201.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -190,7 +190,7 @@ public class ActorControllerSpringBootIntegrationTest {
      * Creates a request to update a {@link Actor}.
      * The {@link Actor} will be updated since it is already stored in the database.
      * The request has to return HTTP code 204.
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
