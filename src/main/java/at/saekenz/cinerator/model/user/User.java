@@ -68,7 +68,7 @@ public class User {
    @OneToMany(mappedBy = "user")
    private Set<Follow> followers;
 
-   @OneToMany(mappedBy = "user")
+   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
    private List<UserList> userlists;
 
    public User() {

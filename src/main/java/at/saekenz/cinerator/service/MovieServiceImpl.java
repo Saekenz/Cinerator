@@ -29,6 +29,11 @@ public class MovieServiceImpl implements IMovieService{
     }
 
     @Override
+    public Movie getReferenceById(Long id) {
+        return movieRepository.getReferenceById(id);
+    }
+
+    @Override
     public List<Movie> findByTitle(String title) {
         return movieRepository.findByTitle(title);
     }

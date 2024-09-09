@@ -36,6 +36,11 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    public User getReferenceById(Long id) {
+        return userRepository.getReferenceById(id);
+    }
+
+    @Override
     public List<User> findAllById(Iterable<Long> ids) {
         return userRepository.findAllById(ids);
     }

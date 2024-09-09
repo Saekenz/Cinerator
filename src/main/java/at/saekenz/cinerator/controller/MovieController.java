@@ -426,6 +426,7 @@ public class MovieController {
     public ResponseEntity<?> addActorToMovie(@PathVariable Long movieId, @RequestBody Long actorId) {
         Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
         Actor actor = actorService.findById(actorId).orElseThrow(() -> new ActorNotFoundException(actorId));
+//        Actor actor = actorService.getReferenceById(actorId);
 
         movie.addActor(actor);
         EntityModel<Movie> entityModel = movieAssembler.toModel(movieService.save(movie));

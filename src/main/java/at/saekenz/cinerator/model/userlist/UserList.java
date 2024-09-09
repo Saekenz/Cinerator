@@ -30,7 +30,7 @@ public class UserList {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "USR_ID")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;

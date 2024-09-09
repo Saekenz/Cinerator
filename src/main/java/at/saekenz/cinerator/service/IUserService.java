@@ -16,6 +16,8 @@ public interface IUserService {
 
     Optional<User> findById(Long id);
 
+    User getReferenceById(Long id);
+
     List<User> findAllById(Iterable<Long> ids);
 
     User save(User user);

@@ -26,6 +26,11 @@ public class ActorServiceImpl implements IActorService{
     }
 
     @Override
+    public Actor getReferenceById(Long id) {
+        return actorRepository.getReferenceById(id);
+    }
+
+    @Override
     public List<Actor> findByName(String name) {
         return actorRepository.findByName(name);
     }

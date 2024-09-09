@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -28,5 +29,14 @@ public class MovieNotFoundAdvice extends ResponseEntityExceptionHandler {
                 ex.getPropertyName(), ex.getEntityName());
 
         return handleExceptionInternal(ex, errorMessage, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(JpaObjectRetrievalFailureException.class)
+    public ResponseEntity<Object> handleJpaObjectRetrievalFailureException(JpaObjectRetrievalFailureException ex, WebRequest request) {
+        log.error("JpaObjectRetrievalFailureException occurred: {}", ex.getMessage(), ex);
+        String errorMessage = String.format("%s with id %s could not be found!",
+                ex.getPersistentClassName(), ex.getIdentifier());
+
+        return handleExceptionInternal(ex, errorMessage, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
     }
 }

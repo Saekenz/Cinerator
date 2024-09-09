@@ -12,6 +12,8 @@ public interface IMovieService {
 
     Optional<Movie> findById(Long id);
 
+    Movie getReferenceById(Long id);
+
     List<Movie> findByTitle(String title);
 
     Movie save(Movie movie);

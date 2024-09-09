@@ -143,8 +143,8 @@ public class TestDataLoader {
 
     @Bean
     @Order(4)
-    public CommandLineRunner initReviews(ReviewRepository reviewRepository, UserRepository userRepository,
-                                         MovieRepository movieRepository, UserListRepository userListRepository) {
+    public CommandLineRunner initReviewsAndUserLists(ReviewRepository reviewRepository, UserRepository userRepository,
+                                                     MovieRepository movieRepository, UserListRepository userListRepository) {
         return (args) -> {
             log.info("Initializing reviews...");
 
@@ -155,6 +155,13 @@ public class TestDataLoader {
             List<Movie> movies = movieRepository.findAllById(List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L));
 
             if (movies.size() < 11) { throw new MovieNotFoundException(); }
+
+            List<Movie> moviesInUser4List = new ArrayList<>(movies.subList(0, 5));
+            List<Movie> moviesInUser2List = new ArrayList<>(movies.subList(4, 9));
+            UserList user4List = new UserList("Good movies", "Some absolute bangers", false, users.get(3), moviesInUser4List);
+            UserList user2List = new UserList("My Top movies so far",
+                    "Let's see how manic 2024 can be with an expected high volume of viewing pleasures in store for the senses.", false, users.get(1), moviesInUser2List);
+            userListRepository.saveAll(List.of(user4List, user2List));
 
             List<Review> reviews = List.of(
                     new Review("An absolute visual treat. The cinematography is breathtaking, but the plot feels like it's treading water.",
@@ -187,13 +194,9 @@ public class TestDataLoader {
                             5, LocalDate.of(2022,2,27), true, users.get(1), movies.get(0))
             );
 
+            // Batch insert all created reviews
             reviewRepository.saveAll(reviews).forEach(review -> log.info("Created new review: {}", review));
 
-            // TESTING
-
-            List<Movie> moviesInUserList = new ArrayList<>(movies.subList(0, 5));
-            UserList userList = new UserList("Good movies", "Some absolute bangers", false, users.get(3), moviesInUserList);
-            userListRepository.save(userList);
         };
     }
 

@@ -465,9 +465,17 @@ public class UserController {
     @DeleteMapping("/{id}/unfollow")
     public ResponseEntity<?> unfollowAnotherUser(@PathVariable Long id, @RequestBody FollowActionDTO followActionDTO) {
         Long followerId = followActionDTO.followerId();
-        //TODO change to findAllByIds
-        userService.findById(followerId).orElseThrow(() -> new UserNotFoundException(followerId));
-        userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        List<User> involvedUsers = userService.findAllById(List.of(id, followerId));
+
+        if (involvedUsers.size() != 2) {
+            if (involvedUsers.stream().noneMatch(u -> u.getId().equals(id))) {
+                throw new UserNotFoundException(id);
+            }
+            if (involvedUsers.stream().noneMatch(u -> u.getId().equals(followerId))) {
+                throw new UserNotFoundException(followerId);
+            }
+        }
+
         followService.deleteByKey(new FollowKey(id, followerId));
 
         return ResponseEntity.noContent().build();

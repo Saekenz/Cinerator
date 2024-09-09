@@ -12,6 +12,8 @@ public interface IActorService {
 
     Optional<Actor> findById(Long id);
 
+    Actor getReferenceById(Long id);
+
     List<Actor> findByName(String name);
 
     List<Actor> findByBirthDate(LocalDate birthDate);
