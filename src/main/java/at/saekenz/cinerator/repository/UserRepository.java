@@ -34,4 +34,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "WHERE u.id = :userId " +
             "AND r.rating = :rating")
     List<Movie> findMoviesRatedByUser(@Param("userId") Long userId, @Param("rating") Integer rating);
+
+    @Query("SELECT u FROM User u WHERE " +
+            "(LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL) AND " +
+            "(LOWER(u.username) LIKE LOWER(CONCAT('%', :username, '%')) OR :username IS NULL) AND " +
+            "(LOWER(u.email) LIKE LOWER(CONCAT('%', :email, '%')) OR :email IS NULL) AND " +
+            "(LOWER(u.role) = LOWER(:role) OR :role IS NULL)")
+    List<User> findUsersBySearchParams(@Param("name") String name,
+                                       @Param("username") String username,
+                                       @Param("email") String email,
+                                       @Param("role") String role);
 }

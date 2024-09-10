@@ -229,6 +229,24 @@ public class UserController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUsers(@RequestParam(required = false) String name,
+                                         @RequestParam(required = false) String username,
+                                         @RequestParam(required = false) String email,
+                                         @RequestParam(required = false) String role) {
+        List<User> foundUsers = userService.searchUsers(name, username, email, role);
+
+        if (foundUsers.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
+
+        List<EntityModel<UserDTO>> userModels = foundUsers.stream()
+                .map(userMapper::toDTO)
+                .map(userDTOAssembler::toModel)
+                .toList();
+
+        return ResponseEntity.ok(CollectionModel.of(userModels,
+                linkTo(methodOn(UserController.class).searchUsers(name, username, email, role)).withSelfRel()));
+    }
+
 // ---------------------------------------- WATCHLIST -----------------------------------------------------------------
 
     /**

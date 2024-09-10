@@ -75,5 +75,10 @@ public class UserServiceImpl implements IUserService {
         return userRepository.findMoviesRatedByUser(userId, rating);
     }
 
+    @Override
+    public List<User> searchUsers(String name, String username, String email, String role) {
+        return userRepository.findUsersBySearchParams(name, username, email, role);
+    }
+
 
 }

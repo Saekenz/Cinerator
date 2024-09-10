@@ -31,4 +31,6 @@ public interface IUserService {
     List<Movie> findMoviesLikedByUser(Long userId);
 
     List<Movie> findMoviesRatedByUser(Long userId, Integer rating);
+
+    List<User> searchUsers(String name, String username, String email, String role);
 }

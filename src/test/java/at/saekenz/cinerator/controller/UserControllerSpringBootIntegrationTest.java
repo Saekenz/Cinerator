@@ -6,6 +6,7 @@ import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserCreationDTO;
 import at.saekenz.cinerator.model.user.UserDTO;
+import at.saekenz.cinerator.model.userlist.UserList;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -675,9 +676,92 @@ public class UserControllerSpringBootIntegrationTest {
                         .content(jsonData))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", followDTO.followerId()))));;
+                        String.format("Could not find user: %s", followDTO.followerId()))));
     }
 
 // --------------------------------- LISTS --------------------------------------------------------------------------
+
+    /**
+     * Creates a request which fetches all {@link UserList} objects associated with the {@link User}
+     * with {@code id = 4L}. The API has to return a 200 Ok status and a collection of
+     * {@link UserList} resources.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenFindListsByUserRequest_shouldSucceedWith200() throws Exception {
+        Long userId = 4L;
+
+        mockMvc.perform(get("/users/{id}/lists", userId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.userListDTOList").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.userListDTOList[*].userId",
+                        everyItem(comparesEqualTo(4))));
+    }
+
+    /**
+     * Creates a request which fetches all {@link UserList} objects associated with the {@link User}
+     * with {@code id = -999L}. The API has to return a 404 Not Found status and an appropriate
+     * error message.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenFindListsByUserRequest_shouldFailWith404() throws Exception {
+        Long userId = -999L;
+
+        mockMvc.perform(get("/users/{id}/lists", userId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(
+                        String.format("Could not find user: %s", userId))));;
+    }
+
+// ------------------------------- SEARCH ----------------------------------------------------------------------------
+
+    /**
+     * Creates a request which searches for {@code Users} based on parameters
+     * {@code name}, {@code username}, {@code email} and {@code role}.
+     * The API has to return a 200 Ok status and a list of {@link UserDTO} resources.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenUserSearchRequest_shouldSucceedWith200AndReturnListOfUsers() throws Exception {
+        String nameSearchTerm = "";
+        String usernameSearchTerm = "user";
+        String emailSearchTerm = "@example";
+        String roleSearchTerm = "user";
+
+        mockMvc.perform(get("/users/search?name={name}&username={username}&email={email}&role={role}",
+                        nameSearchTerm, usernameSearchTerm, emailSearchTerm, roleSearchTerm)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.userDTOList[*].name", everyItem(containsStringIgnoringCase(nameSearchTerm))))
+                .andExpect(jsonPath("$._embedded.userDTOList[*].username", everyItem(containsStringIgnoringCase(usernameSearchTerm))))
+                .andExpect(jsonPath("$._embedded.userDTOList[*].email", everyItem(containsStringIgnoringCase(emailSearchTerm))))
+                .andExpect(jsonPath("$._embedded.userDTOList[*].role", everyItem(containsStringIgnoringCase(roleSearchTerm))));
+
+    }
+
+    /**
+     * Creates a request which searches for {@code Users} based on parameters
+     * {@code name}, {@code username}, {@code email} and {@code role}.
+     * The API has to return a 200 Ok status and an empty list.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenUserSearchRequest_shouldSucceedWith200AndReturnEmptyList() throws Exception {
+        String nameSearchTerm = "Lewis Hamilton";
+
+        mockMvc.perform(get("/users/search?name={name}",
+                        nameSearchTerm)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(is("{}")));
+    }
+
 
 }
