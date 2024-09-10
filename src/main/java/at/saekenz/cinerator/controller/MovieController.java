@@ -3,10 +3,7 @@ package at.saekenz.cinerator.controller;
 import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorModelAssembler;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
-import at.saekenz.cinerator.model.movie.EMovieSearchParam;
-import at.saekenz.cinerator.model.movie.Movie;
-import at.saekenz.cinerator.model.movie.MovieModelAssembler;
-import at.saekenz.cinerator.model.movie.MovieNotFoundException;
+import at.saekenz.cinerator.model.movie.*;
 import at.saekenz.cinerator.model.review.*;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserNotFoundException;
@@ -48,6 +45,12 @@ public class MovieController {
 
     @Autowired
     ResponseBuilderService responseBuilderService;
+
+    @Autowired
+    MovieDTOModelAssembler movieDTOAssembler;
+
+    @Autowired
+    MovieMapper movieMapper;
 
     private final MovieModelAssembler movieAssembler;
     private final ReviewModelAssembler reviewAssembler;
@@ -237,17 +240,21 @@ public class MovieController {
     /**
      *
      * @param year year in which searched for {@link Movie} objects were released
-     * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
+     * @return ResponseEntity containing a 200 Ok status and a list of {@link Movie}
+     * resources
      */
     @GetMapping("/year/{year}")
-    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByYearReleased(@PathVariable int year) {
+    public ResponseEntity<?> findByYearReleased(@PathVariable int year) {
         List<Movie> movies = movieService.findByYear(year);
 
-        if (movies.isEmpty()) {
-            throw new MovieNotFoundException(EMovieSearchParam.YEAR, year+"");
-        }
+        if (movies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
+        List<EntityModel<MovieDTO>> movieDTOModels = movies.stream()
+                .map(movieMapper::toDTO)
+                .map(movieDTOAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = CollectionModel.of(movieDTOModels,
                 linkTo(methodOn(MovieController.class).findByYearReleased(year)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
@@ -289,7 +296,7 @@ public class MovieController {
      * @return list of all {@link Review} objects associated with the given {@link Movie}
      */
     @GetMapping("/{id}/reviews")
-    public ResponseEntity<CollectionModel<EntityModel<Review>>> findReviewsById(@PathVariable Long id) {
+    public ResponseEntity<CollectionModel<EntityModel<Review>>> findReviewsByMovie(@PathVariable Long id) {
         Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
         List<Review> reviews = movie.getReviews();
 
@@ -300,7 +307,7 @@ public class MovieController {
                 .toList();
 
         CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviewModels,
-                linkTo(methodOn(MovieController.class).findReviewsById(id)).withSelfRel());
+                linkTo(methodOn(MovieController.class).findReviewsByMovie(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
@@ -384,7 +391,7 @@ public class MovieController {
      * @return list of all {@link Actor} objects associated with the given {@link Movie}
      */
     @GetMapping("/{id}/actors")
-    public ResponseEntity<CollectionModel<EntityModel<Actor>>> findActorsById(@PathVariable Long id) {
+    public ResponseEntity<CollectionModel<EntityModel<Actor>>> findActorsByMovie(@PathVariable Long id) {
         Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
         List<Actor> actors = movie.getActors();
 
@@ -395,7 +402,7 @@ public class MovieController {
                 .toList();
 
         CollectionModel<EntityModel<Actor>> collectionModel = CollectionModel.of(actorModels,
-                linkTo(methodOn(MovieController.class).findActorsById(id)).withSelfRel());
+                linkTo(methodOn(MovieController.class).findActorsByMovie(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }

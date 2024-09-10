@@ -99,7 +99,7 @@ public class Movie {
     }
 
     public int getReleaseYear() {
-        return posterUrl != null ? releaseDate.getYear() : 0;
+        return releaseDate != null ? releaseDate.getYear() : 0;
     }
 
     public void setReleaseDate(LocalDate releaseDate) {
