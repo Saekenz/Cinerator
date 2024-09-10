@@ -257,8 +257,8 @@ public class UserControllerSpringBootIntegrationTest {
         Long userId = 2L;
         mockMvc.perform(get("/users/{userId}/watchlist", userId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList.length()").value(3))
-                .andExpect(jsonPath("$._embedded.movieList[*].id", hasItems(2,3,7)));
+                .andExpect(jsonPath("$._embedded.movieDTOList.length()").value(3))
+                .andExpect(jsonPath("$._embedded.movieDTOList[*].id", hasItems(2,3,7)));
     }
 
     /**
@@ -296,7 +296,7 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/users/{userId}/watchlist", userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath(String.format("$._embedded.movieList[?(@.id == %s)]", movieId)).exists());
+                .andExpect(jsonPath(String.format("$._embedded.movieDTOList[?(@.id == %s)]", movieId)).exists());
     }
 
     /**
@@ -450,7 +450,7 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/users/{userId}/movies/liked", userId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList[*].id", hasItems(1,2,5,9)));
+                .andExpect(jsonPath("$._embedded.movieDTOList[*].id", hasItems(1,2,5,9)));
     }
 
     /**
@@ -481,7 +481,7 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/users/{userId}/movies/rated/{rating}", userId, rating)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList[*].id", containsInAnyOrder(1,9)));
+                .andExpect(jsonPath("$._embedded.movieDTOList[*].id", containsInAnyOrder(1,9)));
     }
 
     /**
@@ -607,7 +607,7 @@ public class UserControllerSpringBootIntegrationTest {
                         .content(jsonData))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", userId))));;
+                        String.format("Could not find user: %s", userId))));
 
         userId = 2L;
         followDTO = new FollowActionDTO(-999L);
@@ -618,7 +618,7 @@ public class UserControllerSpringBootIntegrationTest {
                         .content(jsonData))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", followDTO.followerId()))));;
+                        String.format("Could not find user: %s", followDTO.followerId()))));
     }
 
     /**
@@ -665,7 +665,7 @@ public class UserControllerSpringBootIntegrationTest {
                         .content(jsonData))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", userId))));;
+                        String.format("Could not find user: %s", userId))));
 
         userId = 2L;
         followDTO = new FollowActionDTO(-999L);
@@ -715,7 +715,7 @@ public class UserControllerSpringBootIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", userId))));;
+                        String.format("Could not find user: %s", userId))));
     }
 
 // ------------------------------- SEARCH ----------------------------------------------------------------------------

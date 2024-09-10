@@ -1,13 +1,12 @@
 package at.saekenz.cinerator.controller;
 
-import at.saekenz.cinerator.model.movie.Movie;
-import at.saekenz.cinerator.model.movie.MovieModelAssembler;
-import at.saekenz.cinerator.model.movie.MovieNotFoundException;
+import at.saekenz.cinerator.model.movie.*;
 import at.saekenz.cinerator.model.user.*;
 import at.saekenz.cinerator.model.userlist.*;
 import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IUserListService;
 import at.saekenz.cinerator.service.IUserService;
+import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,19 +43,22 @@ public class UserListController {
     UserMapper userMapper;
 
     @Autowired
+    MovieMapper movieMapper;
+
+    @Autowired
     ResponseBuilderService responseBuilderService;
+
+    @Autowired
+    CollectionModelBuilderService collectionModelBuilderService;
 
     private final UserListDTOModelAssembler userListDTOAssembler;
     private final UserDTOAssembler userDTOAssembler;
-    private final MovieModelAssembler movieAssembler;
 
 
     public UserListController(UserListDTOModelAssembler userListDTOAssembler,
-                              UserDTOAssembler userDTOAssembler,
-                              MovieModelAssembler movieAssembler) {
+                              UserDTOAssembler userDTOAssembler) {
         this.userListDTOAssembler = userListDTOAssembler;
         this.userDTOAssembler = userDTOAssembler;
-        this.movieAssembler = movieAssembler;
     }
 
     /**
@@ -195,9 +197,8 @@ public class UserListController {
 
         if (moviesInUserList.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(moviesInUserList.stream()
-                .map(movieAssembler::toModel)
-                .toList(),
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(moviesInUserList,
                 linkTo(methodOn(UserListController.class).findMoviesByUserList(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);

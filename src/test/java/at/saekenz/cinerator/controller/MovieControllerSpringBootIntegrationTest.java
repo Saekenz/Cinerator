@@ -48,7 +48,7 @@ public class MovieControllerSpringBootIntegrationTest {
     public void givenFindAllMoviesRequest_shouldSucceedWith200() throws Exception {
         mockMvc.perform(get("/movies").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList").isNotEmpty());
+                .andExpect(jsonPath("$._embedded.movieDTOList").isNotEmpty());
     }
 
     @WithMockUser("test-user")
@@ -75,7 +75,7 @@ public class MovieControllerSpringBootIntegrationTest {
         String title = "Sicario";
         mockMvc.perform(get("/movies/title/{title}", title).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList[*].title", everyItem(containsStringIgnoringCase(title))));
+                .andExpect(jsonPath("$._embedded.movieDTOList[*].title", everyItem(containsStringIgnoringCase(title))));
     }
 
     @WithMockUser("test-user")
@@ -111,7 +111,7 @@ public class MovieControllerSpringBootIntegrationTest {
         String director = "Christopher Nolan";
         mockMvc.perform(get("/movies/director/{director}", director).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList[*].director", everyItem(equalToIgnoringCase(director))));
+                .andExpect(jsonPath("$._embedded.movieDTOList[*].director", everyItem(equalToIgnoringCase(director))));
     }
 
     @WithMockUser("test-user")
@@ -129,7 +129,7 @@ public class MovieControllerSpringBootIntegrationTest {
         String country = "France";
         mockMvc.perform(get("/movies/country/{country}", country).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList[*].country", everyItem(equalToIgnoringCase(country))));
+                .andExpect(jsonPath("$._embedded.movieDTOList[*].country", everyItem(equalToIgnoringCase(country))));
     }
 
     @WithMockUser("test-user")
@@ -143,21 +143,20 @@ public class MovieControllerSpringBootIntegrationTest {
 
     @WithMockUser("test-user")
     @Test
-    public void givenFindMoviesByGenreRequest_shouldSucceedWith200() throws Exception {
-        String genre = "Science Fiction";
+    public void givenFindMoviesByGenreRequest_shouldSucceedWith200AndReturnListOfMovies() throws Exception {
+        String genre = "Drama";
         mockMvc.perform(get("/movies/genre/{genre}", genre).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList[*].genre", everyItem(equalToIgnoringCase(genre))));
+                .andExpect(jsonPath("$._embedded.movieDTOList[*].genre", everyItem(containsStringIgnoringCase(genre))));
     }
 
     @WithMockUser("test-user")
     @Test
-    public void givenFindMoviesByGenreRequest_shouldFailWith404() throws Exception {
+    public void givenFindMoviesByGenreRequest_shouldSucceedWith200AndReturnEmptyList()throws Exception {
         String genre = "Ice Cream";
         mockMvc.perform(get("/movies/genre/{genre}", genre).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("genre: %s", genre))))
-                .andDo(print());
+                .andExpect(status().isOk())
+                .andExpect(content().string(is("{}")));
     }
 
     @WithMockUser("test-user")
@@ -193,7 +192,6 @@ public class MovieControllerSpringBootIntegrationTest {
             .andExpect(jsonPath("$.releaseDate").value("2014-10-31"))
             .andExpect(jsonPath("$.runtime").value("118 min"))
             .andExpect(jsonPath("$.director").value("Dan Gilroy"))
-            .andExpect(jsonPath("$.genre").value("Thriller"))
             .andExpect(jsonPath("$.country").value("United States"))
             .andExpect(jsonPath("$.imdbId").value("tt287271"))
             .andExpect(jsonPath("$.posterUrl").value("https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg"))
@@ -234,7 +232,7 @@ public class MovieControllerSpringBootIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateMovieRequest_shouldSucceedWith201() throws Exception {
         Movie updatedMovie = new Movie("The Shawshank Redemption","Frank Darabont", LocalDate.of(1994, 9, 23),
-                "142 min","Drama","United States","tt0111161",
+                "142 min", "United States","tt0111161",
                 "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg");
 
         ObjectMapper om = new ObjectMapper();
@@ -248,7 +246,6 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$.releaseDate").value(updatedMovie.getReleaseDate().toString()))
                 .andExpect(jsonPath("$.runtime").value(updatedMovie.getRuntime()))
                 .andExpect(jsonPath("$.director").value(updatedMovie.getDirector()))
-                .andExpect(jsonPath("$.genre").value(updatedMovie.getGenre()))
                 .andExpect(jsonPath("$.country").value(updatedMovie.getCountry()))
                 .andExpect(jsonPath("$.imdbId").value(updatedMovie.getImdbId()))
                 .andExpect(jsonPath("$.posterUrl").value(updatedMovie.getPosterUrl()));
@@ -264,7 +261,7 @@ public class MovieControllerSpringBootIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateMovieRequest_shouldSucceedWith204() throws Exception {
         Movie updatedMovie = new Movie("The Shawshank Redemption","Frank Darabont", LocalDate.of(1994, 9, 23),
-                "142 min","Drama","United States","tt0111161",
+                "142 min", "United States","tt0111161",
                 "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg");
 
         ObjectMapper om = new ObjectMapper();
@@ -635,9 +632,27 @@ public class MovieControllerSpringBootIntegrationTest {
                         page, size, sortBy, sortDirection)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.movieDTOList").isNotEmpty())
                 .andExpect(jsonPath("$._links").isNotEmpty())
                 .andExpect(jsonPath("$.page.size").value(size))
                 .andExpect(jsonPath("$.page.number").value(page));
+    }
+
+    @Test
+    public void givenFindGenresByMovieRequest_shouldSucceedWith200() throws Exception {
+        Long movieId = 5L;
+
+        mockMvc.perform(get("/movies/{movieId}/genres", movieId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void givenFindGenresByMovieRequest_shouldFailWith404() throws Exception {
+        Long movieId = -999L;
+
+        mockMvc.perform(get("/movies/{movieId}/genres", movieId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 }

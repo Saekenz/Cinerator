@@ -37,7 +37,7 @@ public class UserList {
 
     @ManyToMany
     @JoinTable(
-            name = "userlist_movie",
+            name = "userlist_movies",
             joinColumns = @JoinColumn(name = "USRLIST_ID"),
             inverseJoinColumns = @JoinColumn(name = "MOV_ID"))
     private Set<Movie> movielist;

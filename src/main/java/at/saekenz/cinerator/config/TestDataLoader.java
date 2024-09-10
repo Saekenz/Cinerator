@@ -4,6 +4,7 @@ import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
 import at.saekenz.cinerator.model.follow.Follow;
 import at.saekenz.cinerator.model.follow.FollowKey;
+import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.movie.Movie;
@@ -29,6 +30,46 @@ public class TestDataLoader {
 
     @Bean
     @Order(1)
+    public CommandLineRunner initGenres(GenreRepository genreRepository) {
+        return args -> {
+            log.info("Initializing genres ...");
+
+            List<Genre> genre = List.of(
+                    new Genre("Action"),
+                    new Genre("Adventure"),
+                    new Genre("Animation"),
+                    new Genre("Biography"),
+                    new Genre("Comedy"),
+                    new Genre("Crime"),
+                    new Genre("Documentary"),
+                    new Genre("Drama"),
+                    new Genre("Family"),
+                    new Genre("Fantasy"),
+                    new Genre("Film-Noir"),
+                    new Genre("Game-Show"),
+                    new Genre("History"),
+                    new Genre("Horror"),
+                    new Genre("Music"),
+                    new Genre("Musical"),
+                    new Genre("Mystery"),
+                    new Genre("News"),
+                    new Genre("Reality-TV"),
+                    new Genre("Romance"),
+                    new Genre("Sci-Fi"),
+                    new Genre("Sport"),
+                    new Genre("Talk-Show"),
+                    new Genre("Thriller"),
+                    new Genre("War"),
+                    new Genre("Western")
+            );
+
+            // Batch insert genres
+            genreRepository.saveAll(genre);
+        };
+    }
+
+    @Bean
+    @Order(2)
     public CommandLineRunner initActors(ActorRepository actorRepository) {
         return args -> {
             log.info("Initializing actors...");
@@ -47,12 +88,14 @@ public class TestDataLoader {
     }
 
     @Bean
-    @Order(2)
-    public CommandLineRunner initMovies(MovieRepository movieRepository, ActorRepository actorRepository) {
+    @Order(3)
+    public CommandLineRunner initMovies(MovieRepository movieRepository, ActorRepository actorRepository,
+                                        GenreRepository genreRepository) {
         return (args) -> {
             log.info("Initializing movies...");
 
             List<Actor> actors = actorRepository.findAllById(List.of(1L, 2L, 3L, 4L, 5L));
+            List<Genre> genres = genreRepository.findAll();
 
             if (actors.size() < 5) { throw new ActorNotFoundException(); }
 
@@ -101,12 +144,18 @@ public class TestDataLoader {
 //            Movie m14 = new Movie("Nightcrawler","Dan Gilroy", LocalDate.of(2014,10,31),"Thriller", "118 min",
 //                    "United States","tt287271","https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg");
 
+            movies.get(0).setGenres(Set.copyOf(genres.subList(0,2)));
+            movies.get(1).setGenres(Set.copyOf(genres.subList(0,2)));
+            movies.get(2).setGenres(Set.copyOf(genres.subList(3,5)));
+            movies.get(3).setGenres(Set.copyOf(genres.subList(6,8)));
+            movies.get(4).setGenres(Set.copyOf(genres.subList(7,10)));
+
             movieRepository.saveAll(movies).forEach(movie -> log.info("Created new movie: {}", movie));
         };
     }
 
     @Bean
-    @Order(3)
+    @Order(4)
     public CommandLineRunner initUsers(UserRepository userRepository, MovieRepository movieRepository) {
         return (args) -> {
             log.info("Initializing users...");
@@ -142,7 +191,7 @@ public class TestDataLoader {
     }
 
     @Bean
-    @Order(4)
+    @Order(5)
     public CommandLineRunner initReviewsAndUserLists(ReviewRepository reviewRepository, UserRepository userRepository,
                                                      MovieRepository movieRepository, UserListRepository userListRepository) {
         return (args) -> {
@@ -202,7 +251,7 @@ public class TestDataLoader {
     }
 
     @Bean
-    @Order(5)
+    @Order(6)
     public CommandLineRunner initFollowers(FollowRepository followRepository, UserRepository userRepository) {
         return args -> {
             log.info("Initializing followers...");
@@ -222,7 +271,7 @@ public class TestDataLoader {
 
     private Movie createMovie(String title, String director, LocalDate releaseDate, String duration,
                               String genre, String country, String imdbId, String posterUrl, List<Actor> actors) {
-        Movie movie = new Movie(title, director, releaseDate, duration, genre, country, imdbId, posterUrl);
+        Movie movie = new Movie(title, director, releaseDate, duration, country, imdbId, posterUrl);
         movie.setActors(actors);
         return movie;
     }

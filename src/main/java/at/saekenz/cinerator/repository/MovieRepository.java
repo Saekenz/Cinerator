@@ -10,8 +10,11 @@ import java.util.Optional;
 
 public interface MovieRepository extends JpaRepository<Movie, Long> {
 
-    @Query("SELECT m FROM Movie m WHERE LOWER(m.genre) = LOWER(:genre)")
+    // same functionality as findByGenres_Name
+    @Query("SELECT m FROM Movie m JOIN m.genres genre WHERE LOWER(genre.name) = LOWER(:genre)")
     List<Movie> findByGenre(@Param("genre") String genre);
+
+    List<Movie> findByGenres_Name(@Param("genre") String genre);
 
     @Query("SELECT m FROM Movie m WHERE LOWER(m.director) = LOWER(:director)")
     List<Movie> findByDirector(@Param("director") String director);

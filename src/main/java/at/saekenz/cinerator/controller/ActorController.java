@@ -4,11 +4,9 @@ import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorModelAssembler;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
 import at.saekenz.cinerator.model.actor.EActorSearchParam;
-import at.saekenz.cinerator.model.movie.Movie;
-import at.saekenz.cinerator.model.movie.MovieModelAssembler;
-import at.saekenz.cinerator.model.movie.MovieNotFoundException;
-import at.saekenz.cinerator.model.user.User;
+import at.saekenz.cinerator.model.movie.*;
 import at.saekenz.cinerator.service.IActorService;
+import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -35,13 +33,19 @@ public class ActorController {
     IActorService actorService;
 
     private final ActorModelAssembler actorAssembler;
-    private final MovieModelAssembler movieAssembler;
+    private final MovieDTOModelAssembler movieAssembler;
 
     @Autowired
     private ResponseBuilderService responseBuilderService;
 
+    @Autowired
+    private CollectionModelBuilderService collectionModelBuilderService;
+
+    @Autowired
+    private MovieMapper movieMapper;
+
     public ActorController(ActorModelAssembler actorAssembler,
-                           MovieModelAssembler movieAssembler) {
+                           MovieDTOModelAssembler movieAssembler) {
         this.actorAssembler = actorAssembler;
         this.movieAssembler = movieAssembler;
     }
@@ -274,17 +278,14 @@ public class ActorController {
      * were added yet) or HTTP code 404 if the {@link Actor} resource does not exist
      */
     @GetMapping("/{id}/movies")
-    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findMoviesById(@PathVariable Long id) {
+    public ResponseEntity<?> findMoviesById(@PathVariable Long id) {
         Actor actor = actorService.findById(id).orElseThrow(() -> new ActorNotFoundException(id));
 
         List<Movie> movies = actor.getMovies();
         if (movies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        List<EntityModel<Movie>> movieModels = movies.stream()
-                .map(movieAssembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(movieModels,
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(movies,
                 linkTo(methodOn(ActorController.class).findMoviesById(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
@@ -298,12 +299,12 @@ public class ActorController {
      * or HTTP code 404 if the {@link Actor}/{@link Movie} are not found
      */
     @GetMapping("/{actorId}/movies/{movieId}")
-    public ResponseEntity<EntityModel<Movie>> findMovieById(@PathVariable Long actorId, @PathVariable Long movieId) {
+    public ResponseEntity<EntityModel<MovieDTO>> findMovieById(@PathVariable Long actorId, @PathVariable Long movieId) {
         Actor actor = actorService.findById(actorId).orElseThrow(() -> new ActorNotFoundException(actorId));
-        Movie movie = actor.getMovies().stream()
+        MovieDTO movie = movieMapper.toDTO(actor.getMovies().stream()
                 .filter(m -> Objects.equals(m.getId(), movieId))
                 .findFirst()
-                .orElseThrow(() -> new MovieNotFoundException(movieId));
+                .orElseThrow(() -> new MovieNotFoundException(movieId)));
 
         return ResponseEntity.ok(movieAssembler.toModel(movie));
     }

@@ -1,8 +1,10 @@
 package at.saekenz.cinerator.model.movie;
 
+import at.saekenz.cinerator.model.genre.Genre;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class MovieMapper {
@@ -15,7 +17,12 @@ public class MovieMapper {
         movieDTO.setReleaseDate(movie.getReleaseDate());
         movieDTO.setRuntime(movie.getRuntime());
         movieDTO.setDirector(movie.getDirector());
-        movieDTO.setGenre(movie.getGenre());
+
+        String genres = movie.getGenres().stream()
+                        .map(Genre::getName)
+                                .collect(Collectors.joining(", "));
+
+        movieDTO.setGenre(genres);
         movieDTO.setCountry(movie.getCountry());
         movieDTO.setImdbId(movie.getImdbId());
         movieDTO.setPosterUrl(movie.getPosterUrl());
@@ -30,7 +37,6 @@ public class MovieMapper {
         movie.setReleaseDate(movieDTO.getReleaseDate());
         movie.setRuntime(movieDTO.getRuntime());
         movie.setDirector(movieDTO.getDirector());
-        movie.setGenre(movieDTO.getGenre());
         movie.setCountry(movieDTO.getCountry());
         movie.setImdbId(movieDTO.getImdbId());
         movie.setPosterUrl(movieDTO.getPosterUrl());

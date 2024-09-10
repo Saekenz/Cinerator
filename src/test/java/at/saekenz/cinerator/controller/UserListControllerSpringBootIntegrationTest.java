@@ -254,7 +254,7 @@ public class UserListControllerSpringBootIntegrationTest {
 
         mockMvc.perform(get("/lists/{listId}/movies", userListId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList[*].id", containsInAnyOrder(8,7,9,5,6)));
+                .andExpect(jsonPath("$._embedded.movieDTOList[*].id", containsInAnyOrder(8,7,9,5,6)));
     }
 
     /**
@@ -296,7 +296,7 @@ public class UserListControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/lists/{listId}/movies", userListId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList[*].id", hasItem(12)));
+                .andExpect(jsonPath("$._embedded.movieDTOList[*].id", hasItem(12)));
     }
 
     /**
@@ -338,7 +338,7 @@ public class UserListControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/lists/{listId}/movies", userListId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieList[*].id", not(hasItem(8))));
+                .andExpect(jsonPath("$._embedded.movieDTOList[*].id", not(hasItem(8))));
     }
 
     /**

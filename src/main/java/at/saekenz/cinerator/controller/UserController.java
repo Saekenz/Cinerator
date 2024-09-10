@@ -1,9 +1,7 @@
 package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.follow.*;
-import at.saekenz.cinerator.model.movie.Movie;
-import at.saekenz.cinerator.model.movie.MovieModelAssembler;
-import at.saekenz.cinerator.model.movie.MovieNotFoundException;
+import at.saekenz.cinerator.model.movie.*;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.review.ReviewModelAssembler;
 import at.saekenz.cinerator.model.user.*;
@@ -14,6 +12,7 @@ import at.saekenz.cinerator.model.userlist.UserListMapper;
 import at.saekenz.cinerator.service.IFollowService;
 import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IUserService;
+import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,12 +48,20 @@ public class UserController {
     ResponseBuilderService responseBuilderService;
 
     @Autowired
+    CollectionModelBuilderService collectionModelBuilderService;
+
+    @Autowired
     UserListMapper userListMapper;
 
     @Autowired
     UserListDTOModelAssembler userListDTOAssembler;
 
-    private final MovieModelAssembler movieAssembler;
+    @Autowired
+    MovieDTOModelAssembler movieDTOAssembler;
+
+    @Autowired
+    MovieMapper movieMapper;
+
     private final ReviewModelAssembler reviewAssembler;
 
     private final FollowMapper followMapper;
@@ -64,12 +71,12 @@ public class UserController {
     private final UserDTOAssembler userDTOAssembler;
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
     @Autowired
     private UserListDTOModelAssembler userListDTOModelAssembler;
 
-    UserController(UserDTOAssembler userDTOAssembler, MovieModelAssembler movieAssembler,
+    UserController(UserDTOAssembler userDTOAssembler,
                    ReviewModelAssembler reviewAssembler, FollowDTOModelAssembler followAssembler) {
-        this.movieAssembler = movieAssembler;
         this.reviewAssembler = reviewAssembler;
         this.followMapper = new FollowMapper();
         this.followAssembler = followAssembler;
@@ -256,18 +263,14 @@ public class UserController {
      * does not exist
      */
     @GetMapping("/{id}/watchlist")
-    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findWatchlistByUser(@PathVariable Long id) {
+    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findWatchlistByUser(@PathVariable Long id) {
         User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         Set<Movie> movies = user.getWatchlist();
 
         if (movies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        List<EntityModel<Movie>> movieModels = movies
-                .stream()
-                .map(movieAssembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(movieModels,
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(movies,
                 linkTo(methodOn(UserController.class).findWatchlistByUser(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
@@ -281,13 +284,13 @@ public class UserController {
      * the {@link User} or {@link Movie} do not exist
      */
     @GetMapping("/{userId}/watchlist/{movieId}")
-    public ResponseEntity<EntityModel<Movie>> findMovieInWatchlistById(@PathVariable Long userId, @PathVariable Long movieId) {
+    public ResponseEntity<EntityModel<MovieDTO>> findMovieInWatchlistById(@PathVariable Long userId, @PathVariable Long movieId) {
         User user = userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
         Movie movie = user.getWatchlist().stream()
                 .filter(m -> Objects.equals(m.getId(), movieId)).findFirst().orElseThrow(() -> new MovieNotFoundException(movieId));
 
-        return ResponseEntity.ok(movieAssembler.toModel(movie));
+        return ResponseEntity.ok(movieDTOAssembler.toModel(movieMapper.toDTO(movie)));
     }
 
     /**
@@ -361,17 +364,14 @@ public class UserController {
      * or HTTP code 404 if the {@link User} does not exist
      */
     @GetMapping("/{userId}/movies/liked")
-    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findMoviesLikedByUser(@PathVariable Long userId) {
+    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findMoviesLikedByUser(@PathVariable Long userId) {
         userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         List<Movie> likedMovies = userService.findMoviesLikedByUser(userId);
 
         if (likedMovies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        List<EntityModel<Movie>> likedMovieModels = likedMovies.stream()
-                .map(movieAssembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(likedMovieModels,
+       CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+               .createCollectionModelFromList(likedMovies,
                 linkTo(methodOn(UserController.class).findMoviesLikedByUser(userId)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
@@ -386,18 +386,15 @@ public class UserController {
      * or HTTP code 404 if the {@link User} does not exist
      */
     @GetMapping("/{userId}/movies/rated/{rating}")
-    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findMoviesRatedByUser(@PathVariable Long userId,
+    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findMoviesRatedByUser(@PathVariable Long userId,
                                                                                      @PathVariable Integer rating) {
         userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         List<Movie> ratedMovies = userService.findMoviesRatedByUser(userId, rating);
 
         if (ratedMovies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        List<EntityModel<Movie>> ratedMovieModels = ratedMovies.stream()
-                .map(movieAssembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(ratedMovieModels,
+                CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                        .createCollectionModelFromList(ratedMovies,
                 linkTo(methodOn(UserController.class).findMoviesRatedByUser(userId, rating)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);

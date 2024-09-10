@@ -3,6 +3,8 @@ package at.saekenz.cinerator.controller;
 import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorModelAssembler;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
+import at.saekenz.cinerator.model.genre.Genre;
+import at.saekenz.cinerator.model.genre.GenreMapper;
 import at.saekenz.cinerator.model.movie.*;
 import at.saekenz.cinerator.model.review.*;
 import at.saekenz.cinerator.model.user.User;
@@ -11,6 +13,7 @@ import at.saekenz.cinerator.service.IActorService;
 import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IReviewService;
 import at.saekenz.cinerator.service.IUserService;
+import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -52,13 +56,19 @@ public class MovieController {
     @Autowired
     MovieMapper movieMapper;
 
+    @Autowired
+    GenreMapper genreMapper;
+
+    @Autowired
+    CollectionModelBuilderService collectionModelBuilderService;
+
     private final MovieModelAssembler movieAssembler;
     private final ReviewModelAssembler reviewAssembler;
     private final ActorModelAssembler actorAssembler;
     private final ReviewMapper reviewMapper;
 
     // Workaround since using the @Autowired annotation causes Intellij to report an error
-    private final PagedResourcesAssembler<Movie> pagedResourcesAssembler = new PagedResourcesAssembler<>(
+    private final PagedResourcesAssembler<MovieDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
             new HateoasPageableHandlerMethodArgumentResolver(), null);
 
     public MovieController(MovieModelAssembler movieAssembler, ReviewModelAssembler reviewAssembler,
@@ -74,17 +84,13 @@ public class MovieController {
      * @return HTTP code 200 and a list of {@link Movie} objects currently stored in the database
      */
     @GetMapping
-    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findAll() {
+    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findAll() {
         List<Movie> movies = movieService.findAll();
 
         if (movies.isEmpty()) { return ResponseEntity.ok().build(); }
 
-        List<EntityModel<Movie>> movieModels = movies.stream()
-                .map(movieAssembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<Movie>> collectionModel = CollectionModel.of(movieModels,
-                linkTo(methodOn(MovieController.class).findAll()).withSelfRel());
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(movies, linkTo(methodOn(MovieController.class).findAll()).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
@@ -95,9 +101,9 @@ public class MovieController {
      * @return HTTP code 200 and the {@link Movie} object if it was found. HTTP code 404 otherwise
      */
     @GetMapping("/{id}")
-    public ResponseEntity<EntityModel<Movie>> findById(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<MovieDTO>> findById(@PathVariable Long id) {
         Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
-        return ResponseEntity.ok(movieAssembler.toModel(movie));
+        return ResponseEntity.ok(movieDTOAssembler.toModel(movieMapper.toDTO(movie)));
     }
 
     /**
@@ -130,7 +136,6 @@ public class MovieController {
                             movie.setDirector(newMovie.getDirector());
                             movie.setReleaseDate(newMovie.getReleaseDate());
                             movie.setRuntime(newMovie.getRuntime());
-                            movie.setGenre(newMovie.getGenre());
                             movie.setCountry(newMovie.getCountry());
                             movie.setImdbId(newMovie.getImdbId());
                             movie.setPosterUrl(newMovie.getPosterUrl());
@@ -171,13 +176,14 @@ public class MovieController {
      * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
      */
     @GetMapping("/title/{title}")
-    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByTitle(@PathVariable String title) {
+    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findByTitle(@PathVariable String title) {
         List<Movie> movies = movieService.findByTitle(title);
 
         if (movies.isEmpty()) { throw new MovieNotFoundException(EMovieSearchParam.TITLE, title); }
 
-        CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
-                linkTo(methodOn(MovieController.class).findByTitle(title)).withSelfRel());
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(movies,
+                        linkTo(methodOn(MovieController.class).findByTitle(title)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
@@ -188,13 +194,14 @@ public class MovieController {
      * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
      */
     @GetMapping("/director/{director}")
-    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByDirector(@PathVariable String director) {
+    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findByDirector(@PathVariable String director) {
         List<Movie> movies = movieService.findByDirector(director);
 
         if (movies.isEmpty()) { throw new MovieNotFoundException(EMovieSearchParam.DIRECTOR, director); }
 
-        CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
-                linkTo(methodOn(MovieController.class).findByDirector(director)).withSelfRel());
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(movies,
+                        linkTo(methodOn(MovieController.class).findByDirector(director)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
@@ -205,15 +212,14 @@ public class MovieController {
      * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
      */
     @GetMapping("/genre/{genre}")
-    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByGenre(@PathVariable String genre) {
+    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findByGenre(@PathVariable String genre) {
         List<Movie> movies = movieService.findByGenre(genre);
 
-        if (movies.isEmpty()) {
-            throw new MovieNotFoundException(EMovieSearchParam.GENRE, genre);
-        }
+        if (movies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
-                linkTo(methodOn(MovieController.class).findByGenre(genre)).withSelfRel());
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(movies,
+                        linkTo(methodOn(MovieController.class).findByGenre(genre)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
@@ -224,15 +230,16 @@ public class MovieController {
      * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
      */
     @GetMapping("/country/{country}")
-    public ResponseEntity<CollectionModel<EntityModel<Movie>>> findByCountry(@PathVariable String country) {
+    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findByCountry(@PathVariable String country) {
         List<Movie> movies = movieService.findByCountry(country);
 
         if (movies.isEmpty()) {
             throw new MovieNotFoundException(EMovieSearchParam.COUNTRY, country);
         }
 
-        CollectionModel<EntityModel<Movie>> collectionModel = createCollectionModelFromList(movies,
-                linkTo(methodOn(MovieController.class).findByCountry(country)).withSelfRel());
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(movies,
+                        linkTo(methodOn(MovieController.class).findByCountry(country)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
@@ -249,12 +256,8 @@ public class MovieController {
 
         if (movies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        List<EntityModel<MovieDTO>> movieDTOModels = movies.stream()
-                .map(movieMapper::toDTO)
-                .map(movieDTOAssembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<MovieDTO>> collectionModel = CollectionModel.of(movieDTOModels,
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(movies,
                 linkTo(methodOn(MovieController.class).findByYearReleased(year)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
@@ -266,26 +269,10 @@ public class MovieController {
      * @return {@link Movie} and HTTP code 200 if a match was found. HTTP code 404 otherwise
      */
     @GetMapping("/imdbId/{imdbId}")
-    public ResponseEntity<EntityModel<Movie>> findByImdbId(@PathVariable String imdbId) {
+    public ResponseEntity<EntityModel<MovieDTO>> findByImdbId(@PathVariable String imdbId) {
         Movie movie = movieService.findByImdbId(imdbId).orElseThrow(() -> new MovieNotFoundException(imdbId));
-        return ResponseEntity.ok(movieAssembler.toModel(movie));
-    }
-
-    /**
-     *
-     * @param movies {@link List} of {@link Movie} objects that will be transformed to
-     * {@link List} of EntityModel<{@link Movie}>
-     * @param selfLink link to the resource
-     * @return CollectionModel that contains EntityModel<Movie> objects
-     */
-    private CollectionModel<EntityModel<Movie>> createCollectionModelFromList(
-            List<Movie> movies, Link selfLink) {
-
-        List<EntityModel<Movie>> movieModels = movies.stream()
-                .map(movieAssembler::toModel)
-                .toList();
-
-        return CollectionModel.of(movieModels,selfLink);
+        return ResponseEntity
+                .ok(movieDTOAssembler.toModel(movieMapper.toDTO(movie)));
     }
 
 // -------------------------------------- REVIEWS ---------------------------------------------------------------------
@@ -448,7 +435,7 @@ public class MovieController {
      * @return HTTP code 204 if the {@link Actor} was successfully removed or HTTP code 404 if the {@link Movie} was not found
      */
     @DeleteMapping("/{movieId}/actors/{actorId}")
-    public ResponseEntity<EntityModel<Movie>> removeActorFromMovie(@PathVariable Long movieId, @PathVariable Long actorId) {
+    public ResponseEntity<?> removeActorFromMovie(@PathVariable Long movieId, @PathVariable Long actorId) {
         Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
 
         movie.removeActor(actorId);
@@ -466,13 +453,28 @@ public class MovieController {
      * @return {@link PagedModel} object with sorted/filtered movies wrapped in {@link ResponseEntity<>}
      */
     @GetMapping("/all")
-    public ResponseEntity<PagedModel<EntityModel<Movie>>> allMovies(@RequestParam(name = "page", defaultValue = "0") int page,
+    public ResponseEntity<PagedModel<EntityModel<MovieDTO>>> allMovies(@RequestParam(name = "page", defaultValue = "0") int page,
                                                                     @RequestParam(name = "size", defaultValue = "5") int size,
                                                                     @RequestParam(name = "sortBy", defaultValue = "id") String sortBy,
                                                                     @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
 
-        Page<Movie> movies = movieService.findAll(page, size, sortBy, sortDirection);
-        return ResponseEntity.ok(pagedResourcesAssembler.toModel(movies,movieAssembler));
+        Page<MovieDTO> movies = movieService.findAll(page, size, sortBy, sortDirection).map(movieMapper::toDTO);
+
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(movies,movieDTOAssembler));
+    }
+
+// --------------------------------------------------- GENRES --------------------------------------------------------
+
+    @GetMapping("/{movieId}/genres")
+    public ResponseEntity<?> findGenresByMovie(@PathVariable Long movieId) {
+        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+
+       Set<Genre> genres = movie.getGenres();
+
+       if (genres.isEmpty()) { return ResponseEntity.ok().build(); }
+
+       return ResponseEntity
+               .ok(genres.stream().map(genreMapper::toDTO));
     }
 
 }

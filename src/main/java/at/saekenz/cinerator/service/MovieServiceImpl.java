@@ -50,7 +50,7 @@ public class MovieServiceImpl implements IMovieService{
 
     @Override
     public List<Movie> findByGenre(String genre) {
-        return movieRepository.findByGenre(genre);
+        return movieRepository.findByGenres_Name(genre);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package at.saekenz.cinerator.model.movie;
 
 import at.saekenz.cinerator.model.actor.Actor;
+import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.userlist.UserList;
@@ -12,6 +13,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "movies")
@@ -34,15 +36,19 @@ public class Movie {
     private String director;
 
     @Column(nullable = false)
-    private String genre;
-
-    @Column(nullable = false)
     private String country;
 
     @Column(nullable = false)
     private String imdbId;
 
     private String posterUrl;
+
+    @ManyToMany
+    @JoinTable(
+            name = "movie_genres",
+            joinColumns = @JoinColumn(name = "MOV_ID"),
+            inverseJoinColumns = @JoinColumn(name = "GEN_ID"))
+    private Set<Genre> genres;
 
     @ManyToMany(mappedBy = "watchlist")
     @JsonIgnore
@@ -69,12 +75,11 @@ public class Movie {
     }
 
     public Movie(String title, String director, LocalDate releaseDate, String runtime,
-                 String genre, String country, String imdbId, String posterUrl) {
+                 String country, String imdbId, String posterUrl) {
         this.title = title;
         this.director = director;
         this.releaseDate = releaseDate;
         this.runtime = runtime;
-        this.genre = genre;
         this.country = country;
         this.imdbId = imdbId;
         this.posterUrl = posterUrl;
@@ -114,10 +119,6 @@ public class Movie {
 
     public void setDirector(String director) { this.director = director; }
 
-    public String getGenre() { return genre; }
-
-    public void setGenre(String genre) { this.genre = genre; }
-
     public String getCountry() {return country; }
 
     public void setCountry(String country) { this.country = country; }
@@ -146,6 +147,14 @@ public class Movie {
 
     public void removeActor(Long id) { this.actors.removeIf(a -> Objects.equals(a.getId(), id)); }
 
+    public Set<Genre> getGenres() { return genres; }
+
+    public void setGenres(Set<Genre> genres) { this.genres = genres; }
+
+    public List<UserList> getUserlist() { return userlist; }
+
+    public void setUserlist(List<UserList> userlist) { this.userlist = userlist; }
+
     @Override
     public String toString() {
         return "Movie{" +
@@ -154,7 +163,6 @@ public class Movie {
                 ", releaseDate=" + releaseDate +
                 ", runtime=" + runtime +
                 ", director='" + director + '\'' +
-                ", genre='" + genre + '\'' +
                 ", country='" + country + '\'' +
                 ", imdbId='" + imdbId + '\'' +
                 ", posterUrl='" + posterUrl + '\'' +
