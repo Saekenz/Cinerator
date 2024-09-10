@@ -38,4 +38,11 @@ public class UserListServiceImpl implements IUserListService {
     public void deleteById(Long id) {
         userListRepository.deleteById(id);
     }
+
+    @Override
+    public List<UserList> searchUserLists(String name, String description, Long userId) {
+        return userListRepository.findUserListsBySearchParams(name, description, userId);
+    }
+
+
 }

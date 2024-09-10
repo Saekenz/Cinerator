@@ -23,6 +23,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
@@ -357,5 +358,45 @@ public class UserListControllerSpringBootIntegrationTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content()
                         .string(containsString(String.format("Could not find movie: %s", movieId))));
+    }
+
+    /**
+     * Creates a request which searches for {@code UserLists} based on parameters
+     * {@code name}, {@code description} and {@code userId}.
+     * The API has to return a 200 Ok status and a list of {@link UserList} resources.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenUserListSearchRequest_shouldSucceedWith200AndReturnListOfUserLists() throws Exception {
+        String nameSearchTerm = "good m";
+        String descriptionSearchTerm = "Gers";
+        Long userId = 4L;
+
+        mockMvc.perform(get("/lists/search?name={name}&description={description}&userId={userId}",
+                        nameSearchTerm,descriptionSearchTerm,userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.userListDTOList[*].name", everyItem(containsStringIgnoringCase(nameSearchTerm))))
+                .andExpect(jsonPath("$._embedded.userListDTOList[*].description", everyItem(containsStringIgnoringCase(descriptionSearchTerm))))
+                .andExpect(jsonPath("$._embedded.userListDTOList[*].userId", everyItem(comparesEqualTo(4))));
+    }
+
+    /**
+     * Creates a request which searches for {@code UserLists} based on parameters
+     * {@code name}, {@code description} and {@code userId}.
+     * The API has to return a 200 Ok status and an empty list.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenUserListSearchRequest_shouldSucceedWith200AndReturnEmptyList() throws Exception {
+        String actorName = "Oscar nominated movies";
+
+        mockMvc.perform(get("/lists/search?name={name}",
+                        actorName)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(is("{}")));
     }
 }

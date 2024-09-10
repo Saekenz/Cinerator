@@ -15,7 +15,7 @@ public class UserListMapper {
         userListDTO.setName(userList.getName());
         userListDTO.setDescription(userList.getDescription());
         userListDTO.setPrivate(userList.isPrivate());
-        userListDTO.setUserId(userList.getId());
+        userListDTO.setUserId(userList.getUser().getId());
         userListDTO.setCreatedAt(userList.getCreatedAt());
 
         return userListDTO;

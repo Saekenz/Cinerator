@@ -251,4 +251,28 @@ public class UserListController {
             throw new MovieNotFoundException(movieId);
         }
     }
+
+    /**
+     *
+     * @param name name of the searched for list(s)
+     * @param description description of the searched for list(s)
+     * @param userId id of the {@link User} that owns the {@link UserList}
+     * @return {@link CollectionModel} object containing lists matching search parameters
+     */
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUserList(@RequestParam(required = false) String name,
+                                            @RequestParam(required = false) String description,
+                                            @RequestParam(required = false) Long userId) {
+        List<UserList> foundLists = userListService.searchUserLists(name, description, userId);
+
+        if (foundLists.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
+
+        List<EntityModel<UserListDTO>> entityModels = foundLists.stream()
+                .map(userListMapper::toDTO)
+                .map(userListDTOAssembler::toModel)
+                .toList();
+
+        return ResponseEntity.ok(CollectionModel.of(entityModels,
+                linkTo(methodOn(UserListController.class).searchUserList(name,description,userId)).withSelfRel()));
+    }
 }

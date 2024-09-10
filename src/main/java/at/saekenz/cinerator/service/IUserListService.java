@@ -16,4 +16,6 @@ public interface IUserListService {
     UserList save(UserList userList);
 
     void deleteById(Long id);
+
+    List<UserList> searchUserLists(String name, String description, Long userId);
 }
