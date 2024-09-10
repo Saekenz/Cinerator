@@ -226,7 +226,7 @@ public class UserListController {
         else {
             return ResponseEntity
                     .badRequest()
-                    .body("Adding movie failed. (Movie was already added)");
+                    .body(String.format("Adding movie (id = %s) failed. (Movie was already added)", movieId));
         }
     }
 
