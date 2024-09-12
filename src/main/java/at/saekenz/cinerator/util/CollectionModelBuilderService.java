@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -40,5 +41,16 @@ public class CollectionModelBuilderService {
         return CollectionModel.of(movieModels, selfLink);
     }
 
-    // TODO: add createCollectionModelForUserList
+    public <T, D> CollectionModel<EntityModel<D>> createCollectionModelFromList(
+            Collection<T> entities, EntityMapper<T, D> entityMapper,
+            RepresentationModelAssembler<D, EntityModel<D>> entityDTOAssembler,
+            Link selfLink) {
+
+        Collection<EntityModel<D>> entityModels = entities.stream()
+                .map(entityMapper::toDTO)
+                .map(entityDTOAssembler::toModel)
+                .toList();
+
+        return CollectionModel.of(entityModels, selfLink);
+    }
 }

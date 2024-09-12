@@ -1,12 +1,15 @@
 package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.genre.Genre;
+import at.saekenz.cinerator.model.genre.GenreDTO;
 import at.saekenz.cinerator.model.genre.GenreDTOModelAssembler;
 import at.saekenz.cinerator.model.genre.GenreMapper;
 import at.saekenz.cinerator.service.IGenreService;
+import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +31,9 @@ public class GenreController {
     @Autowired
     GenreMapper genreMapper;
 
+    @Autowired
+    private CollectionModelBuilderService modelBuilderService;
+
     private final GenreDTOModelAssembler genreDTOModelAssembler;
 
     public GenreController(GenreDTOModelAssembler genreDTOModelAssembler) {
@@ -40,11 +46,9 @@ public class GenreController {
 
         if (genres.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        CollectionModel<?> collectionModel = CollectionModel.of(genres.stream()
-                .map(genreMapper::toDTO)
-                .map(genreDTOModelAssembler::toModel)
-                .toList(),
-                linkTo(methodOn(GenreController.class)).withSelfRel());
+        CollectionModel<EntityModel<GenreDTO>> collectionModel = modelBuilderService
+                .createCollectionModelFromList(genres, genreMapper, genreDTOModelAssembler,
+                        linkTo(methodOn(GenreController.class).findAllGenres()).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
 
@@ -52,7 +56,7 @@ public class GenreController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> findGenreById(@PathVariable Long id) {
-        Genre genre = genreService.findById(id).orElseThrow(() -> new ObjectNotFoundException(id, "genre"));
+        Genre genre = genreService.findById(id).orElseThrow(() -> new ObjectNotFoundException(id, "Genre"));
 
         return ResponseEntity
                 .ok(genreDTOModelAssembler

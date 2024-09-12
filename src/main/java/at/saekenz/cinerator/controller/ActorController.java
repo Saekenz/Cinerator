@@ -285,8 +285,8 @@ public class ActorController {
         if (movies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
         CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
-                .createCollectionModelFromList(movies,
-                linkTo(methodOn(ActorController.class).findMoviesById(id)).withSelfRel());
+                .createCollectionModelFromList(movies, movieMapper, movieAssembler,
+                        linkTo(methodOn(ActorController.class).findMoviesById(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }

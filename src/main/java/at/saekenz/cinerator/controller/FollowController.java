@@ -22,13 +22,13 @@ public class FollowController {
     @Autowired
     IFollowService followService;
 
-    @Autowired
-    private FollowMapper followMapper;
-
     private final FollowDTOModelAssembler followAssembler;
+    private final FollowMapper followMapper;
 
-    public FollowController(FollowDTOModelAssembler followAssembler) {
+    public FollowController(FollowDTOModelAssembler followAssembler,
+                            FollowMapper followMapper) {
         this.followAssembler = followAssembler;
+        this.followMapper = followMapper;
     }
 
     /**

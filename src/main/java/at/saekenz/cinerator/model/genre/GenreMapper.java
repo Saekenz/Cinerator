@@ -1,9 +1,10 @@
 package at.saekenz.cinerator.model.genre;
 
+import at.saekenz.cinerator.util.EntityMapper;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GenreMapper {
+public class GenreMapper implements EntityMapper<Genre, GenreDTO> {
 
     public GenreDTO toDTO(Genre genre) {
         return new GenreDTO(genre.getId(),

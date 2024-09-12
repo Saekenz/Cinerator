@@ -1,13 +1,14 @@
 package at.saekenz.cinerator.model.movie;
 
 import at.saekenz.cinerator.model.genre.Genre;
+import at.saekenz.cinerator.util.EntityMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class MovieMapper {
+public class MovieMapper implements EntityMapper<Movie, MovieDTO> {
 
     public MovieDTO toDTO(Movie movie) {
         MovieDTO movieDTO = new MovieDTO();

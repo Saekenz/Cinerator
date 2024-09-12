@@ -1,11 +1,12 @@
 package at.saekenz.cinerator.model.user;
 
+import at.saekenz.cinerator.util.EntityMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 
 @Component
-public class UserMapper {
+public class UserMapper implements EntityMapper<User, UserDTO> {
 
     public UserDTO toDTO(User user) {
         UserDTO userDTO = new UserDTO();
