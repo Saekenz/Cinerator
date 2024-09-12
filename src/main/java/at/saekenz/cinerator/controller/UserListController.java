@@ -187,8 +187,8 @@ public class UserListController {
      * Fetches movies from a {@link UserList} specified by {@code id}.
      *
      * @param id the ID of the {@link UserList} for which the movies are to be retrieved
-     * @return ResponseEntity containing a 200 Ok status and the updated {@link UserList} (or a 404
-     * Not Found status if no {@link UserList} exists with the specified {@code id}.)
+     * @return ResponseEntity containing a 200 Ok status and the movies associated with this
+     * {@link UserList}. (Returns a 404 Not Found status if the {@link UserList} does not exist.)
      */
     @GetMapping("/{id}/movies")
     public ResponseEntity<?> findMoviesByUserList(@PathVariable Long id) {

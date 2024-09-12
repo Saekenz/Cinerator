@@ -4,6 +4,7 @@ import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorModelAssembler;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
 import at.saekenz.cinerator.model.genre.Genre;
+import at.saekenz.cinerator.model.genre.GenreDTOModelAssembler;
 import at.saekenz.cinerator.model.genre.GenreMapper;
 import at.saekenz.cinerator.model.movie.*;
 import at.saekenz.cinerator.model.review.*;
@@ -52,6 +53,9 @@ public class MovieController {
 
     @Autowired
     MovieDTOModelAssembler movieDTOAssembler;
+
+    @Autowired
+    GenreDTOModelAssembler genreDTOAssembler;
 
     @Autowired
     MovieMapper movieMapper;
@@ -465,6 +469,13 @@ public class MovieController {
 
 // --------------------------------------------------- GENRES --------------------------------------------------------
 
+    /**
+     *
+     * @param movieId the id of the {@link Movie} for which genres are fetched
+     * @return ResponseEntity containing a 200 Ok status and the genres associated
+     * with that {@link Movie}. (Returns a 404 Not Found status if the {@link Movie}
+     * does not exist.)
+     */
     @GetMapping("/{movieId}/genres")
     public ResponseEntity<?> findGenresByMovie(@PathVariable Long movieId) {
         Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
@@ -473,8 +484,13 @@ public class MovieController {
 
        if (genres.isEmpty()) { return ResponseEntity.ok().build(); }
 
-       return ResponseEntity
-               .ok(genres.stream().map(genreMapper::toDTO));
+        CollectionModel<?> collectionModel = CollectionModel.of(genres.stream()
+                        .map(genreMapper::toDTO)
+                        .map(genreDTOAssembler::toModel)
+                        .toList(),
+                linkTo(methodOn(MovieController.class).findGenresByMovie(movieId)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 
 }

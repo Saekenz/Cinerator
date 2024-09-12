@@ -644,7 +644,8 @@ public class MovieControllerSpringBootIntegrationTest {
 
         mockMvc.perform(get("/movies/{movieId}/genres", movieId)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.genreDTOList").isNotEmpty());
     }
 
     @Test
@@ -653,6 +654,7 @@ public class MovieControllerSpringBootIntegrationTest {
 
         mockMvc.perform(get("/movies/{movieId}/genres", movieId)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
     }
 }

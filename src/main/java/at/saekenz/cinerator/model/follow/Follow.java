@@ -17,13 +17,13 @@ public class Follow {
 
     @ManyToOne
     @MapsId("userId")
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "USR_ID")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @ManyToOne
     @MapsId("followerId")
-    @JoinColumn(name = "follower_id")
+    @JoinColumn(name = "FOL_ID")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User follower;
 
