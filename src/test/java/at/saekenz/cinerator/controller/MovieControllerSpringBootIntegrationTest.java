@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.review.ReviewDTO;
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -173,20 +175,38 @@ public class MovieControllerSpringBootIntegrationTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenCreateNewMovieRequest_shouldSucceedWith201() throws Exception {
-        String json_data = """
-                {
-                  "title": "Nightcrawler",
-                  "releaseDate": "2014-10-31",
-                  "runtime": "118 min",
-                  "director": "Dan Gilroy",
-                  "genre": "Thriller",
-                  "country": "United States",
-                  "imdbId": "tt287271",
-                  "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg",
-                  "reviews": []
-                }""";
+//        String json_data = """
+//                {
+//                  "title": "Nightcrawler",
+//                  "releaseDate": "2014-10-31",
+//                  "runtime": "118 min",
+//                  "director": "Dan Gilroy",
+//                  "genre": "Thriller",
+//                  "country": "United States",
+//                  "imdbId": "tt287271",
+//                  "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg",
+//                  "reviews": []
+//                }""";
 
-    mockMvc.perform(post("/movies").contentType(MediaType.APPLICATION_JSON).content(json_data))
+        Movie movie = new Movie("Nightcrawler", "Dan Gilroy", LocalDate.of(2014,10,31),
+                "118 min", "United States", "tt287271",
+                "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg");
+
+        Genre genre1 = new Genre("Crime");
+        Genre genre2 = new Genre("Drama");
+        Genre genre3 = new Genre("Thriller");
+
+        genre1.setId(6L);
+        genre2.setId(8L);
+        genre3.setId(24L);
+
+        Set<Genre> genres = Set.of(genre1, genre2, genre3);
+        movie.setGenres(genres);
+
+        ObjectMapper om = new ObjectMapper().findAndRegisterModules();
+        String movieJsonData = om.writeValueAsString(movie);
+
+        mockMvc.perform(post("/movies").contentType(MediaType.APPLICATION_JSON).content(movieJsonData))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.title").value("Nightcrawler"))
             .andExpect(jsonPath("$.releaseDate").value("2014-10-31"))

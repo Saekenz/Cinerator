@@ -10,10 +10,7 @@ import at.saekenz.cinerator.model.movie.*;
 import at.saekenz.cinerator.model.review.*;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserNotFoundException;
-import at.saekenz.cinerator.service.IActorService;
-import at.saekenz.cinerator.service.IMovieService;
-import at.saekenz.cinerator.service.IReviewService;
-import at.saekenz.cinerator.service.IUserService;
+import at.saekenz.cinerator.service.*;
 import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,41 +43,41 @@ public class MovieController {
     IReviewService reviewService;
 
     @Autowired
+    IGenreService genreService;
+
+    @Autowired
     IUserService userService;
-
-    @Autowired
-    ResponseBuilderService responseBuilderService;
-
-    @Autowired
-    MovieDTOModelAssembler movieDTOAssembler;
-
-    @Autowired
-    GenreDTOModelAssembler genreDTOAssembler;
 
     @Autowired
     MovieMapper movieMapper;
 
     @Autowired
+    ReviewMapper reviewMapper;
+
+    @Autowired
     GenreMapper genreMapper;
+
+    @Autowired
+    ResponseBuilderService responseBuilderService;
 
     @Autowired
     CollectionModelBuilderService collectionModelBuilderService;
 
-    private final MovieModelAssembler movieAssembler;
-    private final ReviewModelAssembler reviewAssembler;
+    private final MovieDTOModelAssembler movieDTOAssembler;
     private final ActorModelAssembler actorAssembler;
-    private final ReviewMapper reviewMapper;
+    private final ReviewModelAssembler reviewAssembler;
+    private final GenreDTOModelAssembler genreDTOAssembler;
 
     // Workaround since using the @Autowired annotation causes Intellij to report an error
     private final PagedResourcesAssembler<MovieDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
             new HateoasPageableHandlerMethodArgumentResolver(), null);
 
-    public MovieController(MovieModelAssembler movieAssembler, ReviewModelAssembler reviewAssembler,
-                           ActorModelAssembler actorAssembler) {
-        this.movieAssembler = movieAssembler;
+    public MovieController(MovieDTOModelAssembler movieDTOAssembler, ReviewModelAssembler reviewAssembler,
+                           ActorModelAssembler actorAssembler, GenreDTOModelAssembler genreDTOAssembler) {
+        this.movieDTOAssembler = movieDTOAssembler;
         this.reviewAssembler = reviewAssembler;
         this.actorAssembler = actorAssembler;
-        this.reviewMapper = new ReviewMapper();
+        this.genreDTOAssembler = genreDTOAssembler;
     }
 
     /**
@@ -117,11 +114,19 @@ public class MovieController {
      */
     @PostMapping()
     public ResponseEntity<?> createMovie(@RequestBody Movie newMovie) {
-        EntityModel<Movie> entityModel = movieAssembler.toModel(movieService.save(newMovie));
+//        Set<Genre> genres = newMovie.getGenres();
+//        if (genres != null && !genres.isEmpty()) {
+//            Set<Genre> attachedGenres = genres.stream()
+//                    .map(genre -> genreService.findById(genre.getId())
+//                            .orElseThrow(() -> new ObjectNotFoundException(genre.getId(), "Genre")))
+//                    .collect(Collectors.toSet());
+//            newMovie.setGenres(attachedGenres);
+//        }
 
-        return ResponseEntity
-                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                .body(entityModel);
+        EntityModel<MovieDTO> entityModel = movieDTOAssembler
+                .toModel(movieMapper.toDTO(movieService.save(newMovie)));
+
+        return responseBuilderService.buildCreatedResponseWithBody(entityModel);
     }
 
     /**
@@ -148,14 +153,14 @@ public class MovieController {
                         })
                 .orElseGet(() -> movieService.save(newMovie));
 
-        EntityModel<Movie> entityModel = movieAssembler.toModel(updatedMovie);
+        EntityModel<MovieDTO> entityModel = movieDTOAssembler
+                .toModel(movieMapper.toDTO(updatedMovie));
 
         if (existingMovie.isPresent()) {
             return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
         }
         else {
-            return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                    .body(entityModel);
+            return responseBuilderService.buildCreatedResponseWithBody(entityModel);
         }
     }
 
@@ -328,12 +333,12 @@ public class MovieController {
     public ResponseEntity<?> addReviewToMovie(@PathVariable Long id, @RequestBody ReviewDTO reviewDTO) {
         Movie reviewedMovie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
         User reviewingUser = userService.findById(reviewDTO.getUserId()).orElseThrow(() -> new UserNotFoundException(reviewDTO.getUserId()));
+
         Review newReview = reviewMapper.toReview(reviewDTO, reviewingUser, reviewedMovie);
 
         EntityModel<Review> entityModel = reviewAssembler.toModel(reviewService.save(newReview));
-        return ResponseEntity
-                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                .body(entityModel);
+
+        return responseBuilderService.buildCreatedResponseWithBody(entityModel);
     }
 
     /**
@@ -427,7 +432,8 @@ public class MovieController {
 //        Actor actor = actorService.getReferenceById(actorId);
 
         movie.addActor(actor);
-        EntityModel<Movie> entityModel = movieAssembler.toModel(movieService.save(movie));
+        EntityModel<MovieDTO> entityModel = movieDTOAssembler
+                .toModel(movieMapper.toDTO(movieService.save(movie)));
 
         return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
     }
@@ -484,11 +490,9 @@ public class MovieController {
 
        if (genres.isEmpty()) { return ResponseEntity.ok().build(); }
 
-        CollectionModel<?> collectionModel = CollectionModel.of(genres.stream()
-                        .map(genreMapper::toDTO)
-                        .map(genreDTOAssembler::toModel)
-                        .toList(),
-                linkTo(methodOn(MovieController.class).findGenresByMovie(movieId)).withSelfRel());
+        CollectionModel<?> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(genres, genreMapper, genreDTOAssembler,
+                        linkTo(methodOn(MovieController.class).findGenresByMovie(movieId)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }

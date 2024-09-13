@@ -23,4 +23,17 @@ public class ResponseBuilderService {
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).headers(headers).build();
     }
+
+    /**
+     *
+     * @param entityModel the {@link EntityModel} containing the resource
+     * and its associated links, including the self link
+     * @return a {@link ResponseEntity} with a 201 Created status and
+     * a body containing the created resource
+     */
+    public <T> ResponseEntity<EntityModel<T>> buildCreatedResponseWithBody(EntityModel<T> entityModel) {
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
+    }
 }

@@ -19,9 +19,13 @@ public class MovieMapper implements EntityMapper<Movie, MovieDTO> {
         movieDTO.setRuntime(movie.getRuntime());
         movieDTO.setDirector(movie.getDirector());
 
-        String genres = movie.getGenres().stream()
-                        .map(Genre::getName)
-                                .collect(Collectors.joining(", "));
+        String genres = "";
+
+        if (movie.getGenres() != null) {
+            genres = movie.getGenres().stream()
+                    .map(Genre::getName)
+                    .collect(Collectors.joining(", "));
+        }
 
         movieDTO.setGenre(genres);
         movieDTO.setCountry(movie.getCountry());
