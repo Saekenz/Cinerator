@@ -510,9 +510,13 @@ public class UserController {
 // ---------------------------------------- LISTS ---------------------------------------------------------------------
 
     /**
+     * Fetches every {@link UserList} associated with the {@link User} with a
+     * specific {@code id}.
      *
-     * @param id
-     * @return
+     * @param id the ID of the {@link User} for which the lists are to be fetched
+     * @return ResponseEntity containing a 200 Ok status and every {@link UserList}
+     * associated with this {@link User}. (Returns a 404 Not Found status if
+     * no {@link User} exists with this {@code id}.
      */
     @GetMapping("/{id}/lists")
     public ResponseEntity<?> findListsByUser(@PathVariable Long id) {

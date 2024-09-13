@@ -32,6 +32,7 @@ public class FollowController {
     }
 
     /**
+     * Fetches all {@link Follow} resources from the database.
      *
      * @return HTTP code 200 and a JSON representation of every existing {@link Follow} relationship
      */

@@ -4,6 +4,7 @@ import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.model.genre.GenreDTO;
 import at.saekenz.cinerator.model.genre.GenreDTOModelAssembler;
 import at.saekenz.cinerator.model.genre.GenreMapper;
+import at.saekenz.cinerator.model.userlist.UserList;
 import at.saekenz.cinerator.service.IGenreService;
 import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import org.hibernate.ObjectNotFoundException;
@@ -40,6 +41,12 @@ public class GenreController {
         this.genreDTOModelAssembler = genreDTOModelAssembler;
     }
 
+    /**
+     * Fetch every {@link Genre} from the database.
+     *
+     * @return ResponseEntity containing 200 Ok status and a collection of every
+     * {@link Genre} stored in the database.
+     */
     @GetMapping()
     public ResponseEntity<?> findAllGenres() {
         List<Genre> genres = genreService.findAll();
@@ -54,6 +61,13 @@ public class GenreController {
 
     }
 
+    /**
+     * Fetch a specific {@link Genre} by its {@code id}.
+     *
+     * @param id the ID of the {@link Genre} that will be retrieved.
+     * @return ResponseEntity containing 200 Ok status and the {@link Genre} resource.
+     * (Returns 404 Not Found if the {@link Genre} does not exist for this {@code id}.)
+     */
     @GetMapping("/{id}")
     public ResponseEntity<?> findGenreById(@PathVariable Long id) {
         Genre genre = genreService.findById(id).orElseThrow(() -> new ObjectNotFoundException(id, "Genre"));
