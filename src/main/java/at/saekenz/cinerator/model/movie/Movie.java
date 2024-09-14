@@ -1,6 +1,7 @@
 package at.saekenz.cinerator.model.movie;
 
 import at.saekenz.cinerator.model.actor.Actor;
+import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.user.User;
@@ -49,6 +50,14 @@ public class Movie {
             joinColumns = @JoinColumn(name = "MOV_ID"),
             inverseJoinColumns = @JoinColumn(name = "GEN_ID"))
     private Set<Genre> genres;
+
+    @ManyToMany
+    @JoinTable(
+            name = "movie_countries",
+            joinColumns = @JoinColumn(name = "MOV_ID"),
+            inverseJoinColumns = @JoinColumn(name = "COU_ID")
+    )
+    private Set<Country> countries;
 
     @ManyToMany(mappedBy = "watchlist")
     @JsonIgnore
@@ -150,6 +159,10 @@ public class Movie {
     public Set<Genre> getGenres() { return genres; }
 
     public void setGenres(Set<Genre> genres) { this.genres = genres; }
+
+    public Set<Country> getCountries() { return countries; }
+
+    public void setCountries(Set<Country> countries) { this.countries = countries; }
 
     public List<UserList> getUserlist() { return userlist; }
 

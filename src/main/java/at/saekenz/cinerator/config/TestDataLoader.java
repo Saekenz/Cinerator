@@ -2,6 +2,7 @@ package at.saekenz.cinerator.config;
 
 import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
+import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.follow.Follow;
 import at.saekenz.cinerator.model.follow.FollowKey;
 import at.saekenz.cinerator.model.genre.Genre;
@@ -30,7 +31,8 @@ public class TestDataLoader {
 
     @Bean
     @Order(1)
-    public CommandLineRunner initGenres(GenreRepository genreRepository) {
+    public CommandLineRunner initGenresAndCountries(GenreRepository genreRepository,
+                                                    CountryRepository countryRepository) {
         return args -> {
             log.info("Initializing genres ...");
 
@@ -65,6 +67,21 @@ public class TestDataLoader {
 
             // Batch insert genres
             genreRepository.saveAll(genre);
+
+            log.info("Initializing genres ...");
+
+            List<Country> country = List.of(
+                    new Country("United States"),
+                    new Country("France"),
+                    new Country("Mexico"),
+                    new Country("Canada"),
+                    new Country("Germany"),
+                    new Country("United Kingdom"),
+                    new Country("Ireland")
+            );
+
+            // Batch insert countries
+            countryRepository.saveAll(country);
         };
     }
 
@@ -90,12 +107,13 @@ public class TestDataLoader {
     @Bean
     @Order(3)
     public CommandLineRunner initMovies(MovieRepository movieRepository, ActorRepository actorRepository,
-                                        GenreRepository genreRepository) {
+                                        GenreRepository genreRepository, CountryRepository countryRepository) {
         return (args) -> {
             log.info("Initializing movies...");
 
             List<Actor> actors = actorRepository.findAllById(List.of(1L, 2L, 3L, 4L, 5L));
             List<Genre> genres = genreRepository.findAll();
+            List<Country> countries = countryRepository.findAll();
 
             if (actors.size() < 5) { throw new ActorNotFoundException(); }
 
@@ -149,6 +167,10 @@ public class TestDataLoader {
             movies.get(2).setGenres(Set.copyOf(genres.subList(3,5)));
             movies.get(3).setGenres(Set.copyOf(genres.subList(6,8)));
             movies.get(4).setGenres(Set.copyOf(genres.subList(7,10)));
+
+            for (Movie movie : movies) {
+                movie.setCountries(Set.of(countries.get(0)));
+            }
 
             movieRepository.saveAll(movies).forEach(movie -> log.info("Created new movie: {}", movie));
         };

@@ -175,19 +175,6 @@ public class MovieControllerSpringBootIntegrationTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenCreateNewMovieRequest_shouldSucceedWith201() throws Exception {
-//        String json_data = """
-//                {
-//                  "title": "Nightcrawler",
-//                  "releaseDate": "2014-10-31",
-//                  "runtime": "118 min",
-//                  "director": "Dan Gilroy",
-//                  "genre": "Thriller",
-//                  "country": "United States",
-//                  "imdbId": "tt287271",
-//                  "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg",
-//                  "reviews": []
-//                }""";
-
         Movie movie = new Movie("Nightcrawler", "Dan Gilroy", LocalDate.of(2014,10,31),
                 "118 min", "United States", "tt287271",
                 "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg");
@@ -206,7 +193,9 @@ public class MovieControllerSpringBootIntegrationTest {
         ObjectMapper om = new ObjectMapper().findAndRegisterModules();
         String movieJsonData = om.writeValueAsString(movie);
 
-        mockMvc.perform(post("/movies").contentType(MediaType.APPLICATION_JSON).content(movieJsonData))
+        mockMvc.perform(post("/movies").contentType(MediaType.APPLICATION_JSON)
+                        .content(movieJsonData)
+                        .characterEncoding("utf-8"))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.title").value("Nightcrawler"))
             .andExpect(jsonPath("$.releaseDate").value("2014-10-31"))
@@ -673,6 +662,26 @@ public class MovieControllerSpringBootIntegrationTest {
         Long movieId = -999L;
 
         mockMvc.perform(get("/movies/{movieId}/genres", movieId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+    }
+
+    @Test
+    public void givenFindCountriesByMovieRequest_shouldSucceedWith200() throws Exception {
+        Long movieId = 5L;
+
+        mockMvc.perform(get("/movies/{movieId}/countries", movieId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.countryDTOList").isNotEmpty());
+    }
+
+    @Test
+    public void givenFindCountriesByMovieRequest_shouldFailWith404() throws Exception {
+        Long movieId = -999L;
+
+        mockMvc.perform(get("/movies/{movieId}/countries", movieId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));

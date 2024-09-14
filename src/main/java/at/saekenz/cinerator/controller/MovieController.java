@@ -3,6 +3,10 @@ package at.saekenz.cinerator.controller;
 import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorModelAssembler;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
+import at.saekenz.cinerator.model.country.Country;
+import at.saekenz.cinerator.model.country.CountryDTO;
+import at.saekenz.cinerator.model.country.CountryDTOModelAssembler;
+import at.saekenz.cinerator.model.country.CountryMapper;
 import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.model.genre.GenreDTOModelAssembler;
 import at.saekenz.cinerator.model.genre.GenreMapper;
@@ -58,6 +62,9 @@ public class MovieController {
     GenreMapper genreMapper;
 
     @Autowired
+    CountryMapper countryMapper;
+
+    @Autowired
     ResponseBuilderService responseBuilderService;
 
     @Autowired
@@ -67,17 +74,20 @@ public class MovieController {
     private final ActorModelAssembler actorAssembler;
     private final ReviewModelAssembler reviewAssembler;
     private final GenreDTOModelAssembler genreDTOAssembler;
+    private final CountryDTOModelAssembler countryDTOAssembler;
 
     // Workaround since using the @Autowired annotation causes Intellij to report an error
     private final PagedResourcesAssembler<MovieDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
             new HateoasPageableHandlerMethodArgumentResolver(), null);
 
     public MovieController(MovieDTOModelAssembler movieDTOAssembler, ReviewModelAssembler reviewAssembler,
-                           ActorModelAssembler actorAssembler, GenreDTOModelAssembler genreDTOAssembler) {
+                           ActorModelAssembler actorAssembler, GenreDTOModelAssembler genreDTOAssembler,
+                           CountryDTOModelAssembler countryDTOAssembler) {
         this.movieDTOAssembler = movieDTOAssembler;
         this.reviewAssembler = reviewAssembler;
         this.actorAssembler = actorAssembler;
         this.genreDTOAssembler = genreDTOAssembler;
+        this.countryDTOAssembler = countryDTOAssembler;
     }
 
     /**
@@ -486,9 +496,9 @@ public class MovieController {
     public ResponseEntity<?> findGenresByMovie(@PathVariable Long movieId) {
         Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
 
-       Set<Genre> genres = movie.getGenres();
+        Set<Genre> genres = movie.getGenres();
 
-       if (genres.isEmpty()) { return ResponseEntity.ok().build(); }
+        if (genres.isEmpty()) { return ResponseEntity.ok().build(); }
 
         CollectionModel<?> collectionModel = collectionModelBuilderService
                 .createCollectionModelFromList(genres, genreMapper, genreDTOAssembler,
@@ -497,4 +507,28 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
+// ------------------------------------------------- COUNTRIES --------------------------------------------------------
+
+    /**
+     *
+     *
+     * @param movieId
+     * @return
+     */
+    @GetMapping("/{movieId}/countries")
+    public ResponseEntity<?> findCountriesByMovie(@PathVariable Long movieId) {
+        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+
+        Set<Country> countries = movie.getCountries();
+
+        if (countries.isEmpty()) {
+            return ResponseEntity.ok().build();
+        }
+
+        CollectionModel<EntityModel<CountryDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(countries, countryMapper, countryDTOAssembler,
+                        linkTo(methodOn(MovieController.class).findCountriesByMovie(movieId)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
 }
