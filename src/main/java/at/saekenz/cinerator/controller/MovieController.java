@@ -511,9 +511,10 @@ public class MovieController {
 
     /**
      *
-     *
-     * @param movieId
-     * @return
+     * @param movieId the id of the {@link Movie} for which countries are fetched
+     * @return ResponseEntity containing a 200 Ok status and the countries associated
+     * with that {@link Movie}. (Returns a 404 Not Found status if the {@link Movie}
+     * does not exist.)
      */
     @GetMapping("/{movieId}/countries")
     public ResponseEntity<?> findCountriesByMovie(@PathVariable Long movieId) {

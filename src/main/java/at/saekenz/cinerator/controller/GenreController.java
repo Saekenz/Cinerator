@@ -4,7 +4,6 @@ import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.model.genre.GenreDTO;
 import at.saekenz.cinerator.model.genre.GenreDTOModelAssembler;
 import at.saekenz.cinerator.model.genre.GenreMapper;
-import at.saekenz.cinerator.model.userlist.UserList;
 import at.saekenz.cinerator.service.IGenreService;
 import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import org.hibernate.ObjectNotFoundException;

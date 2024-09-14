@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.review.Review;
@@ -647,6 +648,13 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$.page.number").value(page));
     }
 
+    /**
+     * Creates a request which fetches the {@link Genre} resources associated with
+     * {@link Movie} with {@code id = 5L}.
+     * The API has to return a 200 Ok status and a list of {@link Genre} resources.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
     @Test
     public void givenFindGenresByMovieRequest_shouldSucceedWith200() throws Exception {
         Long movieId = 5L;
@@ -657,6 +665,13 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$._embedded.genreDTOList").isNotEmpty());
     }
 
+    /**
+     * Creates a request which fetches the {@link Genre} resources associated with
+     * {@link Movie} with {@code id = -999L}.
+     * The API has to return a 404 Not Found status and an error message.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
     @Test
     public void givenFindGenresByMovieRequest_shouldFailWith404() throws Exception {
         Long movieId = -999L;
@@ -667,6 +682,13 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
     }
 
+    /**
+     * Creates a request which fetches the {@link Country} resources associated with
+     * {@link Movie} with {@code id = 5L}.
+     * The API has to return a 200 Ok status and a list of {@link Country} resources.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
     @Test
     public void givenFindCountriesByMovieRequest_shouldSucceedWith200() throws Exception {
         Long movieId = 5L;
@@ -677,6 +699,13 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$._embedded.countryDTOList").isNotEmpty());
     }
 
+    /**
+     * Creates a request which fetches the {@link Country} resources associated with
+     * {@link Movie} with {@code id = -999L}.
+     * The API has to return a 404 Not Found status and an error message.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
     @Test
     public void givenFindCountriesByMovieRequest_shouldFailWith404() throws Exception {
         Long movieId = -999L;

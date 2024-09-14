@@ -41,9 +41,10 @@ public class CountryController {
     }
 
     /**
+     * Fetch every {@link Country} from the database.
      *
-     *
-     * @return
+     * @return ResponseEntity containing 200 Ok status and a collection of every
+     * {@link Country} stored in the database.
      */
     @GetMapping()
     public ResponseEntity<CollectionModel<EntityModel<CountryDTO>>> findAllCountries() {
@@ -59,10 +60,11 @@ public class CountryController {
     }
 
     /**
+     * Fetch a specific {@link Country} by its {@code id}.
      *
-     *
-     * @param id
-     * @return
+     * @param id the ID of the {@link Country} that will be retrieved.
+     * @return ResponseEntity containing 200 Ok status and the {@link Country} resource.
+     * (Returns 404 Not Found if the {@link Country} does not exist for this {@code id}.)
      */
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<CountryDTO>> findCountryById(@PathVariable Long id) {
