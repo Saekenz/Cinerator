@@ -2,6 +2,7 @@ package at.saekenz.cinerator.config;
 
 import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
+import at.saekenz.cinerator.model.role.Role;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.follow.Follow;
 import at.saekenz.cinerator.model.follow.FollowKey;
@@ -33,7 +34,8 @@ public class TestDataLoader {
     @Bean
     @Order(1)
     public CommandLineRunner initGenresAndCountries(GenreRepository genreRepository,
-                                                    CountryRepository countryRepository) {
+                                                    CountryRepository countryRepository,
+                                                    RoleRepository roleRepository) {
         return args -> {
             log.info("Initializing genres ...");
 
@@ -71,7 +73,7 @@ public class TestDataLoader {
 
             log.info("Initializing genres ...");
 
-            List<Country> country = List.of(
+            List<Country> countries = List.of(
                     new Country("United States"),
                     new Country("France"),
                     new Country("Mexico"),
@@ -89,7 +91,25 @@ public class TestDataLoader {
             );
 
             // Batch insert countries
-            countryRepository.saveAll(country);
+            countryRepository.saveAll(countries);
+
+            log.info("Initializing roles ...");
+
+            List<Role> roles = List.of(
+                    new Role("Actor"),
+                    new Role("Director"),
+                    new Role("Producer"),
+                    new Role("Writer"),
+                    new Role("Cinematographer"),
+                    new Role("Editor"),
+                    new Role("Casting"),
+                    new Role("Special Effects"),
+                    new Role("Lighting"),
+                    new Role("Stunts")
+            );
+
+            // Batch insert roles
+            roleRepository.saveAll(roles);
         };
     }
 

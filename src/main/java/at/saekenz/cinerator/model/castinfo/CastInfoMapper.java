@@ -2,6 +2,7 @@ package at.saekenz.cinerator.model.castinfo;
 
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.person.Person;
+import at.saekenz.cinerator.model.role.Role;
 import at.saekenz.cinerator.util.EntityMapper;
 import org.springframework.stereotype.Component;
 

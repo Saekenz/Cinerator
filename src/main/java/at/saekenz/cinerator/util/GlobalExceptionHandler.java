@@ -4,6 +4,7 @@ import org.hibernate.ObjectNotFoundException;
 import org.hibernate.PropertyValueException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,4 +45,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         return handleExceptionInternal(ex, errorMessage, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
     }
+
+    // TODO -> improve error message!
+//    @ExceptionHandler(DataIntegrityViolationException.class)
+//    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+//        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT.value(), "Create/Update failed!",
+//                ex.getMessage());
+//        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+//    }
+
 }

@@ -1,9 +1,11 @@
-package at.saekenz.cinerator.model.castinfo;
+package at.saekenz.cinerator.model.role;
 
+import at.saekenz.cinerator.model.castinfo.CastInfo;
 import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -14,7 +16,7 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String role;
 
     @OneToMany(mappedBy = "role")
@@ -25,6 +27,7 @@ public class Role {
 
     public Role(String role) {
         this.role = role;
+        this.castInfos = new HashSet<CastInfo>();
     }
 
     public Long getId() {
