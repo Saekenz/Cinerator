@@ -74,10 +74,15 @@ public class TestDataLoader {
                     new Country("United States"),
                     new Country("France"),
                     new Country("Mexico"),
+                    new Country("Hong Kong"),
                     new Country("Canada"),
                     new Country("Germany"),
                     new Country("United Kingdom"),
-                    new Country("Ireland")
+                    new Country("Ireland"),
+                    new Country("Japan"),
+                    new Country("South Korea"),
+                    new Country("Austria"),
+                    new Country("Australia")
             );
 
             // Batch insert countries
@@ -119,43 +124,43 @@ public class TestDataLoader {
 
             List<Movie> movies = List.of(
                     createMovie("Sicario", "Denis Villeneuve", LocalDate.of(2015,10,1), "122 min",
-                        "Thriller","United States","tt3397884","https://upload.wikimedia.org/wikipedia/en/4/4b/Sicario_poster.jpg",
+                        "tt3397884","https://upload.wikimedia.org/wikipedia/en/4/4b/Sicario_poster.jpg",
                         List.of(actors.get(0), actors.get(1), actors.get(2), actors.get(3))),
                     createMovie("Dune: Part Two", "Denis Villeneuve", LocalDate.of(2024,3,1), "167 min",
-                            "Science Fiction", "United States","tt15239678","https://upload.wikimedia.org/wikipedia/en/5/52/Dune_Part_Two_poster.jpeg",
+                            "tt15239678","https://upload.wikimedia.org/wikipedia/en/5/52/Dune_Part_Two_poster.jpeg",
                             List.of(actors.get(1), actors.get(2), actors.get(4))),
                     createMovie("Good Will Hunting", "Gus Van Sant", LocalDate.of(1998,9,1), "127 min",
-                            "Drama", "United States","tt0119217","https://upload.wikimedia.org/wikipedia/en/5/52/Good_Will_Hunting.png",
+                            "tt0119217","https://upload.wikimedia.org/wikipedia/en/5/52/Good_Will_Hunting.png",
                             List.of()),
                     createMovie("Three Colors: Red", "Krzysztof Kieslowski", LocalDate.of(1994,11,23), "100 min",
-                            "Drama","France","tt0111495","https://upload.wikimedia.org/wikipedia/en/0/0a/Three_Colors-Red.jpg",
+                            "tt0111495","https://upload.wikimedia.org/wikipedia/en/0/0a/Three_Colors-Red.jpg",
                             List.of()),
                     createMovie("Inception", "Christopher Nolan", LocalDate.of(2010,7,16), "148 min",
-                            "Science Fiction", "United States", "tt1375666","https://upload.wikimedia.org/wikipedia/en/2/2e/Inception_%282010%29_theatrical_poster.jpg",
+                            "tt1375666","https://upload.wikimedia.org/wikipedia/en/2/2e/Inception_%282010%29_theatrical_poster.jpg",
                             List.of()),
                     createMovie("Parasite", "Bong Joon Ho", LocalDate.of(2019,5,30), "133 min",
-                            "Thriller", "South Korea", "tt6751668","https://upload.wikimedia.org/wikipedia/en/5/53/Parasite_%282019_film%29.png",
+                            "tt6751668","https://upload.wikimedia.org/wikipedia/en/5/53/Parasite_%282019_film%29.png",
                             List.of()),
                     createMovie("The Grand Budapest Hotel", "Wes Anderson", LocalDate.of(2014,3,28), "100 min",
-                            "Comedy", "United States", "tt2278388","https://upload.wikimedia.org/wikipedia/en/1/1c/The_Grand_Budapest_Hotel.png",
+                            "tt2278388","https://upload.wikimedia.org/wikipedia/en/1/1c/The_Grand_Budapest_Hotel.png",
                             List.of()),
                     createMovie("Spirited Away", "Hayao Miyazaki", LocalDate.of(2001,7,20), "125 min",
-                            "Fantasy", "Japan", "tt0245429","https://upload.wikimedia.org/wikipedia/en/d/db/Spirited_Away_Japanese_poster.png",
+                            "tt0245429","https://upload.wikimedia.org/wikipedia/en/d/db/Spirited_Away_Japanese_poster.png",
                             List.of()),
                     createMovie("The Godfather", "Francis Ford Coppola", LocalDate.of(1972,3,24), "175 min",
-                            "Crime", "United States", "tt0068646","https://upload.wikimedia.org/wikipedia/en/1/1c/Godfather_ver1.jpg",
+                            "tt0068646","https://upload.wikimedia.org/wikipedia/en/1/1c/Godfather_ver1.jpg",
                             List.of()),
                     createMovie("Amélie", "Jean-Pierre Jeunet", LocalDate.of(2001,4,25), "122 min",
-                            "Romantic Comedy", "France", "tt0211915","https://upload.wikimedia.org/wikipedia/en/5/53/Amelie_poster.jpg",
+                            "tt0211915","https://upload.wikimedia.org/wikipedia/en/5/53/Amelie_poster.jpg",
                             List.of()),
                     createMovie("Pulp Fiction", "Quentin Tarantino", LocalDate.of(1994,10,14),"154 min",
-                            "Crime", "United States", "tt0110912","https://upload.wikimedia.org/wikipedia/en/3/3b/Pulp_Fiction_%281994%29_poster.jpg",
+                            "tt0110912","https://upload.wikimedia.org/wikipedia/en/3/3b/Pulp_Fiction_%281994%29_poster.jpg",
                             List.of()),
                     createMovie("The Dark Knight", "Christopher Nolan", LocalDate.of(2008,7,18),"152 min",
-                            "Action", "United States", "tt0468569","https://upload.wikimedia.org/wikipedia/en/1/1c/The_Dark_Knight_%282008_film%29.jpg",
+                            "tt0468569","https://upload.wikimedia.org/wikipedia/en/1/1c/The_Dark_Knight_%282008_film%29.jpg",
                             List.of()),
                     createMovie("La La Land", "Damien Chazelle", LocalDate.of(2016,12,9),"129 min",
-                            "Musical", "United States", "tt3783958","https://upload.wikimedia.org/wikipedia/en/a/ab/La_La_Land_%28film%29.png",
+                            "tt3783958","https://upload.wikimedia.org/wikipedia/en/a/ab/La_La_Land_%28film%29.png",
                             List.of())
             );
 
@@ -168,9 +173,19 @@ public class TestDataLoader {
             movies.get(3).setGenres(Set.copyOf(genres.subList(6,8)));
             movies.get(4).setGenres(Set.copyOf(genres.subList(7,10)));
 
-            for (Movie movie : movies) {
-                movie.setCountries(Set.of(countries.get(0)));
-            }
+            movies.get(0).setCountries(Set.of(countries.get(0), countries.get(2), countries.get(3)));
+            movies.get(1).setCountries(Set.of(countries.get(0), countries.get(4)));
+            movies.get(2).setCountries(Set.of(countries.get(0)));
+            movies.get(3).setCountries(Set.of(countries.get(1)));
+            movies.get(4).setCountries(Set.of(countries.get(0), countries.get(6)));
+            movies.get(5).setCountries(Set.of(countries.get(9)));
+            movies.get(6).setCountries(Set.of(countries.get(0), countries.get(5)));
+            movies.get(7).setCountries(Set.of(countries.get(8)));
+            movies.get(8).setCountries(Set.of(countries.get(0)));
+            movies.get(9).setCountries(Set.of(countries.get(1)));
+            movies.get(10).setCountries(Set.of(countries.get(0)));
+            movies.get(11).setCountries(Set.of(countries.get(0), countries.get(6)));
+            movies.get(12).setCountries(Set.of(countries.get(0), countries.get(3)));
 
             movieRepository.saveAll(movies).forEach(movie -> log.info("Created new movie: {}", movie));
         };
@@ -292,8 +307,8 @@ public class TestDataLoader {
     }
 
     private Movie createMovie(String title, String director, LocalDate releaseDate, String duration,
-                              String genre, String country, String imdbId, String posterUrl, List<Actor> actors) {
-        Movie movie = new Movie(title, director, releaseDate, duration, country, imdbId, posterUrl);
+                              String imdbId, String posterUrl, List<Actor> actors) {
+        Movie movie = new Movie(title, director, releaseDate, duration, imdbId, posterUrl);
         movie.setActors(actors);
         return movie;
     }

@@ -37,9 +37,6 @@ public class Movie {
     private String director;
 
     @Column(nullable = false)
-    private String country;
-
-    @Column(nullable = false)
     private String imdbId;
 
     private String posterUrl;
@@ -84,12 +81,11 @@ public class Movie {
     }
 
     public Movie(String title, String director, LocalDate releaseDate, String runtime,
-                 String country, String imdbId, String posterUrl) {
+                 String imdbId, String posterUrl) {
         this.title = title;
         this.director = director;
         this.releaseDate = releaseDate;
         this.runtime = runtime;
-        this.country = country;
         this.imdbId = imdbId;
         this.posterUrl = posterUrl;
     }
@@ -127,10 +123,6 @@ public class Movie {
     public String getDirector() { return director; }
 
     public void setDirector(String director) { this.director = director; }
-
-    public String getCountry() {return country; }
-
-    public void setCountry(String country) { this.country = country; }
 
     public String getImdbId() { return imdbId; }
 
@@ -176,7 +168,6 @@ public class Movie {
                 ", releaseDate=" + releaseDate +
                 ", runtime=" + runtime +
                 ", director='" + director + '\'' +
-                ", country='" + country + '\'' +
                 ", imdbId='" + imdbId + '\'' +
                 ", posterUrl='" + posterUrl + '\'' +
                 '}';

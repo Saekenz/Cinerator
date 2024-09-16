@@ -132,16 +132,15 @@ public class MovieControllerSpringBootIntegrationTest {
         String country = "France";
         mockMvc.perform(get("/movies/country/{country}", country).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieDTOList[*].country", everyItem(equalToIgnoringCase(country))));
+                .andExpect(jsonPath("$._embedded.movieDTOList[*].country", everyItem(containsStringIgnoringCase(country))));
     }
 
-    @WithMockUser("test-user")
     @Test
-    public void givenFindMoviesByCountryRequest_shouldFailWith404() throws Exception {
+    public void givenFindMoviesByCountryRequest_shouldSucceedWith200AndReturnEmptyList() throws Exception {
         String country = "Wonderland";
         mockMvc.perform(get("/movies/country/{country}", country).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("country: %s", country))));
+                .andExpect(status().isOk())
+                .andExpect(content().string(is("{}")));
     }
 
     @WithMockUser("test-user")
@@ -177,8 +176,12 @@ public class MovieControllerSpringBootIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenCreateNewMovieRequest_shouldSucceedWith201() throws Exception {
         Movie movie = new Movie("Nightcrawler", "Dan Gilroy", LocalDate.of(2014,10,31),
-                "118 min", "United States", "tt287271",
+                "118 min", "tt287271",
                 "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg");
+
+        Country country = new Country("United States");
+        country.setId(1L);
+        movie.setCountries(Set.of(country));
 
         Genre genre1 = new Genre("Crime");
         Genre genre2 = new Genre("Drama");
@@ -202,7 +205,7 @@ public class MovieControllerSpringBootIntegrationTest {
             .andExpect(jsonPath("$.releaseDate").value("2014-10-31"))
             .andExpect(jsonPath("$.runtime").value("118 min"))
             .andExpect(jsonPath("$.director").value("Dan Gilroy"))
-            .andExpect(jsonPath("$.country").value("United States"))
+            .andExpect(jsonPath("$.country", containsString("United States")))
             .andExpect(jsonPath("$.imdbId").value("tt287271"))
             .andExpect(jsonPath("$.posterUrl").value("https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg"))
             .andDo(print());
@@ -242,7 +245,7 @@ public class MovieControllerSpringBootIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateMovieRequest_shouldSucceedWith201() throws Exception {
         Movie updatedMovie = new Movie("The Shawshank Redemption","Frank Darabont", LocalDate.of(1994, 9, 23),
-                "142 min", "United States","tt0111161",
+                "142 min", "tt0111161",
                 "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg");
 
         ObjectMapper om = new ObjectMapper();
@@ -256,7 +259,6 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$.releaseDate").value(updatedMovie.getReleaseDate().toString()))
                 .andExpect(jsonPath("$.runtime").value(updatedMovie.getRuntime()))
                 .andExpect(jsonPath("$.director").value(updatedMovie.getDirector()))
-                .andExpect(jsonPath("$.country").value(updatedMovie.getCountry()))
                 .andExpect(jsonPath("$.imdbId").value(updatedMovie.getImdbId()))
                 .andExpect(jsonPath("$.posterUrl").value(updatedMovie.getPosterUrl()));
     }
@@ -271,7 +273,7 @@ public class MovieControllerSpringBootIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateMovieRequest_shouldSucceedWith204() throws Exception {
         Movie updatedMovie = new Movie("The Shawshank Redemption","Frank Darabont", LocalDate.of(1994, 9, 23),
-                "142 min", "United States","tt0111161",
+                "142 min", "tt0111161",
                 "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg");
 
         ObjectMapper om = new ObjectMapper();

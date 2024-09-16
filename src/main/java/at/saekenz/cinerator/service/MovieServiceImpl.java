@@ -60,7 +60,7 @@ public class MovieServiceImpl implements IMovieService{
 
     @Override
     public List<Movie> findByCountry(String country) {
-        return movieRepository.findByCountry(country);
+        return movieRepository.findByCountries_Name(country);
     }
 
     @Override

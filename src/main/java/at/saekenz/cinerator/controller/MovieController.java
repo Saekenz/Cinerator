@@ -155,7 +155,8 @@ public class MovieController {
                             movie.setDirector(newMovie.getDirector());
                             movie.setReleaseDate(newMovie.getReleaseDate());
                             movie.setRuntime(newMovie.getRuntime());
-                            movie.setCountry(newMovie.getCountry());
+//                            movie.setGenres(newMovie.getGenres());
+//                            movie.setCountries(newMovie.getCountries());
                             movie.setImdbId(newMovie.getImdbId());
                             movie.setPosterUrl(newMovie.getPosterUrl());
                             movie.setReviews(newMovie.getReviews());
@@ -252,9 +253,7 @@ public class MovieController {
     public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findByCountry(@PathVariable String country) {
         List<Movie> movies = movieService.findByCountry(country);
 
-        if (movies.isEmpty()) {
-            throw new MovieNotFoundException(EMovieSearchParam.COUNTRY, country);
-        }
+        if (movies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
         CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
                 .createCollectionModelFromList(movies,

@@ -16,6 +16,8 @@ public class MovieDTOModelAssembler implements RepresentationModelAssembler<Movi
         return EntityModel.of(movieDTO,
                 linkTo(methodOn(MovieController.class).findById(movieDTO.getId())).withSelfRel(),
                 linkTo(methodOn(MovieController.class).findReviewsByMovie(movieDTO.getId())).withRel("reviews"),
-                linkTo(methodOn(MovieController.class).findActorsByMovie(movieDTO.getId())).withRel("actors"));
+                linkTo(methodOn(MovieController.class).findActorsByMovie(movieDTO.getId())).withRel("actors"),
+                linkTo(methodOn(MovieController.class).findGenresByMovie(movieDTO.getId())).withRel("genres"),
+                linkTo(methodOn(MovieController.class).findCountriesByMovie(movieDTO.getId())).withRel("countries"));
     }
 }
