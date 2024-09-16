@@ -7,6 +7,7 @@ import at.saekenz.cinerator.model.follow.Follow;
 import at.saekenz.cinerator.model.follow.FollowKey;
 import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.model.movie.MovieNotFoundException;
+import at.saekenz.cinerator.model.person.Person;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.user.User;
@@ -82,7 +83,9 @@ public class TestDataLoader {
                     new Country("Japan"),
                     new Country("South Korea"),
                     new Country("Austria"),
-                    new Country("Australia")
+                    new Country("Australia"),
+                    new Country("Spain"),
+                    new Country("Poland")
             );
 
             // Batch insert countries
@@ -90,9 +93,12 @@ public class TestDataLoader {
         };
     }
 
+    // TODO -> replace actors with persons
     @Bean
     @Order(2)
-    public CommandLineRunner initActors(ActorRepository actorRepository) {
+    public CommandLineRunner initActorsAndPersons(ActorRepository actorRepository,
+                                                  PersonRepository personRepository,
+                                                  CountryRepository countryRepository) {
         return args -> {
             log.info("Initializing actors...");
 
@@ -106,6 +112,51 @@ public class TestDataLoader {
 
             // Batch insert & log creation for each actor
             actorRepository.saveAll(actors).forEach(actor -> log.info("Created actor: {}", actor));
+
+            log.info("Initializing persons...");
+
+            List<Country> countries = countryRepository.findAll();
+
+            List<Person> persons = List.of(
+                    new Person("Leonardo DiCaprio", LocalDate.of(1974, 11, 11),
+                            null, countries.get(0)),
+                    new Person("Meryl Streep", LocalDate.of(1949, 6, 22),
+                            null, countries.get(0)),
+                    new Person("Daniel Day-Lewis", LocalDate.of(1957, 4, 29),
+                            null, countries.get(6)),
+                    new Person("Penélope Cruz", LocalDate.of(1974, 4, 28),
+                            null, countries.get(12)),
+                    new Person("Cate Blanchett", LocalDate.of(1969, 5, 14),
+                            null, countries.get(11)),
+                    new Person("Denis Villeneuve", LocalDate.of(1967, 10, 3),
+                            null, countries.get(4)),
+                    new Person("Gus Van Sant", LocalDate.of(1952, 7, 24),
+                            null, countries.get(0)),
+                    new Person("Krzysztof Kieslowski", LocalDate.of(1941, 6, 27),
+                            LocalDate.of(1996, 3, 13), countries.get(13)),
+                    new Person("Christopher Nolan", LocalDate.of(1970, 7, 30),
+                            null, countries.get(6)),
+                    new Person("Bong Joon Ho", LocalDate.of(1969, 9, 14),
+                            null, countries.get(9)),
+                    new Person("Wes Anderson", LocalDate.of(1969, 5, 1),
+                            null, countries.get(0)),
+                    new Person("Hayao Miyazaki", LocalDate.of(1941, 1, 5),
+                            null, countries.get(8)),
+                    new Person("Francis Ford Coppola", LocalDate.of(1939, 4, 7),
+                            null, countries.get(0)),
+                    new Person("Jean-Pierre Jeunet", LocalDate.of(1953, 9, 3),
+                            null, countries.get(1)),
+                    new Person("Quentin Tarantino", LocalDate.of(1963, 3, 27),
+                            null, countries.get(0)),
+                    new Person("Damien Chazelle", LocalDate.of(1985, 1, 19),
+                            null, countries.get(0)),
+                    new Person("Dan Gilroy", LocalDate.of(1959, 6, 24),
+                            null, countries.get(0)),
+                    new Person("Jake Gyllenhaal", LocalDate.of(1980,12,19),
+                            null, countries.get(0))
+            );
+
+            personRepository.saveAll(persons);
         };
     }
 
