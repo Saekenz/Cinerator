@@ -1,6 +1,7 @@
 package at.saekenz.cinerator.model.movie;
 
 import at.saekenz.cinerator.model.actor.Actor;
+import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.model.review.Review;
@@ -67,7 +68,12 @@ public class Movie {
     private List<UserList> userlist;
 
     @OneToMany(mappedBy = "movie")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Review> reviews;
+
+    @OneToMany(mappedBy = "movie")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<CastInfo> castInfos;
 
     @ManyToMany
     @JoinTable(

@@ -1,11 +1,13 @@
 package at.saekenz.cinerator.model.person;
 
+import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.country.Country;
 import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Entity
 @Table(name = "persons")
@@ -26,8 +28,12 @@ public class Person {
 
     @ManyToOne
     @JoinColumn(name = "COU_ID")
-    @OnDelete(action = OnDeleteAction.CASCADE)
+//    @OnDelete(action = OnDeleteAction.CASCADE)
     private Country birthCountry;
+
+    @OneToMany(mappedBy = "person")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<CastInfo> castInfos;
 
     public Person() {}
 
