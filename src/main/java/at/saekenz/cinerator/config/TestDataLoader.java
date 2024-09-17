@@ -2,6 +2,7 @@ package at.saekenz.cinerator.config;
 
 import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
+import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.role.Role;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.follow.Follow;
@@ -374,6 +375,39 @@ public class TestDataLoader {
             Follow f4 = new Follow(new FollowKey(users.get(1).getId(),users.get(3).getId()), users.get(1), users.get(3));
 
             followRepository.saveAll(List.of(f1, f2, f3, f4)).forEach(follow -> log.info("Created follow: {}", follow));
+        };
+    }
+
+    @Bean
+    @Order(7)
+    public CommandLineRunner initCastInfo(MovieRepository movieRepository, PersonRepository personRepository,
+                                          RoleRepository roleRepository, CastInfoRepository castInfoRepository) {
+        return args -> {
+            log.info("Initializing cast/crew...");
+
+            List<Movie> movies = movieRepository.findAll();
+            List<Person> persons = personRepository.findAll();
+            List<Role> roles = roleRepository.findAll();
+
+            List<CastInfo> castInfos = List.of(
+                    new CastInfo(movies.get(4), persons.get(0), roles.get(0), "Cobb"),
+                    new CastInfo(movies.get(0), persons.get(5), roles.get(1)),
+                    new CastInfo(movies.get(1), persons.get(5), roles.get(1)),
+                    new CastInfo(movies.get(2), persons.get(6), roles.get(1)),
+                    new CastInfo(movies.get(3), persons.get(7), roles.get(1)),
+                    new CastInfo(movies.get(4), persons.get(8), roles.get(1)),
+                    new CastInfo(movies.get(5), persons.get(9), roles.get(1)),
+                    new CastInfo(movies.get(6), persons.get(10), roles.get(1)),
+                    new CastInfo(movies.get(7), persons.get(11), roles.get(1)),
+                    new CastInfo(movies.get(8), persons.get(12), roles.get(1)),
+                    new CastInfo(movies.get(9), persons.get(13), roles.get(1)),
+                    new CastInfo(movies.get(10), persons.get(14), roles.get(1)),
+                    new CastInfo(movies.get(11), persons.get(8), roles.get(1)),
+                    new CastInfo(movies.get(12), persons.get(15), roles.get(1))
+            );
+
+            // Batch insert all cast/crew infos
+            castInfoRepository.saveAll(castInfos);
         };
     }
 

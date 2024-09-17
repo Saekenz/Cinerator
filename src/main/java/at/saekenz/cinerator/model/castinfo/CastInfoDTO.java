@@ -10,6 +10,7 @@ public class CastInfoDTO {
 
     public CastInfoDTO() {}
 
+    // TODO -> change ids to be Strings with names instead?
     public CastInfoDTO(Long id, Long movieId,
                        Long personId, Long roleId) {
         this.id = id;
@@ -49,6 +50,14 @@ public class CastInfoDTO {
 
     public void setPersonId(Long personId) {
         this.personId = personId;
+    }
+
+    public Long getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(Long roleId) {
+        this.roleId = roleId;
     }
 
     public String getCharacterName() {

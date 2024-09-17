@@ -34,6 +34,7 @@ public class Movie {
     @Column(nullable = false)
     private String runtime;
 
+    // TODO -> swap to Person?
     @Column(nullable = false)
     private String director;
 

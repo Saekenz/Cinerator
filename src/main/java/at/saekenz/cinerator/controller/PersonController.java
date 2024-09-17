@@ -47,14 +47,14 @@ public class PersonController {
      * {@link Person} stored in the database.
      */
     @GetMapping
-    public ResponseEntity<CollectionModel<EntityModel<PersonDTO>>> getAllPersons() {
+    public ResponseEntity<CollectionModel<EntityModel<PersonDTO>>> findAllPersons() {
         List<Person> persons = personService.findAll();
 
         if (persons.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
         CollectionModel<EntityModel<PersonDTO>> collectionModel = collectionModelBuilderService
                 .createCollectionModelFromList(persons, personMapper, personDTOModelAssembler,
-                        linkTo(methodOn(PersonController.class).getAllPersons()).withSelfRel());
+                        linkTo(methodOn(PersonController.class).findAllPersons()).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
@@ -67,7 +67,7 @@ public class PersonController {
      * (Returns 404 Not Found if the {@link Person} does not exist for this {@code id}.)
      */
     @GetMapping("/{id}")
-    public ResponseEntity<EntityModel<PersonDTO>> getPersonById(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<PersonDTO>> findPersonById(@PathVariable Long id) {
         Person person = personService.findById(id).orElseThrow(
                 () -> new ObjectNotFoundException(id, Person.class.getSimpleName()));
 
