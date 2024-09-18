@@ -123,10 +123,8 @@ public class RoleController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRole(@PathVariable Long id) {
-        Role existingRole = roleService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, Role.class.getSimpleName()));
-
-        roleService.delete(existingRole);
+        roleService.findById(id).orElseThrow(() -> new ObjectNotFoundException(id, Role.class.getSimpleName()));
+        roleService.deleteById(id);
 
         return ResponseEntity.noContent().build();
     }
