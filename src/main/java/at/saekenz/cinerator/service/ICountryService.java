@@ -11,6 +11,8 @@ public interface ICountryService {
 
     Optional<Country> findById(Long id);
 
+    Optional<Country> findByName(String name);
+
     Country getReferenceById(Long id);
 
     Country save(Country country);

@@ -25,6 +25,11 @@ public class CountryServiceImpl implements ICountryService {
     }
 
     @Override
+    public Optional<Country> findByName(String name) {
+        return countryRepository.findByName(name);
+    }
+
+    @Override
     public Country getReferenceById(Long id) {
         return countryRepository.getReferenceById(id);
     }

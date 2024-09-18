@@ -17,7 +17,7 @@ public class ResponseBuilderService {
      * @return a {@link ResponseEntity} with a 204 No Content status and
      *  a Location header set to the self link of the entity
      */
-    public ResponseEntity<?> buildNoContentResponseWithLocation(EntityModel<?> entityModel) {
+    public <T> ResponseEntity<T> buildNoContentResponseWithLocation(EntityModel<?> entityModel) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Location",entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri().toString());
 

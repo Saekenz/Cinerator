@@ -154,7 +154,7 @@ public class CastInfoController {
         EntityModel<CastInfoDTO> updatedCastInfo =  castInfoDTOModelAssembler
                 .toModel(castInfoMapper.toDTO(castInfoService.save(existingCastInfo)));
 
-        return responseBuilderService.buildCreatedResponseWithBody(updatedCastInfo);
+        return responseBuilderService.buildNoContentResponseWithLocation(updatedCastInfo);
     }
 
     /**

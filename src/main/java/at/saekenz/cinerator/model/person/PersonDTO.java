@@ -1,6 +1,8 @@
 package at.saekenz.cinerator.model.person;
 
 import java.time.LocalDate;
+import java.time.Period;
+import java.util.Objects;
 
 public class PersonDTO {
 
@@ -8,6 +10,7 @@ public class PersonDTO {
     private String name;
     private LocalDate birthDate;
     private LocalDate deathDate;
+    private int age;
     private String birthCountry;
 
     public PersonDTO() {}
@@ -19,6 +22,7 @@ public class PersonDTO {
         this.name = name;
         this.birthDate = birthDate;
         this.deathDate = deathDate;
+        calculateAge();
         this.birthCountry = birthCountry;
     }
 
@@ -52,6 +56,14 @@ public class PersonDTO {
 
     public void setDeathDate(LocalDate deathDate) {
         this.deathDate = deathDate;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    private void calculateAge() {
+        this.age = Period.between(birthDate, Objects.requireNonNullElseGet(deathDate, LocalDate::now)).getYears();
     }
 
     public String getBirthCountry() {
