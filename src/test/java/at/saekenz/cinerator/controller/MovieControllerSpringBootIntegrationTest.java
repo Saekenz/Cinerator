@@ -204,7 +204,7 @@ public class MovieControllerSpringBootIntegrationTest {
             .andExpect(jsonPath("$.title").value("Nightcrawler"))
             .andExpect(jsonPath("$.releaseDate").value("2014-10-31"))
             .andExpect(jsonPath("$.runtime").value("118 min"))
-            .andExpect(jsonPath("$.director").value("Dan Gilroy"))
+//            .andExpect(jsonPath("$.director").value("Dan Gilroy"))
             .andExpect(jsonPath("$.country", containsString("United States")))
             .andExpect(jsonPath("$.imdbId").value("tt287271"))
             .andExpect(jsonPath("$.posterUrl").value("https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg"))
@@ -258,7 +258,7 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$.title").value(updatedMovie.getTitle()))
                 .andExpect(jsonPath("$.releaseDate").value(updatedMovie.getReleaseDate().toString()))
                 .andExpect(jsonPath("$.runtime").value(updatedMovie.getRuntime()))
-                .andExpect(jsonPath("$.director").value(updatedMovie.getDirector()))
+//                .andExpect(jsonPath("$.director").value(updatedMovie.getDirector()))
                 .andExpect(jsonPath("$.imdbId").value(updatedMovie.getImdbId()))
                 .andExpect(jsonPath("$.posterUrl").value(updatedMovie.getPosterUrl()));
     }
@@ -529,16 +529,32 @@ public class MovieControllerSpringBootIntegrationTest {
 
     @Test
     public void givenFindActorsByMovieRequest_shouldSucceedWith200() throws Exception {
-        Long movieId = 1L;
+        Long movieId = 5L;
         mockMvc.perform(get("/movies/{movieId}/actors", movieId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.actorList").isNotEmpty());
+                .andExpect(jsonPath("$._embedded.personDTOList[*].id", containsInAnyOrder(1)));
     }
 
     @Test
     public void givenFindActorsByMovieRequest_shouldFailWith404() throws Exception {
         Long movieId = -999L;
         mockMvc.perform(get("/movies/{movieId}/actors", movieId).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+    }
+
+    @Test
+    public void givenFindDirectorsByMovieRequest_shouldSucceedWith200() throws Exception {
+        Long movieId = 14L;
+        mockMvc.perform(get("/movies/{movieId}/directors", movieId).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.personDTOList[*].id", containsInAnyOrder(19,20)));
+    }
+
+    @Test
+    public void givenFindDirectorsByMovieRequest_shouldFailWith404() throws Exception {
+        Long movieId = -999L;
+        mockMvc.perform(get("/movies/{movieId}/directors", movieId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
     }

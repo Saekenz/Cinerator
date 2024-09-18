@@ -1,30 +1,34 @@
 package at.saekenz.cinerator.model.castinfo;
 
+import at.saekenz.cinerator.model.movie.MovieDTO;
+import at.saekenz.cinerator.model.person.PersonDTO;
+import at.saekenz.cinerator.model.role.RoleDTO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class CastInfoDTO {
 
     private Long id;
-    private Long movieId;
-    private Long personId;
-    private Long roleId;
+    private MovieDTO movieDTO;
+    private PersonDTO personDTO;
+    private RoleDTO roleDTO;
     private String characterName;
 
     public CastInfoDTO() {}
 
-    // TODO -> change ids to be Strings with names instead?
-    public CastInfoDTO(Long id, Long movieId,
-                       Long personId, Long roleId) {
+    public CastInfoDTO(Long id, MovieDTO movieDTO,
+                       PersonDTO personDTO, RoleDTO roleDTO) {
         this.id = id;
-        this.movieId = movieId;
-        this.personId = personId;
-        this.roleId = roleId;
+        this.movieDTO = movieDTO;
+        this.personDTO = personDTO;
+        this.roleDTO = roleDTO;
     }
 
-    public CastInfoDTO(Long id, Long movieId, Long personId,
-                       Long roleId, String characterName) {
+    public CastInfoDTO(Long id, MovieDTO movieDTO, PersonDTO personDTO,
+                       RoleDTO roleDTO, String characterName) {
         this.id = id;
-        this.movieId = movieId;
-        this.personId = personId;
-        this.roleId = roleId;
+        this.movieDTO = movieDTO;
+        this.personDTO = personDTO;
+        this.roleDTO = roleDTO;
         this.characterName = characterName;
     }
 
@@ -36,28 +40,43 @@ public class CastInfoDTO {
         this.id = id;
     }
 
+    public MovieDTO getMovieDTO() {
+        return movieDTO;
+    }
+
+    public void setMovieDTO(MovieDTO movieDTO) {
+        this.movieDTO = movieDTO;
+    }
+
+    @JsonIgnore
     public Long getMovieId() {
-        return movieId;
+        return movieDTO.getId();
     }
 
-    public void setMovieId(Long movieId) {
-        this.movieId = movieId;
+    public PersonDTO getPersonDTO() {
+        return personDTO;
     }
 
+    public void setPersonDTO(PersonDTO personDTO) {
+        this.personDTO = personDTO;
+    }
+
+    @JsonIgnore
     public Long getPersonId() {
-        return personId;
+        return personDTO.getId();
     }
 
-    public void setPersonId(Long personId) {
-        this.personId = personId;
+    public RoleDTO getRoleDTO() {
+        return roleDTO;
     }
 
+    public void setRoleDTO(RoleDTO roleDTO) {
+        this.roleDTO = roleDTO;
+    }
+
+    @JsonIgnore
     public Long getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(Long roleId) {
-        this.roleId = roleId;
+        return roleDTO.id();
     }
 
     public String getCharacterName() {

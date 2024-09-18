@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.model.movie;
 
+import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.util.EntityMapper;
@@ -15,12 +16,21 @@ public class MovieMapper implements EntityMapper<Movie, MovieDTO> {
         MovieDTO movieDTO = new MovieDTO();
         String genres = "";
         String countries = "";
+        String directors = "";
 
         movieDTO.setId(movie.getId());
         movieDTO.setTitle(movie.getTitle());
         movieDTO.setReleaseDate(movie.getReleaseDate());
         movieDTO.setRuntime(movie.getRuntime());
-        movieDTO.setDirector(movie.getDirector());
+
+        if (movie.getCastInfos() != null) {
+            directors = movie.getCastInfos().stream()
+                    .filter(c -> c.getRole().getRole().equals("Director"))
+                    .map(CastInfo::getPersonName)
+                    .collect(Collectors.joining(", "));
+        }
+
+        movieDTO.setDirector(directors);
 
         if (movie.getGenres() != null) {
             genres = movie.getGenres().stream()

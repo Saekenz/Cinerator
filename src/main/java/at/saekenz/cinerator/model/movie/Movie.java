@@ -167,6 +167,10 @@ public class Movie {
 
     public void setUserlist(List<UserList> userlist) { this.userlist = userlist; }
 
+    public Set<CastInfo> getCastInfos() { return castInfos; }
+
+    public void setCastInfos(Set<CastInfo> castInfos) { this.castInfos = castInfos; }
+
     @Override
     public String toString() {
         return "Movie{" +

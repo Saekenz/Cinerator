@@ -3,6 +3,7 @@ package at.saekenz.cinerator.controller;
 import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.actor.ActorModelAssembler;
 import at.saekenz.cinerator.model.actor.ActorNotFoundException;
+import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.country.CountryDTO;
 import at.saekenz.cinerator.model.country.CountryDTOModelAssembler;
@@ -11,6 +12,10 @@ import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.model.genre.GenreDTOModelAssembler;
 import at.saekenz.cinerator.model.genre.GenreMapper;
 import at.saekenz.cinerator.model.movie.*;
+import at.saekenz.cinerator.model.person.Person;
+import at.saekenz.cinerator.model.person.PersonDTO;
+import at.saekenz.cinerator.model.person.PersonDTOModelAssembler;
+import at.saekenz.cinerator.model.person.PersonMapper;
 import at.saekenz.cinerator.model.review.*;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserNotFoundException;
@@ -65,6 +70,9 @@ public class MovieController {
     CountryMapper countryMapper;
 
     @Autowired
+    PersonMapper personMapper;
+
+    @Autowired
     ResponseBuilderService responseBuilderService;
 
     @Autowired
@@ -75,6 +83,7 @@ public class MovieController {
     private final ReviewModelAssembler reviewAssembler;
     private final GenreDTOModelAssembler genreDTOAssembler;
     private final CountryDTOModelAssembler countryDTOAssembler;
+    private final PersonDTOModelAssembler personDTOAssembler;
 
     // Workaround since using the @Autowired annotation causes Intellij to report an error
     private final PagedResourcesAssembler<MovieDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
@@ -82,12 +91,13 @@ public class MovieController {
 
     public MovieController(MovieDTOModelAssembler movieDTOAssembler, ReviewModelAssembler reviewAssembler,
                            ActorModelAssembler actorAssembler, GenreDTOModelAssembler genreDTOAssembler,
-                           CountryDTOModelAssembler countryDTOAssembler) {
+                           CountryDTOModelAssembler countryDTOAssembler, PersonDTOModelAssembler personDTOAssembler) {
         this.movieDTOAssembler = movieDTOAssembler;
         this.reviewAssembler = reviewAssembler;
         this.actorAssembler = actorAssembler;
         this.genreDTOAssembler = genreDTOAssembler;
         this.countryDTOAssembler = countryDTOAssembler;
+        this.personDTOAssembler = personDTOAssembler;
     }
 
     /**
@@ -388,26 +398,49 @@ public class MovieController {
         }
     }
 
-// ---------------------------------------- ACTORS --------------------------------------------------------------------
+// ---------------------------------------- CAST/CREW --------------------------------------------------------------------
 
     /**
      *
      * @param id number of the {@link Movie} for which all actors shall be retrieved
-     * @return list of all {@link Actor} objects associated with the given {@link Movie}
+     * @return list of all {@link Person} objects that have role "Actor" for the given {@link Movie}
      */
     @GetMapping("/{id}/actors")
-    public ResponseEntity<CollectionModel<EntityModel<Actor>>> findActorsByMovie(@PathVariable Long id) {
+    public ResponseEntity<CollectionModel<EntityModel<PersonDTO>>> findActorsByMovie(@PathVariable Long id) {
         Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
-        List<Actor> actors = movie.getActors();
-
-        if (actors.isEmpty()) { return ResponseEntity.ok().build(); }
-
-        List<EntityModel<Actor>> actorModels = actors.stream()
-                .map(actorAssembler::toModel)
+        Set<CastInfo> castAndCrew = movie.getCastInfos();
+        List<Person> actorsInMovie = castAndCrew.stream()
+                .filter(c -> c.getRoleName().equals("Actor"))
+                .map(CastInfo::getPerson)
                 .toList();
 
-        CollectionModel<EntityModel<Actor>> collectionModel = CollectionModel.of(actorModels,
-                linkTo(methodOn(MovieController.class).findActorsByMovie(id)).withSelfRel());
+        if (actorsInMovie.isEmpty()) { return ResponseEntity.ok().build(); }
+
+        CollectionModel<EntityModel<PersonDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(actorsInMovie, personMapper, personDTOAssembler,
+                        linkTo(methodOn(MovieController.class).findActorsByMovie(id)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    /**
+     *
+     * @param id number of the {@link Movie} for which all actors shall be retrieved
+     * @return list of all {@link Person} objects that have role "Director" for the given {@link Movie}
+     */
+    @GetMapping("/{id}/directors")
+    public ResponseEntity<CollectionModel<EntityModel<PersonDTO>>> findDirectorsByMovie(@PathVariable Long id) {
+        Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
+        List<Person> directorsInMovie = movie.getCastInfos().stream()
+                .filter(c -> c.getRoleName().equals("Director"))
+                .map(CastInfo::getPerson)
+                .toList();
+
+        if (directorsInMovie.isEmpty()) { return ResponseEntity.ok().build(); }
+
+        CollectionModel<EntityModel<PersonDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(directorsInMovie, personMapper, personDTOAssembler,
+                        linkTo(methodOn(MovieController.class).findActorsByMovie(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }

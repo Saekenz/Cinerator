@@ -79,6 +79,18 @@ public class CastInfo {
         return characterName;
     }
 
+    public String getPersonName() {
+        return (person != null && person.getName() != null) ? person.getName() : "";
+    }
+
+    public String getRoleName() {
+        return (role != null && role.getRole() != null) ? role.getRole() : "";
+    }
+
+    public String getMovieName() {
+        return (movie != null && movie.getTitle() != null) ? movie.getTitle() : "";
+    }
+
     public void setCharacterName(String characterName) {
         this.characterName = characterName;
     }

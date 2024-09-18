@@ -61,7 +61,7 @@ public class TestDataLoader {
                     new Genre("News"),
                     new Genre("Reality-TV"),
                     new Genre("Romance"),
-                    new Genre("Sci-Fi"),
+                    new Genre("Science Fiction"),
                     new Genre("Sport"),
                     new Genre("Talk-Show"),
                     new Genre("Thriller"),
@@ -174,7 +174,12 @@ public class TestDataLoader {
                     new Person("Dan Gilroy", LocalDate.of(1959, 6, 24),
                             null, countries.get(0)),
                     new Person("Jake Gyllenhaal", LocalDate.of(1980,12,19),
+                            null, countries.get(0)),
+                    new Person("Lilly Wachowski", LocalDate.of(1967,12,29),
+                            null, countries.get(0)),
+                    new Person("Lana Wachowski", LocalDate.of(1965,6,21),
                             null, countries.get(0))
+
             );
 
             personRepository.saveAll(persons);
@@ -233,6 +238,9 @@ public class TestDataLoader {
                             List.of()),
                     createMovie("La La Land", "Damien Chazelle", LocalDate.of(2016,12,9),"129 min",
                             "tt3783958","https://upload.wikimedia.org/wikipedia/en/a/ab/La_La_Land_%28film%29.png",
+                            List.of()),
+                    createMovie("The Matrix","", LocalDate.of(1999,3,31), "136 min",
+                            "tt0133093", "https://upload.wikimedia.org/wikipedia/en/c/c1/The_Matrix_Poster.jpg",
                             List.of())
             );
 
@@ -244,6 +252,7 @@ public class TestDataLoader {
             movies.get(2).setGenres(Set.copyOf(genres.subList(3,5)));
             movies.get(3).setGenres(Set.copyOf(genres.subList(6,8)));
             movies.get(4).setGenres(Set.copyOf(genres.subList(7,10)));
+            movies.get(13).setGenres(Set.of(genres.get(0), genres.get(20)));
 
             movies.get(0).setCountries(Set.of(countries.get(0), countries.get(2), countries.get(3)));
             movies.get(1).setCountries(Set.of(countries.get(0), countries.get(4)));
@@ -258,6 +267,7 @@ public class TestDataLoader {
             movies.get(10).setCountries(Set.of(countries.get(0)));
             movies.get(11).setCountries(Set.of(countries.get(0), countries.get(6)));
             movies.get(12).setCountries(Set.of(countries.get(0), countries.get(3)));
+            movies.get(13).setCountries(Set.of(countries.get(0), countries.get(11)));
 
             movieRepository.saveAll(movies).forEach(movie -> log.info("Created new movie: {}", movie));
         };
@@ -403,7 +413,9 @@ public class TestDataLoader {
                     new CastInfo(movies.get(9), persons.get(13), roles.get(1)),
                     new CastInfo(movies.get(10), persons.get(14), roles.get(1)),
                     new CastInfo(movies.get(11), persons.get(8), roles.get(1)),
-                    new CastInfo(movies.get(12), persons.get(15), roles.get(1))
+                    new CastInfo(movies.get(12), persons.get(15), roles.get(1)),
+                    new CastInfo(movies.get(13), persons.get(18), roles.get(1)),
+                    new CastInfo(movies.get(13), persons.get(19), roles.get(1))
             );
 
             // Batch insert all cast/crew infos
