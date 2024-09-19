@@ -41,9 +41,9 @@ public class PersonServiceImpl implements IPersonService {
     }
 
     @Override
-    public List<Person> findPersonsBySearchParams(String name, LocalDate birthDate,
-                                                  LocalDate deathDate, String height) {
-        return personRepository.findPersonsBySearchParams(name, birthDate, deathDate, height);
+    public List<Person> findPersonsBySearchParams(String name, LocalDate birthDate, LocalDate deathDate,
+                                                  String height, String country, Integer age) {
+        return personRepository.findPersonsBySearchParams(name, birthDate, deathDate, height, country, age);
     }
 
 

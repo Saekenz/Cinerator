@@ -189,6 +189,8 @@ public class PersonController {
      * @param birthDate birthday of the searched for person(s)
      * @param deathDate date of death of the searched for person(s)
      * @param height height of the searched for person(s)
+     * @param country country of birth of the searched for person(s)
+     * @param age age of the searched for person(s)
      * @return ResponseEntity containing a 200 Ok status and a collection of the found
      * {@link Person} resources.
      */
@@ -197,16 +199,19 @@ public class PersonController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) LocalDate birthDate,
             @RequestParam(required = false) LocalDate deathDate,
-            @RequestParam(required = false) String height) {
+            @RequestParam(required = false) String height,
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) Integer age) {
 
-        List<Person> foundPersons = personService.findPersonsBySearchParams(name,birthDate,deathDate,height);
+        List<Person> foundPersons = personService.findPersonsBySearchParams(name, birthDate, deathDate,
+                height, country, age);
 
         if (foundPersons.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
         CollectionModel<EntityModel<PersonDTO>> collectionModel = collectionModelBuilderService
                 .createCollectionModelFromList(foundPersons, personMapper, personDTOModelAssembler,
-                        linkTo(methodOn(PersonController.class).searchPersons(name,birthDate,deathDate,height))
-                                .withSelfRel());
+                        linkTo(methodOn(PersonController.class).searchPersons(name,birthDate,deathDate,height,
+                                country, age)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }

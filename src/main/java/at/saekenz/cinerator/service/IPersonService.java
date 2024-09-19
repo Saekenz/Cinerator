@@ -18,5 +18,6 @@ public interface IPersonService {
 
     void deleteById(Long id);
 
-    List<Person> findPersonsBySearchParams(String name, LocalDate birthDate, LocalDate deathDate, String height);
+    List<Person> findPersonsBySearchParams(String name, LocalDate birthDate, LocalDate deathDate, String height,
+                                           String country, Integer age);
 }
