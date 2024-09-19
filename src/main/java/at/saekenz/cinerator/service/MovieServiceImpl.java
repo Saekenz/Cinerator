@@ -54,11 +54,6 @@ public class MovieServiceImpl implements IMovieService{
     }
 
     @Override
-    public List<Movie> findByDirector(String director) {
-        return movieRepository.findByDirector(director);
-    }
-
-    @Override
     public List<Movie> findByCountry(String country) {
         return movieRepository.findByCountries_Name(country);
     }

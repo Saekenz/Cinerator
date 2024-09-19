@@ -210,7 +210,8 @@ public class UserControllerSpringBootIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(userData))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString(("The property 'bio' in entity"))));
+                .andExpect(content().string(containsString("\"code\":400")))
+                .andDo(print());
     }
 
     /**

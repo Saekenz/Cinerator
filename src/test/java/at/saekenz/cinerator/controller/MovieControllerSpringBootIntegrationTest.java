@@ -110,24 +110,6 @@ public class MovieControllerSpringBootIntegrationTest {
 
     @WithMockUser("test-user")
     @Test
-    public void givenFindMoviesByDirectorRequest_shouldSucceedWith200() throws Exception {
-        String director = "Christopher Nolan";
-        mockMvc.perform(get("/movies/director/{director}", director).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.movieDTOList[*].director", everyItem(equalToIgnoringCase(director))));
-    }
-
-    @WithMockUser("test-user")
-    @Test
-    public void givenFindMoviesByDirectorRequest_shouldFailWith404() throws Exception {
-        String director = "Nolan North"; // not a director
-        mockMvc.perform(get("/movies/director/{director}", director).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("director: %s", director))));
-    }
-
-    @WithMockUser("test-user")
-    @Test
     public void givenFindMoviesByCountryRequest_shouldSucceedWith200() throws Exception {
         String country = "France";
         mockMvc.perform(get("/movies/country/{country}", country).contentType(MediaType.APPLICATION_JSON))
@@ -175,7 +157,7 @@ public class MovieControllerSpringBootIntegrationTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenCreateNewMovieRequest_shouldSucceedWith201() throws Exception {
-        Movie movie = new Movie("Nightcrawler", "Dan Gilroy", LocalDate.of(2014,10,31),
+        Movie movie = new Movie("Nightcrawler", LocalDate.of(2014,10,31),
                 "118 min", "tt287271",
                 "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg");
 
@@ -222,7 +204,6 @@ public class MovieControllerSpringBootIntegrationTest {
                 {
                   "title": "Nightcrawler",
                   "releaseDate": "2014-10-31",
-                  "runtime": "118 min",
                   "genre": "Thriller",
                   "country": "United States",
                   "imdbId": "tt287271",
@@ -232,7 +213,7 @@ public class MovieControllerSpringBootIntegrationTest {
 
         mockMvc.perform(post("/movies").contentType(MediaType.APPLICATION_JSON).content(movieJsonData))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString(("The property 'director' in entity"))));
+                .andExpect(content().string(containsString("\"description\":\"Error caused by: runtime\\\" of relation \\\"movies\"")));
     }
 
     /**
@@ -244,7 +225,7 @@ public class MovieControllerSpringBootIntegrationTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateMovieRequest_shouldSucceedWith201() throws Exception {
-        Movie updatedMovie = new Movie("The Shawshank Redemption","Frank Darabont", LocalDate.of(1994, 9, 23),
+        Movie updatedMovie = new Movie("The Shawshank Redemption", LocalDate.of(1994, 9, 23),
                 "142 min", "tt0111161",
                 "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg");
 
@@ -258,7 +239,6 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$.title").value(updatedMovie.getTitle()))
                 .andExpect(jsonPath("$.releaseDate").value(updatedMovie.getReleaseDate().toString()))
                 .andExpect(jsonPath("$.runtime").value(updatedMovie.getRuntime()))
-//                .andExpect(jsonPath("$.director").value(updatedMovie.getDirector()))
                 .andExpect(jsonPath("$.imdbId").value(updatedMovie.getImdbId()))
                 .andExpect(jsonPath("$.posterUrl").value(updatedMovie.getPosterUrl()));
     }
@@ -272,7 +252,7 @@ public class MovieControllerSpringBootIntegrationTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateMovieRequest_shouldSucceedWith204() throws Exception {
-        Movie updatedMovie = new Movie("The Shawshank Redemption","Frank Darabont", LocalDate.of(1994, 9, 23),
+        Movie updatedMovie = new Movie("The Shawshank Redemption", LocalDate.of(1994, 9, 23),
                 "142 min", "tt0111161",
                 "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg");
 

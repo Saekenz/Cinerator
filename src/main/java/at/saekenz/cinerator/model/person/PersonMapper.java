@@ -1,10 +1,15 @@
 package at.saekenz.cinerator.model.person;
 
+import at.saekenz.cinerator.model.country.CountryMapper;
 import at.saekenz.cinerator.util.EntityMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PersonMapper implements EntityMapper<Person, PersonDTO> {
+
+    @Autowired
+    CountryMapper countryMapper;
 
     @Override
     public PersonDTO toDTO(Person person) {
@@ -12,7 +17,7 @@ public class PersonMapper implements EntityMapper<Person, PersonDTO> {
                 person.getName(),
                 person.getBirthDate(),
                 person.getDeathDate(),
-                person.getBirthCountry().getName());
+                countryMapper.toDTO(person.getBirthCountry()));
     }
 
     public Person toPerson(PersonDTO personDTO) {

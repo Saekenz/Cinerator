@@ -34,10 +34,6 @@ public class Movie {
     @Column(nullable = false)
     private String runtime;
 
-    // TODO -> swap to Person?
-    @Column(nullable = false)
-    private String director;
-
     @Column(nullable = false)
     private String imdbId;
 
@@ -87,10 +83,9 @@ public class Movie {
 
     }
 
-    public Movie(String title, String director, LocalDate releaseDate, String runtime,
+    public Movie(String title, LocalDate releaseDate, String runtime,
                  String imdbId, String posterUrl) {
         this.title = title;
-        this.director = director;
         this.releaseDate = releaseDate;
         this.runtime = runtime;
         this.imdbId = imdbId;
@@ -126,10 +121,6 @@ public class Movie {
     public String getRuntime() { return runtime; }
 
     public void setRuntime(String runtime) { this.runtime = runtime; }
-
-    public String getDirector() { return director; }
-
-    public void setDirector(String director) { this.director = director; }
 
     public String getImdbId() { return imdbId; }
 
@@ -178,7 +169,6 @@ public class Movie {
                 ", title='" + title + '\'' +
                 ", releaseDate=" + releaseDate +
                 ", runtime=" + runtime +
-                ", director='" + director + '\'' +
                 ", imdbId='" + imdbId + '\'' +
                 ", posterUrl='" + posterUrl + '\'' +
                 '}';

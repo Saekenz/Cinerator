@@ -200,46 +200,46 @@ public class TestDataLoader {
             if (actors.size() < 5) { throw new ActorNotFoundException(); }
 
             List<Movie> movies = List.of(
-                    createMovie("Sicario", "Denis Villeneuve", LocalDate.of(2015,10,1), "122 min",
+                    createMovie("Sicario", LocalDate.of(2015,10,1), "122 min",
                         "tt3397884","https://upload.wikimedia.org/wikipedia/en/4/4b/Sicario_poster.jpg",
                         List.of(actors.get(0), actors.get(1), actors.get(2), actors.get(3))),
-                    createMovie("Dune: Part Two", "Denis Villeneuve", LocalDate.of(2024,3,1), "167 min",
+                    createMovie("Dune: Part Two", LocalDate.of(2024,3,1), "167 min",
                             "tt15239678","https://upload.wikimedia.org/wikipedia/en/5/52/Dune_Part_Two_poster.jpeg",
                             List.of(actors.get(1), actors.get(2), actors.get(4))),
-                    createMovie("Good Will Hunting", "Gus Van Sant", LocalDate.of(1998,9,1), "127 min",
+                    createMovie("Good Will Hunting", LocalDate.of(1998,9,1), "127 min",
                             "tt0119217","https://upload.wikimedia.org/wikipedia/en/5/52/Good_Will_Hunting.png",
                             List.of()),
-                    createMovie("Three Colors: Red", "Krzysztof Kieslowski", LocalDate.of(1994,11,23), "100 min",
+                    createMovie("Three Colors: Red", LocalDate.of(1994,11,23), "100 min",
                             "tt0111495","https://upload.wikimedia.org/wikipedia/en/0/0a/Three_Colors-Red.jpg",
                             List.of()),
-                    createMovie("Inception", "Christopher Nolan", LocalDate.of(2010,7,16), "148 min",
+                    createMovie("Inception", LocalDate.of(2010,7,16), "148 min",
                             "tt1375666","https://upload.wikimedia.org/wikipedia/en/2/2e/Inception_%282010%29_theatrical_poster.jpg",
                             List.of()),
-                    createMovie("Parasite", "Bong Joon Ho", LocalDate.of(2019,5,30), "133 min",
+                    createMovie("Parasite", LocalDate.of(2019,5,30), "133 min",
                             "tt6751668","https://upload.wikimedia.org/wikipedia/en/5/53/Parasite_%282019_film%29.png",
                             List.of()),
-                    createMovie("The Grand Budapest Hotel", "Wes Anderson", LocalDate.of(2014,3,28), "100 min",
+                    createMovie("The Grand Budapest Hotel", LocalDate.of(2014,3,28), "100 min",
                             "tt2278388","https://upload.wikimedia.org/wikipedia/en/1/1c/The_Grand_Budapest_Hotel.png",
                             List.of()),
-                    createMovie("Spirited Away", "Hayao Miyazaki", LocalDate.of(2001,7,20), "125 min",
+                    createMovie("Spirited Away", LocalDate.of(2001,7,20), "125 min",
                             "tt0245429","https://upload.wikimedia.org/wikipedia/en/d/db/Spirited_Away_Japanese_poster.png",
                             List.of()),
-                    createMovie("The Godfather", "Francis Ford Coppola", LocalDate.of(1972,3,24), "175 min",
+                    createMovie("The Godfather", LocalDate.of(1972,3,24), "175 min",
                             "tt0068646","https://upload.wikimedia.org/wikipedia/en/1/1c/Godfather_ver1.jpg",
                             List.of()),
-                    createMovie("Amélie", "Jean-Pierre Jeunet", LocalDate.of(2001,4,25), "122 min",
+                    createMovie("Amélie", LocalDate.of(2001,4,25), "122 min",
                             "tt0211915","https://upload.wikimedia.org/wikipedia/en/5/53/Amelie_poster.jpg",
                             List.of()),
-                    createMovie("Pulp Fiction", "Quentin Tarantino", LocalDate.of(1994,10,14),"154 min",
+                    createMovie("Pulp Fiction", LocalDate.of(1994,10,14),"154 min",
                             "tt0110912","https://upload.wikimedia.org/wikipedia/en/3/3b/Pulp_Fiction_%281994%29_poster.jpg",
                             List.of()),
-                    createMovie("The Dark Knight", "Christopher Nolan", LocalDate.of(2008,7,18),"152 min",
+                    createMovie("The Dark Knight", LocalDate.of(2008,7,18),"152 min",
                             "tt0468569","https://upload.wikimedia.org/wikipedia/en/1/1c/The_Dark_Knight_%282008_film%29.jpg",
                             List.of()),
-                    createMovie("La La Land", "Damien Chazelle", LocalDate.of(2016,12,9),"129 min",
+                    createMovie("La La Land", LocalDate.of(2016,12,9),"129 min",
                             "tt3783958","https://upload.wikimedia.org/wikipedia/en/a/ab/La_La_Land_%28film%29.png",
                             List.of()),
-                    createMovie("The Matrix","", LocalDate.of(1999,3,31), "136 min",
+                    createMovie("The Matrix", LocalDate.of(1999,3,31), "136 min",
                             "tt0133093", "https://upload.wikimedia.org/wikipedia/en/c/c1/The_Matrix_Poster.jpg",
                             List.of())
             );
@@ -423,9 +423,9 @@ public class TestDataLoader {
         };
     }
 
-    private Movie createMovie(String title, String director, LocalDate releaseDate, String duration,
+    private Movie createMovie(String title, LocalDate releaseDate, String duration,
                               String imdbId, String posterUrl, List<Actor> actors) {
-        Movie movie = new Movie(title, director, releaseDate, duration, imdbId, posterUrl);
+        Movie movie = new Movie(title, releaseDate, duration, imdbId, posterUrl);
         movie.setActors(actors);
         return movie;
     }

@@ -157,7 +157,7 @@ public class ActorControllerSpringBootIntegrationTest {
 
         mockMvc.perform(post("/actors").contentType(MediaType.APPLICATION_JSON).content(actorJsonData))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString(("The property 'birthDate' in entity"))));
+                .andExpect(content().string(containsString("\"description\":\"birth_date\\\" of relation \\\"actors\"")));
     }
 
     /**

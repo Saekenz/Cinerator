@@ -22,8 +22,6 @@ public interface IMovieService {
 
     List<Movie> findByGenre(String genre);
 
-    List<Movie> findByDirector(String director);
-
     List<Movie> findByCountry(String country);
 
     List<Movie> findByYear(int year);

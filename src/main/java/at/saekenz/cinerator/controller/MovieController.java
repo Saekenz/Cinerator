@@ -134,15 +134,6 @@ public class MovieController {
      */
     @PostMapping()
     public ResponseEntity<?> createMovie(@RequestBody Movie newMovie) {
-//        Set<Genre> genres = newMovie.getGenres();
-//        if (genres != null && !genres.isEmpty()) {
-//            Set<Genre> attachedGenres = genres.stream()
-//                    .map(genre -> genreService.findById(genre.getId())
-//                            .orElseThrow(() -> new ObjectNotFoundException(genre.getId(), "Genre")))
-//                    .collect(Collectors.toSet());
-//            newMovie.setGenres(attachedGenres);
-//        }
-
         EntityModel<MovieDTO> entityModel = movieDTOAssembler
                 .toModel(movieMapper.toDTO(movieService.save(newMovie)));
 
@@ -162,7 +153,6 @@ public class MovieController {
         Movie updatedMovie = existingMovie.map(
                         movie -> {
                             movie.setTitle(newMovie.getTitle());
-                            movie.setDirector(newMovie.getDirector());
                             movie.setReleaseDate(newMovie.getReleaseDate());
                             movie.setRuntime(newMovie.getRuntime());
 //                            movie.setGenres(newMovie.getGenres());
@@ -214,24 +204,6 @@ public class MovieController {
         CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
                 .createCollectionModelFromList(movies,
                         linkTo(methodOn(MovieController.class).findByTitle(title)).withSelfRel());
-
-        return ResponseEntity.ok(collectionModel);
-    }
-
-    /**
-     *
-     * @param director person that directed searched for {@link Movie} objects
-     * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
-     */
-    @GetMapping("/director/{director}")
-    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findByDirector(@PathVariable String director) {
-        List<Movie> movies = movieService.findByDirector(director);
-
-        if (movies.isEmpty()) { throw new MovieNotFoundException(EMovieSearchParam.DIRECTOR, director); }
-
-        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
-                .createCollectionModelFromList(movies,
-                        linkTo(methodOn(MovieController.class).findByDirector(director)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }

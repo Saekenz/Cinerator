@@ -14,9 +14,6 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     List<Movie> findByCountries_Name(@Param("country") String country);
 
-    @Query("SELECT m FROM Movie m WHERE LOWER(m.director) = LOWER(:director)")
-    List<Movie> findByDirector(@Param("director") String director);
-
     @Query("SELECT m FROM Movie m WHERE LOWER(m.title) = LOWER(:title)")
     List<Movie> findByTitle(@Param("title") String title);
 

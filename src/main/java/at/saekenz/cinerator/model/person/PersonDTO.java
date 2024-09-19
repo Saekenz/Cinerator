@@ -1,5 +1,13 @@
 package at.saekenz.cinerator.model.person;
 
+import at.saekenz.cinerator.model.country.CountryDTO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
+
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Objects;
@@ -7,17 +15,28 @@ import java.util.Objects;
 public class PersonDTO {
 
     private Long id;
+
+    @NotBlank(message = "A valid (full) name is required.")
     private String name;
+
+    @NotNull(message = "The date of birth is required.")
+    @Past(message = "The date of birth has to be in the past.")
     private LocalDate birthDate;
+
+    @PastOrPresent(message = "The date of death has to be today or in the past.")
     private LocalDate deathDate;
+
     private int age;
-    private String birthCountry;
+
+    @Valid
+    @NotNull(message = "The country of birth is required.")
+    private CountryDTO birthCountry;
 
     public PersonDTO() {}
 
     public PersonDTO(Long id, String name,
                      LocalDate birthDate, LocalDate deathDate,
-                     String birthCountry) {
+                     CountryDTO birthCountry) {
         this.id = id;
         this.name = name;
         this.birthDate = birthDate;
@@ -66,11 +85,16 @@ public class PersonDTO {
         this.age = Period.between(birthDate, Objects.requireNonNullElseGet(deathDate, LocalDate::now)).getYears();
     }
 
-    public String getBirthCountry() {
+    public CountryDTO getBirthCountry() {
         return birthCountry;
     }
 
-    public void setBirthCountry(String birthCountry) {
+    public void setBirthCountry(CountryDTO birthCountry) {
         this.birthCountry = birthCountry;
+    }
+
+    @JsonIgnore
+    public String getBirthCountryName() {
+        return this.birthCountry.name();
     }
 }

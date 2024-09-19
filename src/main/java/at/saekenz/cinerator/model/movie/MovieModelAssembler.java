@@ -19,7 +19,6 @@ public class MovieModelAssembler implements RepresentationModelAssembler<Movie, 
                 linkTo(methodOn(MovieController.class).findActorsByMovie(movie.getId())).withRel("actors"),
                 linkTo(methodOn(MovieController.class).findGenresByMovie(movie.getId())).withRel("genres"),
                 linkTo(methodOn(MovieController.class).findCountriesByMovie(movie.getId())).withRel("countries"),
-                linkTo(methodOn(MovieController.class).findByDirector(movie.getDirector())).withRel("director"),
                 linkTo(methodOn(MovieController.class).findByYearReleased(movie.getReleaseYear())).withRel("year"),
                 linkTo(methodOn(MovieController.class).findAll()).withRel("movies"));
     }

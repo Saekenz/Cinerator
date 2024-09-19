@@ -9,13 +9,12 @@ import at.saekenz.cinerator.model.person.PersonMapper;
 import at.saekenz.cinerator.service.ICountryService;
 import at.saekenz.cinerator.service.IPersonService;
 import at.saekenz.cinerator.util.CollectionModelBuilderService;
-import at.saekenz.cinerator.util.ErrorResponse;
 import at.saekenz.cinerator.util.ResponseBuilderService;
+import jakarta.validation.Valid;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -93,16 +92,10 @@ public class PersonController {
      * @return ResponseEntity containing a 201 Created status and the created {@link Person}.
      */
     @PostMapping()
-    public ResponseEntity<?> createPerson(@RequestBody PersonDTO personDTO) {
-        if (personDTO == null || personDTO.getBirthCountry() == null) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(),
-                    "Insert of new person failed.", "The received DTO did not include a value" +
-                    " for every mandatory field!"));
-        }
-
+    public ResponseEntity<?> createPerson(@Valid @RequestBody PersonDTO personDTO) {
         Person newPerson = personMapper.toPerson(personDTO);
-        Country newPersonsCountry = countryService.findByName(personDTO.getBirthCountry())
-                .orElseThrow(() -> new CountryNotFoundException(personDTO.getBirthCountry()));
+        Country newPersonsCountry = countryService.findById(personDTO.getBirthCountry().id())
+                        .orElseThrow(() -> new CountryNotFoundException(personDTO.getBirthCountry().id()));
 
         newPerson.setBirthCountry(newPersonsCountry);
 

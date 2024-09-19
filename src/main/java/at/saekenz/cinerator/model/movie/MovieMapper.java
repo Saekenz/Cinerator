@@ -58,7 +58,6 @@ public class MovieMapper implements EntityMapper<Movie, MovieDTO> {
         movie.setTitle(movieDTO.getTitle());
         movie.setReleaseDate(movieDTO.getReleaseDate());
         movie.setRuntime(movieDTO.getRuntime());
-        movie.setDirector(movieDTO.getDirector());
         movie.setImdbId(movieDTO.getImdbId());
         movie.setPosterUrl(movieDTO.getPosterUrl());
         movie.setReviews(List.of());
