@@ -17,13 +17,15 @@ public class PersonMapper implements EntityMapper<Person, PersonDTO> {
                 person.getName(),
                 person.getBirthDate(),
                 person.getDeathDate(),
+                person.getHeight(),
                 countryMapper.toDTO(person.getBirthCountry()));
     }
 
     public Person toPerson(PersonDTO personDTO) {
         return new Person(personDTO.getName(),
                 personDTO.getBirthDate(),
-                personDTO.getDeathDate()
+                personDTO.getDeathDate(),
+                personDTO.getHeight()
                 );
     }
 }

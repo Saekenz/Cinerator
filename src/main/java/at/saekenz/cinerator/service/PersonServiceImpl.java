@@ -5,6 +5,7 @@ import at.saekenz.cinerator.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,4 +39,12 @@ public class PersonServiceImpl implements IPersonService {
     public void deleteById(Long id) {
         personRepository.deleteById(id);
     }
+
+    @Override
+    public List<Person> findPersonsBySearchParams(String name, LocalDate birthDate,
+                                                  LocalDate deathDate, String height) {
+        return personRepository.findPersonsBySearchParams(name, birthDate, deathDate, height);
+    }
+
+
 }

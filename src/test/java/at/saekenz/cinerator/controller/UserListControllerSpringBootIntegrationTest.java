@@ -62,7 +62,7 @@ public class UserListControllerSpringBootIntegrationTest {
      * @throws Exception if any errors occur the execution of the test.
      */
     @Test
-    public void givenFindUseListByIdRequest_shouldSucceedWith200() throws Exception {
+    public void givenFindUserListByIdRequest_shouldSucceedWith200() throws Exception {
         Long listId = 2L;
         mockMvc.perform(get("/lists/{listId}", listId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -157,7 +157,7 @@ public class UserListControllerSpringBootIntegrationTest {
     }
 
     /**
-     * Creates a PUT request which creates a {@link UserList} with {@code id = 99L}.
+     * Creates a PUT request which updates a {@link UserList} with {@code id = 99L}.
      * The API has to return a 404 Not Found status since the {@link User} contained in
      * the request does not exist in the database.
      *

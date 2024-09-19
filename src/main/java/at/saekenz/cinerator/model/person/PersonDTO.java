@@ -26,6 +26,9 @@ public class PersonDTO {
     @PastOrPresent(message = "The date of death has to be today or in the past.")
     private LocalDate deathDate;
 
+    @NotBlank(message = "A valid height is required.")
+    private String height;
+
     private int age;
 
     @Valid
@@ -35,12 +38,13 @@ public class PersonDTO {
     public PersonDTO() {}
 
     public PersonDTO(Long id, String name,
-                     LocalDate birthDate, LocalDate deathDate,
+                     LocalDate birthDate, LocalDate deathDate, String height,
                      CountryDTO birthCountry) {
         this.id = id;
         this.name = name;
         this.birthDate = birthDate;
         this.deathDate = deathDate;
+        this.height = height;
         calculateAge();
         this.birthCountry = birthCountry;
     }
@@ -75,6 +79,14 @@ public class PersonDTO {
 
     public void setDeathDate(LocalDate deathDate) {
         this.deathDate = deathDate;
+    }
+
+    public String getHeight() {
+        return height;
+    }
+
+    public void setHeight(@NotBlank(message = "A valid height is required.") String height) {
+        this.height = height;
     }
 
     public int getAge() {

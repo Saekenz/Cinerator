@@ -23,8 +23,11 @@ public class Person {
     @Column(nullable = false)
     private LocalDate birthDate;
 
-    @Column()
+    @Column
     private LocalDate deathDate;
+
+    @Column(nullable = false)
+    private String height;
 
     @ManyToOne
     @JoinColumn(name = "COU_ID")
@@ -37,16 +40,18 @@ public class Person {
 
     public Person() {}
 
-    public Person(String name, LocalDate birthDate, LocalDate deathDate) {
+    public Person(String name, LocalDate birthDate, LocalDate deathDate, String height) {
         this.name = name;
         this.birthDate = birthDate;
         this.deathDate = deathDate;
+        this.height = height;
     }
 
-    public Person(String name, LocalDate birthDate, LocalDate deathDate, Country birthCountry) {
+    public Person(String name, LocalDate birthDate, LocalDate deathDate, String height, Country birthCountry) {
         this.name = name;
         this.birthDate = birthDate;
         this.deathDate = deathDate;
+        this.height = height;
         this.birthCountry = birthCountry;
     }
 
@@ -82,11 +87,27 @@ public class Person {
         this.deathDate = deathDate;
     }
 
+    public String getHeight() {
+        return height;
+    }
+
+    public void setHeight(String height) {
+        this.height = height;
+    }
+
     public Country getBirthCountry() {
         return birthCountry;
     }
 
     public void setBirthCountry(Country birthCountry) {
         this.birthCountry = birthCountry;
+    }
+
+    public Set<CastInfo> getCastInfos() {
+        return castInfos;
+    }
+
+    public void setCastInfos(Set<CastInfo> castInfos) {
+        this.castInfos = castInfos;
     }
 }

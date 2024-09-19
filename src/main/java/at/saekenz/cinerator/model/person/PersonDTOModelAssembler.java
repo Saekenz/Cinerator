@@ -14,6 +14,8 @@ public class PersonDTOModelAssembler implements RepresentationModelAssembler<Per
     @Override
     public EntityModel<PersonDTO> toModel(PersonDTO person) {
         return EntityModel.of(person,
-                linkTo(methodOn(PersonController.class).findPersonById(person.getId())).withSelfRel());
+                linkTo(methodOn(PersonController.class).findPersonById(person.getId())).withSelfRel(),
+                linkTo(methodOn(PersonController.class).findCountryByPerson(person.getBirthCountry().id()))
+                        .withRel("birthCountry"));
     }
 }
