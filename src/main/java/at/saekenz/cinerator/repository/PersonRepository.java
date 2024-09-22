@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.repository;
 
+import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.person.Person;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,7 @@ import java.util.List;
 
 public interface PersonRepository extends JpaRepository<Person, Long> {
 
+    // Cast needed to make age = null possible
     @Query("SELECT p FROM Person p JOIN p.birthCountry c WHERE " +
             "(LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL) AND " +
             "(p.birthDate = :birthDate OR CAST(:birthDate as timestamp) IS NULL) AND " +

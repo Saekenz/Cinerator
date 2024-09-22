@@ -1,9 +1,14 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.country.CountryDTO;
 import at.saekenz.cinerator.model.country.CountryDTOModelAssembler;
 import at.saekenz.cinerator.model.country.CountryMapper;
+import at.saekenz.cinerator.model.movie.Movie;
+import at.saekenz.cinerator.model.movie.MovieDTO;
+import at.saekenz.cinerator.model.movie.MovieDTOModelAssembler;
+import at.saekenz.cinerator.model.movie.MovieMapper;
 import at.saekenz.cinerator.model.person.Person;
 import at.saekenz.cinerator.model.person.PersonDTO;
 import at.saekenz.cinerator.model.person.PersonDTOModelAssembler;
@@ -49,6 +54,11 @@ public class PersonController {
 
     private final CountryMapper countryMapper;
     private final CountryDTOModelAssembler countryDTOModelAssembler;
+
+    @Autowired
+    private MovieMapper movieMapper;
+    @Autowired
+    private MovieDTOModelAssembler movieDTOModelAssembler;
 
     public PersonController(PersonMapper personMapper,
                             PersonDTOModelAssembler personDTOModelAssembler,
@@ -183,6 +193,36 @@ public class PersonController {
     }
 
     /**
+     * Fetches {@link Movie} resources associated with the {@link Person} identified
+     * by {@code id} and {@code role}.
+     *
+     * @param id id the ID of the {@link Person} for which the {@link Movie} resources are to be fetched
+     * @param role the role that the {@link Person} has in the {@link Movie}
+     * @return ResponseEntity containing a 200 Ok status and the requested {@link Movie} resources
+     * (Returns 404 Not Found if no {@link Person} exists for this {@code id}).
+     */
+    @GetMapping("{id}/movies")
+    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findMoviesByPerson(
+            @NotNull @PathVariable Long id,
+            @RequestParam(required = false) String role) {
+        Person person = personService.findById(id).orElseThrow(
+                () -> new ObjectNotFoundException(id, Person.class.getSimpleName()));
+
+        if (person.getCastInfos().isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
+
+        List<Movie> foundMovies = person.getCastInfos().stream()
+                .filter(c -> role == null || c.getRoleName().equalsIgnoreCase(role))
+                .map(CastInfo::getMovie)
+                .toList();
+
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(foundMovies, movieMapper, movieDTOModelAssembler,
+                        linkTo(methodOn(PersonController.class).findMoviesByPerson(id, role)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    /**
      * Fetches {@link Person} resources based on search parameters.
      *
      * @param name name of the searched for person(s)
@@ -215,8 +255,4 @@ public class PersonController {
 
         return ResponseEntity.ok(collectionModel);
     }
-
-
-
-
 }

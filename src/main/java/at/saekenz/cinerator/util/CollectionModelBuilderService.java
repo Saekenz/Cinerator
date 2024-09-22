@@ -45,7 +45,7 @@ public class CollectionModelBuilderService {
      *
      * @param entities Collection of entities that will be transformed to {@link CollectionModel}
      * @param entityMapper used to map {@code Entity} to {@code EntityDTO}
-     * @param entityDTOAssembler used to transform {@code Entity} to {@code EntityModel<Entity>}
+     * @param entityDTOAssembler used to transform {@code EntityDTO} to {@code EntityModel<EntityDTO>}
      * @param selfLink link to the resource
      * @return {@link CollectionModel} that contains {@code EntityModel<Entity>} objects
      */
@@ -60,5 +60,19 @@ public class CollectionModelBuilderService {
                 .toList();
 
         return CollectionModel.of(entityModels, selfLink);
+    }
+
+    /**
+     *
+     * @param entity Entity that will be converted into a corresponding DTO
+     * @param entityMapper responsible to map {@code Entity} to {@code EntityDTO}
+     * @param entityDTOAssembler used to transform {@code EntityDTO} to {@code EntityModel<EntityDTO>}
+     * @return {@link EntityModel} that contains a {@code EntityDTO}
+     */
+    public <T, D> EntityModel<D> createEntityModelFromEntity(
+            T entity, EntityMapper<T, D> entityMapper,
+            RepresentationModelAssembler<D, EntityModel<D>> entityDTOAssembler) {
+
+        return entityDTOAssembler.toModel(entityMapper.toDTO(entity));
     }
 }

@@ -31,7 +31,6 @@ public class Person {
 
     @ManyToOne
     @JoinColumn(name = "COU_ID")
-//    @OnDelete(action = OnDeleteAction.CASCADE)
     private Country birthCountry;
 
     @OneToMany(mappedBy = "person")

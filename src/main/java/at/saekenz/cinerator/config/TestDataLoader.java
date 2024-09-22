@@ -182,7 +182,11 @@ public class TestDataLoader {
                             null, "1.79 m (5'10'')", countries.get(0)),
                     new Person("Marlon Brando", LocalDate.of(1924,4,3),
                             LocalDate.of(2004,7,1), "1.75 m (5'9'')",
-                            countries.get(0))
+                            countries.get(0)),
+                    new Person("Robert De Niro", LocalDate.of(1943,8,17),
+                            null, "1.77 m (5'9.5'')", countries.get(0)),
+                    new Person("Al Pacino", LocalDate.of(1940,4,25),
+                            null, "1.68 m (5'6'')", countries.get(0))
             );
 
             personRepository.saveAll(persons);
@@ -244,6 +248,15 @@ public class TestDataLoader {
                             List.of()),
                     createMovie("The Matrix", LocalDate.of(1999,3,31), "136 min",
                             "tt0133093", "https://upload.wikimedia.org/wikipedia/en/c/c1/The_Matrix_Poster.jpg",
+                            List.of()),
+                    createMovie("A Bronx Tale", LocalDate.of(1993,10,1),"121 min",
+                            "tt0106489", "https://upload.wikimedia.org/wikipedia/en/3/3e/A_Bronx_Tale.jpg",
+                            List.of()),
+                    createMovie("Heat", LocalDate.of(1995,12,5),"170 min",
+                            "tt0113277", "https://upload.wikimedia.org/wikipedia/en/6/6c/Heatposter.jpg",
+                            List.of()),
+                    createMovie("Taxi Driver", LocalDate.of(1976,2,8), "114 min",
+                            "tt0075314", "https://upload.wikimedia.org/wikipedia/en/3/33/Taxi_Driver_%281976_film_poster%29.jpg",
                             List.of())
             );
 
@@ -271,6 +284,9 @@ public class TestDataLoader {
             movies.get(11).setCountries(Set.of(countries.get(0), countries.get(6)));
             movies.get(12).setCountries(Set.of(countries.get(0), countries.get(3)));
             movies.get(13).setCountries(Set.of(countries.get(0), countries.get(11)));
+            movies.get(14).setCountries(Set.of(countries.get(0)));
+            movies.get(15).setCountries(Set.of(countries.get(0)));
+            movies.get(16).setCountries(Set.of(countries.get(0)));
 
             movieRepository.saveAll(movies).forEach(movie -> log.info("Created new movie: {}", movie));
         };
@@ -413,13 +429,16 @@ public class TestDataLoader {
                     new CastInfo(movies.get(6), persons.get(10), roles.get(1)),
                     new CastInfo(movies.get(7), persons.get(11), roles.get(1)),
                     new CastInfo(movies.get(8), persons.get(12), roles.get(1)),
+                    new CastInfo(movies.get(8), persons.get(20), roles.get(0), "Don Vito Corleone"),
                     new CastInfo(movies.get(9), persons.get(13), roles.get(1)),
                     new CastInfo(movies.get(10), persons.get(14), roles.get(1)),
                     new CastInfo(movies.get(11), persons.get(8), roles.get(1)),
                     new CastInfo(movies.get(12), persons.get(15), roles.get(1)),
                     new CastInfo(movies.get(13), persons.get(18), roles.get(1)),
                     new CastInfo(movies.get(13), persons.get(19), roles.get(1)),
-                    new CastInfo(movies.get(8), persons.get(20), roles.get(0), "Don Vito Corleone")
+                    new CastInfo(movies.get(14), persons.get(21), roles.get(1)),
+                    new CastInfo(movies.get(15), persons.get(21), roles.get(0), "Neil McCauley"),
+                    new CastInfo(movies.get(16), persons.get(21), roles.get(0), "Travis Bickle")
             );
 
             // Batch insert all cast/crew infos
