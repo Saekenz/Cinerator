@@ -98,6 +98,8 @@ public class PersonControllerSpringBootIntegrationTest {
 
         mockMvc.perform(get("/persons/{id}", personId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
                 .andExpect(content().string(containsString(
                         String.format("Person with id %s could not be found!", personId))));
     }
@@ -235,6 +237,8 @@ public class PersonControllerSpringBootIntegrationTest {
 
         mockMvc.perform(get("/persons/{id}", personId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
                 .andExpect(content().string(containsString(
                         String.format("Person with id %s could not be found!", personId))));
     }
@@ -251,6 +255,8 @@ public class PersonControllerSpringBootIntegrationTest {
 
         mockMvc.perform(delete("/persons/{id}", personId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
                 .andExpect(content().string(containsString(
                         String.format("Person with id %s could not be found!", personId))));
     }

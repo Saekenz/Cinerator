@@ -3,6 +3,7 @@ package at.saekenz.cinerator.service;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.person.Person;
+import at.saekenz.cinerator.model.person.PersonDTO;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
@@ -29,4 +30,10 @@ public interface IPersonService {
     Page<Person> findAllPaged(int page, int size, String sortField, String sortDirection);
 
     Country findCountryByPersonId(Long personId);
+
+    Person updatePerson(Long id, PersonDTO personDTO);
+
+    Person createPerson(PersonDTO personDTO);
+
+    Person findPersonById(Long id);
 }

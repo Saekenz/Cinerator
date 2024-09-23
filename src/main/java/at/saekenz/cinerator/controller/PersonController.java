@@ -12,13 +12,11 @@ import at.saekenz.cinerator.model.person.Person;
 import at.saekenz.cinerator.model.person.PersonDTO;
 import at.saekenz.cinerator.model.person.PersonDTOModelAssembler;
 import at.saekenz.cinerator.model.person.PersonMapper;
-import at.saekenz.cinerator.service.ICountryService;
 import at.saekenz.cinerator.service.IPersonService;
 import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
@@ -31,7 +29,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -42,9 +39,6 @@ public class PersonController {
 
     @Autowired
     IPersonService personService;
-
-    @Autowired
-    ICountryService countryService;
 
     @Autowired
     CollectionModelBuilderService collectionModelBuilderService;
@@ -58,22 +52,21 @@ public class PersonController {
     private final CountryMapper countryMapper;
     private final CountryDTOModelAssembler countryDTOModelAssembler;
 
-    @Autowired
-    private MovieMapper movieMapper;
-    @Autowired
-    private MovieDTOModelAssembler movieDTOModelAssembler;
+    private final MovieMapper movieMapper;
+    private final MovieDTOModelAssembler movieDTOModelAssembler;
 
     private final PagedResourcesAssembler<PersonDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
             new HateoasPageableHandlerMethodArgumentResolver(), null);
 
-    public PersonController(PersonMapper personMapper,
-                            PersonDTOModelAssembler personDTOModelAssembler,
-                            CountryMapper countryMapper,
-                            CountryDTOModelAssembler countryDTOModelAssembler) {
+    public PersonController(PersonMapper personMapper, PersonDTOModelAssembler personDTOModelAssembler,
+                            CountryMapper countryMapper, CountryDTOModelAssembler countryDTOModelAssembler,
+                            MovieMapper movieMapper, MovieDTOModelAssembler movieDTOModelAssembler) {
         this.personMapper = personMapper;
         this.personDTOModelAssembler = personDTOModelAssembler;
         this.countryMapper = countryMapper;
         this.countryDTOModelAssembler = countryDTOModelAssembler;
+        this.movieMapper = movieMapper;
+        this.movieDTOModelAssembler = movieDTOModelAssembler;
     }
 
     /**
@@ -107,9 +100,7 @@ public class PersonController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<PersonDTO>> findPersonById(@PathVariable Long id) {
-        Person person = personService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, Person.class.getSimpleName()));
-
+        Person person = personService.findPersonById(id);
         EntityModel<PersonDTO> entityModel = personDTOModelAssembler
                 .toModel(personMapper.toDTO(person));
 
@@ -126,13 +117,9 @@ public class PersonController {
      */
     @PostMapping()
     public ResponseEntity<?> createPerson(@Valid @RequestBody PersonDTO personDTO) {
-        Person newPerson = personMapper.toPerson(personDTO);
-        Country newPersonsCountry = countryService.getReferenceById(personDTO.getBirthCountry().id());
-
-        newPerson.setBirthCountry(newPersonsCountry);
-
+        Person createdPerson = personService.createPerson(personDTO);
         EntityModel<PersonDTO> createdPersonModel = personDTOModelAssembler.toModel(personMapper
-                .toDTO(personService.save(newPerson)));
+                .toDTO(createdPerson));
 
         return responseBuilderService.buildCreatedResponseWithBody(createdPersonModel);
     }
@@ -147,21 +134,9 @@ public class PersonController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<Object> updatePerson(@PathVariable Long id, @Valid @RequestBody PersonDTO personDTO) {
-        Person person = personService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, Person.class.getSimpleName()));
-
-        if (!Objects.equals(personDTO.getBirthCountry().id(), person.getBirthCountry().getId())) {
-            Country updatedCountry = countryService.getReferenceById(personDTO.getBirthCountry().id());
-            person.setBirthCountry(updatedCountry);
-        }
-
-        person.setName(personDTO.getName());
-        person.setBirthDate(personDTO.getBirthDate());
-        person.setDeathDate(personDTO.getDeathDate());
-        person.setHeight(personDTO.getHeight());
-
+        Person updatedPerson = personService.updatePerson(id, personDTO);
         EntityModel<PersonDTO> updatedPersonModel = personDTOModelAssembler.toModel(personMapper
-                .toDTO(personService.save(person)));
+                .toDTO(updatedPerson));
 
         return responseBuilderService.buildNoContentResponseWithLocation(updatedPersonModel);
     }
@@ -175,8 +150,6 @@ public class PersonController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deletePerson(@PathVariable Long id) {
-        personService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, Person.class.getSimpleName()));
         personService.deleteById(id);
 
         return ResponseEntity.noContent().build();

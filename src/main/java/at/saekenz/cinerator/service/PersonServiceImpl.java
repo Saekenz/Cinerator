@@ -3,6 +3,8 @@ package at.saekenz.cinerator.service;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.person.Person;
+import at.saekenz.cinerator.model.person.PersonDTO;
+import at.saekenz.cinerator.model.person.PersonMapper;
 import at.saekenz.cinerator.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,13 +17,22 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
 public class PersonServiceImpl implements IPersonService {
+    private final ICountryService countryService;
 
     @Autowired
     private PersonRepository personRepository;
+
+    @Autowired
+    private PersonMapper personMapper;
+
+    public PersonServiceImpl(ICountryService countryService) {
+        this.countryService = countryService;
+    }
 
     @Override
     public List<Person> findAll() {
@@ -45,6 +56,7 @@ public class PersonServiceImpl implements IPersonService {
 
     @Override
     public void deleteById(Long id) {
+        findPersonById(id);
         personRepository.deleteById(id);
     }
 
@@ -56,9 +68,7 @@ public class PersonServiceImpl implements IPersonService {
 
     @Override
     public List<Movie> findMoviesByPersonIdAndRole(Long personId, String role) {
-        personRepository.findById(personId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Person with" +
-                        " id %s could not be found!", personId)));
+        findPersonById(personId);
         return personRepository.findMoviesByPersonIdAndRole(personId, role);
     }
 
@@ -72,8 +82,40 @@ public class PersonServiceImpl implements IPersonService {
 
     @Override
     public Country findCountryByPersonId(Long personId) {
-        return personRepository.findById(personId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Person with" +
-                        " id %s could not be found!", personId))).getBirthCountry();
+        return findPersonById(personId).getBirthCountry();
+    }
+
+    @Override
+    public Person updatePerson(Long id, PersonDTO personDTO) {
+        Person existingPerson = findPersonById(id);
+
+        if (!Objects.equals(personDTO.getBirthCountry().id(), existingPerson.getBirthCountry().getId())) {
+            Country updatedCountry = countryService.getReferenceById(personDTO.getBirthCountry().id());
+            existingPerson.setBirthCountry(updatedCountry);
+        }
+
+        existingPerson.setName(personDTO.getName());
+        existingPerson.setBirthDate(personDTO.getBirthDate());
+        existingPerson.setDeathDate(personDTO.getDeathDate());
+        existingPerson.setHeight(personDTO.getHeight());
+
+        return save(existingPerson);
+    }
+
+    @Override
+    public Person createPerson(PersonDTO personDTO) {
+        Person newPerson = personMapper.toPerson(personDTO);
+        Country birthCountry = countryService.getReferenceById(personDTO.getBirthCountry().id());
+
+        newPerson.setBirthCountry(birthCountry);
+
+        return save(newPerson);
+    }
+
+    @Override
+    public Person findPersonById(Long id) {
+        return personRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("Person with id %s could not be found!", id)));
     }
 }
