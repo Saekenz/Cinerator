@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.service;
 
+import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.person.Person;
@@ -36,4 +37,6 @@ public interface IPersonService {
     Person createPerson(PersonDTO personDTO);
 
     Person findPersonById(Long id);
+
+    List<CastInfo> findCastInfosByPersonId(Long personId);
 }

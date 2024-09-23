@@ -1,5 +1,9 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.castinfo.CastInfo;
+import at.saekenz.cinerator.model.castinfo.CastInfoDTO;
+import at.saekenz.cinerator.model.castinfo.CastInfoDTOModelAssembler;
+import at.saekenz.cinerator.model.castinfo.CastInfoMapper;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.country.CountryDTO;
 import at.saekenz.cinerator.model.country.CountryDTOModelAssembler;
@@ -55,18 +59,24 @@ public class PersonController {
     private final MovieMapper movieMapper;
     private final MovieDTOModelAssembler movieDTOModelAssembler;
 
+    private final CastInfoMapper castInfoMapper;
+    private final CastInfoDTOModelAssembler castInfoDTOModelAssembler;
+
     private final PagedResourcesAssembler<PersonDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
             new HateoasPageableHandlerMethodArgumentResolver(), null);
 
     public PersonController(PersonMapper personMapper, PersonDTOModelAssembler personDTOModelAssembler,
                             CountryMapper countryMapper, CountryDTOModelAssembler countryDTOModelAssembler,
-                            MovieMapper movieMapper, MovieDTOModelAssembler movieDTOModelAssembler) {
+                            MovieMapper movieMapper, MovieDTOModelAssembler movieDTOModelAssembler,
+                            CastInfoMapper castInfoMapper, CastInfoDTOModelAssembler castInfoDTOModelAssembler) {
         this.personMapper = personMapper;
         this.personDTOModelAssembler = personDTOModelAssembler;
         this.countryMapper = countryMapper;
         this.countryDTOModelAssembler = countryDTOModelAssembler;
         this.movieMapper = movieMapper;
         this.movieDTOModelAssembler = movieDTOModelAssembler;
+        this.castInfoMapper = castInfoMapper;
+        this.castInfoDTOModelAssembler = castInfoDTOModelAssembler;
     }
 
     /**
@@ -192,6 +202,28 @@ public class PersonController {
         CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
                 .createCollectionModelFromList(foundMovies, movieMapper, movieDTOModelAssembler,
                         linkTo(methodOn(PersonController.class).findMoviesByPerson(id, role)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    /**
+     * Fetches {@link CastInfo} resources associated with the {@link Person} identified
+     * by {@code id}.
+     *
+     * @param id id the ID of the {@link Person} for which the {@link CastInfo} resources are to be fetched
+     * @return ResponseEntity containing a 200 Ok status and the requested {@link CastInfo} resources
+     * (returns 404 Not Found if no {@link Person} exists for this {@code id}).
+     */
+    @GetMapping("{id}/credits")
+    public ResponseEntity<CollectionModel<EntityModel<CastInfoDTO>>> findCreditsByPerson(
+            @NotNull @PathVariable Long id) {
+        List<CastInfo> foundCredits = personService.findCastInfosByPersonId(id);
+
+        if (foundCredits.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
+
+        CollectionModel<EntityModel<CastInfoDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(foundCredits, castInfoMapper, castInfoDTOModelAssembler,
+                        linkTo(methodOn(PersonController.class).findCreditsByPerson(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }

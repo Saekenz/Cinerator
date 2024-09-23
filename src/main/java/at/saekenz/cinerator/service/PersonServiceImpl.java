@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.service;
 
+import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.person.Person;
@@ -117,5 +118,11 @@ public class PersonServiceImpl implements IPersonService {
         return personRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("Person with id %s could not be found!", id)));
+    }
+
+    @Override
+    public List<CastInfo> findCastInfosByPersonId(Long personId) {
+        findPersonById(personId);
+        return personRepository.findCastInfosByPersonId(personId);
     }
 }

@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.country.CountryDTO;
 import at.saekenz.cinerator.model.movie.Movie;
@@ -451,5 +452,40 @@ public class PersonControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$.title").value("Not Found"))
                 .andExpect(jsonPath("$.status").value("404"))
                 .andExpect(jsonPath("$.detail").value(errorMessage));
+    }
+
+    /**
+     * Creates a request which fetches {@link CastInfo} resources where {@link Person} with {@code id 22}
+     * is involved.
+     * The API has to return a 200 Ok status and all {@link CastInfo} resources that match this condition.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenFindCreditsByPersonIdRequest_shouldSucceedWith200() throws Exception {
+        Long personId = 22L;
+
+        mockMvc.perform(get("/persons/{id}/credits", personId).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.castInfoDTOList").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.castInfoDTOList[*].personDTO.id",
+                        everyItem(comparesEqualTo(personId.intValue()))));
+    }
+
+    /**
+     * Creates a request which fetches {@link CastInfo} resources where {@link Person} with {@code id -999}
+     * is involved.
+     * The API has to return a 404 Not Found status since no {@link Person} exists with this {@code id}.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenFindCreditsByPersonIdRequest_shouldFailWith404() throws Exception {
+        Long personId = -999L;
+
+        mockMvc.perform(get("/persons/{id}/credits", personId).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"));
     }
 }
