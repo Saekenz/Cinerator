@@ -1,6 +1,5 @@
 package at.saekenz.cinerator.controller;
 
-import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.country.CountryDTO;
 import at.saekenz.cinerator.model.country.CountryDTOModelAssembler;
@@ -21,8 +20,12 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,6 +63,9 @@ public class PersonController {
     @Autowired
     private MovieDTOModelAssembler movieDTOModelAssembler;
 
+    private final PagedResourcesAssembler<PersonDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
+            new HateoasPageableHandlerMethodArgumentResolver(), null);
+
     public PersonController(PersonMapper personMapper,
                             PersonDTOModelAssembler personDTOModelAssembler,
                             CountryMapper countryMapper,
@@ -71,22 +77,25 @@ public class PersonController {
     }
 
     /**
-     * Fetch every {@link Person} from the database.
+     * Fetch every {@link Person} resource from the database (in a paged format).
      *
-     * @return ResponseEntity containing 200 Ok status and a collection of every
-     * {@link Person} stored in the database.
+     * @param page number of the page returned
+     * @param size number of {@link Person} resources returned for each page
+     * @param sortField attribute that determines how returned resources will be sorted
+     * @param sortDirection order of sorting (can be ASC or DESC)
+     * @return {@link PagedModel} object with sorted/filtered {@link Person} resources wrapped
+     * in {@link ResponseEntity<>}
      */
     @GetMapping
-    public ResponseEntity<CollectionModel<EntityModel<PersonDTO>>> findAllPersons() {
-        List<Person> persons = personService.findAll();
+    public ResponseEntity<PagedModel<EntityModel<PersonDTO>>> findAllPersons(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "5") int size,
+            @RequestParam(name = "sortField", defaultValue = "id") String sortField,
+            @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+        Page<PersonDTO> persons = personService.findAllPaged(page, size, sortField, sortDirection)
+                .map(personMapper::toDTO);
 
-        if (persons.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
-
-        CollectionModel<EntityModel<PersonDTO>> collectionModel = collectionModelBuilderService
-                .createCollectionModelFromList(persons, personMapper, personDTOModelAssembler,
-                        linkTo(methodOn(PersonController.class).findAllPersons()).withSelfRel());
-
-        return ResponseEntity.ok(collectionModel);
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(persons, personDTOModelAssembler));
     }
 
     /**
@@ -184,9 +193,7 @@ public class PersonController {
      */
     @GetMapping("/{id}/country")
     public ResponseEntity<EntityModel<CountryDTO>> findCountryByPerson(@NotNull @PathVariable Long id) {
-        Country country = personService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, Person.class.getSimpleName())).getBirthCountry();
-
+        Country country = personService.findCountryByPersonId(id);
         EntityModel<CountryDTO> countryDTOEntityModel = countryDTOModelAssembler.toModel(countryMapper.toDTO(country));
 
         return ResponseEntity.ok(countryDTOEntityModel);
@@ -205,15 +212,9 @@ public class PersonController {
     public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findMoviesByPerson(
             @NotNull @PathVariable Long id,
             @RequestParam(required = false) String role) {
-        Person person = personService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, Person.class.getSimpleName()));
+        List<Movie> foundMovies = personService.findMoviesByPersonIdAndRole(id, role);
 
-        if (person.getCastInfos().isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
-
-        List<Movie> foundMovies = person.getCastInfos().stream()
-                .filter(c -> role == null || c.getRoleName().equalsIgnoreCase(role))
-                .map(CastInfo::getMovie)
-                .toList();
+        if (foundMovies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
         CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
                 .createCollectionModelFromList(foundMovies, movieMapper, movieDTOModelAssembler,

@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.controller;
 
+import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.country.CountryDTO;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.person.Person;
@@ -44,16 +45,30 @@ public class PersonControllerSpringBootIntegrationTest {
     }
 
     /**
-     * Creates a request which retrieves every {@link Person} stored in the database.
+     * Creates a request which retrieves every {@link Person} stored in the database (in a paged format).
      * The API has to return a 200 Ok status and a collection of all {@link Person} objects.
      *
      * @throws Exception if any errors occur the execution of the test.
      */
     @Test
-    public void givenFindAllPersonsRequest_shouldSucceedWith200() throws Exception {
-        mockMvc.perform(get("/persons").contentType(MediaType.APPLICATION_JSON))
+    public void givenFindAllPersonsPagedRequest_shouldSucceedWith200() throws Exception {
+        int page = 3;
+        int size = 3;
+        String sortField = "birthDate";
+        String sortDirection = "desc";
+
+        mockMvc.perform(get("/persons?page={page}&size={size}&sortField={sortField}" +
+                                "&sortDirection={sortDirection}",
+                        page, size, sortField, sortDirection)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.personDTOList").isNotEmpty());
+                .andExpect(jsonPath("$._embedded.personDTOList").isNotEmpty())
+                .andExpect(jsonPath("$._links.first").exists())
+                .andExpect(jsonPath("$._links.self").exists())
+                .andExpect(jsonPath("$._links.next").exists())
+                .andExpect(jsonPath("$._links.last").exists())
+                .andExpect(jsonPath("$.page.size").value(size))
+                .andExpect(jsonPath("$.page.number").value(page));
     }
 
     /**
@@ -86,6 +101,8 @@ public class PersonControllerSpringBootIntegrationTest {
                 .andExpect(content().string(containsString(
                         String.format("Person with id %s could not be found!", personId))));
     }
+
+// ---------------------------------- CREATE/UPDATE/DELETE ------------------------------------------------------------
 
     /**
      * Creates a request which adds a new {@link Person} to the database.
@@ -238,6 +255,8 @@ public class PersonControllerSpringBootIntegrationTest {
                         String.format("Person with id %s could not be found!", personId))));
     }
 
+// ---------------------------------------- SEARCH -----------------------------------------------------------------
+
     /**
      * Creates a request which fetches {@link Person} resources where the {@code height} property
      * is equal/contains the {@link String} {@code 1.83}.
@@ -275,6 +294,26 @@ public class PersonControllerSpringBootIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.personDTOList").isNotEmpty())
                 .andExpect(jsonPath("$._embedded.personDTOList[*].age", everyItem(comparesEqualTo(age))));
+    }
+
+    /**
+     * Creates a request which fetches {@link Person} resources where the {@code name} property
+     * contains the {@link String} {@code "al"} (e.g. Al Pacino).
+     * The API has to return a 200 Ok status and all {@link Person} resources that satisfy
+     * this condition.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenPersonSearchByNameRequest_shouldSucceedWith200() throws Exception {
+        String name = "al";
+
+        mockMvc.perform(get("/persons/search?name={name}", name)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.personDTOList").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.personDTOList[*].name",
+                        everyItem(containsStringIgnoringCase(name))));
     }
 
     /**
@@ -321,6 +360,43 @@ public class PersonControllerSpringBootIntegrationTest {
                         everyItem(containsStringIgnoringCase(birthCountry))));
     }
 
+// ---------------------------------------- OTHER --------------------------------------------------------------------
+
+    /**
+     * Creates a request which fetches the {@link Country} resource that acts as the birth country of
+     * the {@link Person} with {@code id 15}.
+     * The API has to return a 200 Ok status and the respective {@link Country} resource.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenFindBirthCountryByPersonIdRequest_shouldSucceedWith200() throws Exception {
+        Long personId = 15L;
+
+        mockMvc.perform(get("/persons/{id}/country", personId).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").isNotEmpty());
+    }
+
+    /**
+     * Creates a request which fetches the {@link Country} resource that acts as the birth country of
+     * the {@link Person} with {@code id -999}.
+     * The API has to return a 404 Not Found status since no {@link Person} exists with this {@code id}.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenFindBirthCountryByPersonIdRequest_shouldFailWith404() throws Exception {
+        Long personId = -999L;
+        String errorMessage = String.format("Person with id %s could not be found!", personId);
+
+        mockMvc.perform(get("/persons/{id}/country", personId).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(jsonPath("$.detail").value(errorMessage));
+    }
+
     /**
      * Creates a request which fetches {@link Movie} resources where {@link Person} with {@code id 22}
      * had an {@code acting} role. Also creates a second request which fetches {@link Movie} resources where
@@ -329,19 +405,20 @@ public class PersonControllerSpringBootIntegrationTest {
      *
      * @throws Exception if any errors occur the execution of the test.
      */
-    public void givenFindMovieByPersonAndRoleRequest_shouldSucceedWith200() throws Exception {
+    @Test
+    public void givenFindMoviesByPersonAndRoleRequest_shouldSucceedWith200() throws Exception {
         Long personId = 22L;
         String personName = "Robert De Niro";
         String role = "actor";
 
-        mockMvc.perform(get("/persons/{id}/movies/?role={role}", personId, role)
+        mockMvc.perform(get("/persons/{id}/movies?role={role}", personId, role)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.movieDTOList").isNotEmpty());
 
         role = "director";
 
-        mockMvc.perform(get("/persons/{id}/movies/?role={role}", personId, role)
+        mockMvc.perform(get("/persons/{id}/movies?role={role}", personId, role)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.movieDTOList").isNotEmpty())
@@ -356,16 +433,17 @@ public class PersonControllerSpringBootIntegrationTest {
      *
      * @throws Exception if any errors occur the execution of the test.
      */
-    public void givenFindMovieByPersonAndRoleRequest_shouldSucceedWith404() throws Exception {
+    @Test
+    public void givenFindMoviesByPersonAndRoleRequest_shouldFailWith404() throws Exception {
         Long personId = -999L;
         String role = "actor";
+        String errorMessage = String.format("Person with id %s could not be found!", personId);
 
-        mockMvc.perform(get("/persons/{id}/movies/?role={role}", personId, role)
+        mockMvc.perform(get("/persons/{id}/movies?role={role}", personId, role)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(
-                        String.format("Person with id %s could not be found!", personId))));
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(jsonPath("$.detail").value(errorMessage));
     }
-
-
 }

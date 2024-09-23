@@ -1,5 +1,6 @@
 package at.saekenz.cinerator.repository;
 
+import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.person.Person;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -24,4 +25,10 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
                                            @Param("height") String height,
                                            @Param("country") String country,
                                            @Param("age") Integer age);
+
+    @Query("SELECT c.movie FROM CastInfo c WHERE " +
+            "(c.person.id = :personId) AND " +
+            "(LOWER(c.role.role) = LOWER(:role) OR :role IS NULL)")
+    List<Movie> findMoviesByPersonIdAndRole(@Param("personId") Long personId,
+                                            @Param("role") String role);
 }

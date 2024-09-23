@@ -1,6 +1,9 @@
 package at.saekenz.cinerator.service;
 
+import at.saekenz.cinerator.model.country.Country;
+import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.person.Person;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,4 +23,10 @@ public interface IPersonService {
 
     List<Person> findPersonsBySearchParams(String name, LocalDate birthDate, LocalDate deathDate, String height,
                                            String country, Integer age);
+
+    List<Movie> findMoviesByPersonIdAndRole(Long personId, String role);
+
+    Page<Person> findAllPaged(int page, int size, String sortField, String sortDirection);
+
+    Country findCountryByPersonId(Long personId);
 }
