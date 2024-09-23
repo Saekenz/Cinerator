@@ -10,17 +10,19 @@ import at.saekenz.cinerator.model.person.PersonDTOModelAssembler;
 import at.saekenz.cinerator.model.person.PersonMapper;
 import at.saekenz.cinerator.service.ICountryService;
 import at.saekenz.cinerator.util.CollectionModelBuilderService;
+import at.saekenz.cinerator.util.ResponseBuilderService;
+import jakarta.validation.Valid;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -42,8 +44,14 @@ public class CountryController {
     @Autowired
     CollectionModelBuilderService collectionModelBuilderService;
 
+    @Autowired
+    ResponseBuilderService responseBuilderService;
+
     private final CountryDTOModelAssembler countryDTOAssembler;
     private final PersonDTOModelAssembler personDTOModelAssembler;
+
+    private final PagedResourcesAssembler<CountryDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
+            new HateoasPageableHandlerMethodArgumentResolver(), null);
 
     public CountryController(CountryDTOModelAssembler countryDTOAssembler,
                              PersonDTOModelAssembler personDTOModelAssembler) {
@@ -52,22 +60,25 @@ public class CountryController {
     }
 
     /**
-     * Fetch every {@link Country} from the database.
+     * Fetch every {@link Country} resource from the database (in a paged format).
      *
-     * @return ResponseEntity containing 200 Ok status and a collection of every
-     * {@link Country} stored in the database.
+     * @param page number of the page returned
+     * @param size number of {@link Country} resources returned for each page
+     * @param sortField attribute that determines how returned resources will be sorted
+     * @param sortDirection order of sorting (can be ASC or DESC)
+     * @return {@link PagedModel} object with sorted/filtered {@link Country} resources wrapped
+     * in {@link ResponseEntity<>}
      */
     @GetMapping()
-    public ResponseEntity<CollectionModel<EntityModel<CountryDTO>>> findAllCountries() {
-        List<Country> countries = countryService.findAll();
+    public ResponseEntity<PagedModel<EntityModel<CountryDTO>>> findAllCountries(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "5") int size,
+            @RequestParam(name = "sortField", defaultValue = "id") String sortField,
+            @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+        Page<CountryDTO> countries = countryService.findAllPaged(page, size, sortField, sortDirection)
+                .map(countryMapper::toDTO);
 
-        if (countries.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
-
-        CollectionModel<EntityModel<CountryDTO>> collectionModel = collectionModelBuilderService
-                .createCollectionModelFromList(countries, countryMapper, countryDTOAssembler,
-                        linkTo(methodOn(CountryController.class).findAllCountries()).withSelfRel());
-
-        return ResponseEntity.ok(collectionModel);
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(countries, countryDTOAssembler));
     }
 
     /**
@@ -79,12 +90,61 @@ public class CountryController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<CountryDTO>> findCountryById(@PathVariable Long id) {
-        Country country = countryService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, Country.class.getSimpleName()));
+        Country country = countryService.findCountryById(id);
 
         return ResponseEntity
                 .ok(countryDTOAssembler.toModel(countryMapper.toDTO(country)));
     }
+
+// ------------------------------ CREATE/UPDATE/DELETE --------------------------------------------------------------
+
+    /**
+     * Creates a new {@link Country}.
+     *
+     * @param countryDTO a DTO containing data of the new {@link Country}
+     * @return ResponseEntity containing a 201 Created status and the created {@link Country}.
+     */
+    @PostMapping()
+    public ResponseEntity<?> createCountry(@Valid @RequestBody CountryDTO countryDTO) {
+        Country createdCountry = countryService.createCountry(countryDTO);
+        EntityModel<CountryDTO> createdCountryModel = countryDTOAssembler.toModel(countryMapper
+                .toDTO(createdCountry));
+
+        return responseBuilderService.buildCreatedResponseWithBody(createdCountryModel);
+    }
+
+    /**
+     * Updates a {@link Country} based on its id.
+     *
+     * @param id the ID of the {@link Country} to be updated
+     * @param countryDTO a DTO containing the needed data
+     * @return ResponseEntity containing a 204 No Content status
+     * (Returns 404 Not Found if the to be updated {@link Country} does not exist in the database)
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<Object> updateCountry(@PathVariable Long id, @Valid @RequestBody CountryDTO countryDTO) {
+        Country updatedCountry = countryService.updateCountry(id, countryDTO);
+        EntityModel<CountryDTO> updatedCountryModel = countryDTOAssembler.toModel(countryMapper
+                .toDTO(updatedCountry));
+
+        return responseBuilderService.buildNoContentResponseWithLocation(updatedCountryModel);
+    }
+
+    /**
+     * Deletes a {@link Country} by its {@code id}.
+     *
+     * @param id the ID of the {@link Country} to be deleted
+     * @return ResponseEntity containing a 204 No Content status (or a
+     * 404 Not Found status if no {@link Country} exists with the specified {@code id}.)
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Object> deleteCountry(@PathVariable Long id) {
+        countryService.deleteById(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+// --------------------------------- OTHER --------------------------------------------------------------------------
 
     /**
      * Fetch every {@link Person} associated with {@link Country} with {@code id}.
