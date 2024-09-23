@@ -505,7 +505,7 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(content().string(containsString(String.format("Could not find review: %s", reviewId))));
     }
 
-// ------------------------------------------- ACTORS ----------------------------------------------------------------
+// ------------------------------------------- PERSONS ----------------------------------------------------------------
 
     @Test
     public void givenFindActorsByMovieRequest_shouldSucceedWith200() throws Exception {
@@ -539,95 +539,7 @@ public class MovieControllerSpringBootIntegrationTest {
                 .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
     }
 
-    @Test
-    public void givenFindActorByIdRequest_shouldSucceedWith200() throws Exception {
-        Long movieId = 2L;
-        Long actorId = 2L;
-
-        mockMvc.perform(get("/movies/{movieId}/actors/{actorId}", movieId, actorId).
-                contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(actorId));
-    }
-
-    @Test
-    public void givenFindActorByIdRequest_shouldFailWith404() throws Exception {
-        Long movieId = -999L;
-        Long actorId = 2L;
-
-        mockMvc.perform(get("/movies/{movieId}/actors/{actorId}", movieId, actorId).
-                contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
-
-        movieId = 2L;
-        actorId = -999L;
-
-        mockMvc.perform(get("/movies/{movieId}/actors/{actorId}", movieId, actorId).
-                        contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("actor with id: %s", actorId))));
-    }
-
-    @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void givenAddActorToMovieRequest_shouldSucceedWith200() throws Exception {
-        Long movieId = 13L;
-        Long actorId = 5L;
-
-        mockMvc.perform(put("/movies/{movieId}/actors", movieId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(String.valueOf(actorId)))
-                .andExpect(status().isNoContent());
-
-        mockMvc.perform(get("/movies/{movieId}/actors/{actorId}", movieId, actorId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(actorId));
-    }
-
-    @Test
-    public void givenAddActorToMovieRequest_shouldFailWith404() throws Exception {
-        Long movieId = -999L;
-        Long actorId = 5L;
-
-        mockMvc.perform(put("/movies/{movieId}/actors", movieId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(String.valueOf(actorId)))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
-
-        movieId = 13L;
-        actorId = -999L;
-
-        mockMvc.perform(put("/movies/{movieId}/actors", movieId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(String.valueOf(actorId)))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("actor with id: %s", actorId))));
-    }
-
-    @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void givenDeleteActorFromMovieRequest_shouldSucceedWith204() throws Exception {
-        Long movieId = 2L;
-        Long actorId = 2L;
-
-        mockMvc.perform(delete("/movies/{movieId}/actors/{actorId}", movieId, actorId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
-    public void givenDeleteActorFromMovieRequest_shouldFailWith404() throws Exception {
-        Long movieId = -999L;
-        Long actorId = 2L;
-
-        mockMvc.perform(delete("/movies/{movieId}/actors/{actorId}", movieId, actorId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
-    }
+// -------------------------------------------------------------------------------------------------------------------
 
     @Test
     public void givenFindAllMoviesPaged_shouldSucceedWith200() throws Exception {

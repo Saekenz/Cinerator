@@ -1,6 +1,5 @@
 package at.saekenz.cinerator.repository;
 
-import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.person.Person;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

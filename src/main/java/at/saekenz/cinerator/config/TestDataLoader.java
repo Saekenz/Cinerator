@@ -1,7 +1,5 @@
 package at.saekenz.cinerator.config;
 
-import at.saekenz.cinerator.model.actor.Actor;
-import at.saekenz.cinerator.model.actor.ActorNotFoundException;
 import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.role.Role;
 import at.saekenz.cinerator.model.country.Country;
@@ -114,26 +112,11 @@ public class TestDataLoader {
         };
     }
 
-    // TODO -> replace actors with persons
     @Bean
     @Order(2)
-    public CommandLineRunner initActorsAndPersons(ActorRepository actorRepository,
-                                                  PersonRepository personRepository,
-                                                  CountryRepository countryRepository) {
+    public CommandLineRunner initPersons(PersonRepository personRepository,
+                                         CountryRepository countryRepository) {
         return args -> {
-            log.info("Initializing actors...");
-
-            List<Actor> actors = List.of(
-                    new Actor("Leonardo DiCaprio", LocalDate.of(1974, 11, 11), "United States"),
-                    new Actor("Meryl Streep", LocalDate.of(1949, 6, 22), "United States"),
-                    new Actor("Daniel Day-Lewis", LocalDate.of(1957, 4, 29), "United Kingdom"),
-                    new Actor("Penélope Cruz", LocalDate.of(1974, 4, 28), "Spain"),
-                    new Actor("Cate Blanchett", LocalDate.of(1969, 5, 14), "Australia")
-            );
-
-            // Batch insert & log creation for each actor
-            actorRepository.saveAll(actors).forEach(actor -> log.info("Created actor: {}", actor));
-
             log.info("Initializing persons...");
 
             List<Country> countries = countryRepository.findAll();
@@ -195,69 +178,50 @@ public class TestDataLoader {
 
     @Bean
     @Order(3)
-    public CommandLineRunner initMovies(MovieRepository movieRepository, ActorRepository actorRepository,
-                                        GenreRepository genreRepository, CountryRepository countryRepository) {
+    public CommandLineRunner initMovies(MovieRepository movieRepository, GenreRepository genreRepository,
+                                        CountryRepository countryRepository) {
         return (args) -> {
             log.info("Initializing movies...");
 
-            List<Actor> actors = actorRepository.findAllById(List.of(1L, 2L, 3L, 4L, 5L));
             List<Genre> genres = genreRepository.findAll();
             List<Country> countries = countryRepository.findAll();
 
-            if (actors.size() < 5) { throw new ActorNotFoundException(); }
 
             List<Movie> movies = List.of(
                     createMovie("Sicario", LocalDate.of(2015,10,1), "122 min",
-                        "tt3397884","https://upload.wikimedia.org/wikipedia/en/4/4b/Sicario_poster.jpg",
-                        List.of(actors.get(0), actors.get(1), actors.get(2), actors.get(3))),
+                        "tt3397884","https://upload.wikimedia.org/wikipedia/en/4/4b/Sicario_poster.jpg"),
                     createMovie("Dune: Part Two", LocalDate.of(2024,3,1), "167 min",
-                            "tt15239678","https://upload.wikimedia.org/wikipedia/en/5/52/Dune_Part_Two_poster.jpeg",
-                            List.of(actors.get(1), actors.get(2), actors.get(4))),
+                            "tt15239678","https://upload.wikimedia.org/wikipedia/en/5/52/Dune_Part_Two_poster.jpeg"),
                     createMovie("Good Will Hunting", LocalDate.of(1998,9,1), "127 min",
-                            "tt0119217","https://upload.wikimedia.org/wikipedia/en/5/52/Good_Will_Hunting.png",
-                            List.of()),
+                            "tt0119217","https://upload.wikimedia.org/wikipedia/en/5/52/Good_Will_Hunting.png"),
                     createMovie("Three Colors: Red", LocalDate.of(1994,11,23), "100 min",
-                            "tt0111495","https://upload.wikimedia.org/wikipedia/en/0/0a/Three_Colors-Red.jpg",
-                            List.of()),
+                            "tt0111495","https://upload.wikimedia.org/wikipedia/en/0/0a/Three_Colors-Red.jpg"),
                     createMovie("Inception", LocalDate.of(2010,7,16), "148 min",
-                            "tt1375666","https://upload.wikimedia.org/wikipedia/en/2/2e/Inception_%282010%29_theatrical_poster.jpg",
-                            List.of()),
+                            "tt1375666","https://upload.wikimedia.org/wikipedia/en/2/2e/Inception_%282010%29_theatrical_poster.jpg"),
                     createMovie("Parasite", LocalDate.of(2019,5,30), "133 min",
-                            "tt6751668","https://upload.wikimedia.org/wikipedia/en/5/53/Parasite_%282019_film%29.png",
-                            List.of()),
+                            "tt6751668","https://upload.wikimedia.org/wikipedia/en/5/53/Parasite_%282019_film%29.png"),
                     createMovie("The Grand Budapest Hotel", LocalDate.of(2014,3,28), "100 min",
-                            "tt2278388","https://upload.wikimedia.org/wikipedia/en/1/1c/The_Grand_Budapest_Hotel.png",
-                            List.of()),
+                            "tt2278388","https://upload.wikimedia.org/wikipedia/en/1/1c/The_Grand_Budapest_Hotel.png"),
                     createMovie("Spirited Away", LocalDate.of(2001,7,20), "125 min",
-                            "tt0245429","https://upload.wikimedia.org/wikipedia/en/d/db/Spirited_Away_Japanese_poster.png",
-                            List.of()),
+                            "tt0245429","https://upload.wikimedia.org/wikipedia/en/d/db/Spirited_Away_Japanese_poster.png"),
                     createMovie("The Godfather", LocalDate.of(1972,3,24), "175 min",
-                            "tt0068646","https://upload.wikimedia.org/wikipedia/en/1/1c/Godfather_ver1.jpg",
-                            List.of()),
+                            "tt0068646","https://upload.wikimedia.org/wikipedia/en/1/1c/Godfather_ver1.jpg"),
                     createMovie("Amélie", LocalDate.of(2001,4,25), "122 min",
-                            "tt0211915","https://upload.wikimedia.org/wikipedia/en/5/53/Amelie_poster.jpg",
-                            List.of()),
+                            "tt0211915","https://upload.wikimedia.org/wikipedia/en/5/53/Amelie_poster.jpg"),
                     createMovie("Pulp Fiction", LocalDate.of(1994,10,14),"154 min",
-                            "tt0110912","https://upload.wikimedia.org/wikipedia/en/3/3b/Pulp_Fiction_%281994%29_poster.jpg",
-                            List.of()),
+                            "tt0110912","https://upload.wikimedia.org/wikipedia/en/3/3b/Pulp_Fiction_%281994%29_poster.jpg"),
                     createMovie("The Dark Knight", LocalDate.of(2008,7,18),"152 min",
-                            "tt0468569","https://upload.wikimedia.org/wikipedia/en/1/1c/The_Dark_Knight_%282008_film%29.jpg",
-                            List.of()),
+                            "tt0468569","https://upload.wikimedia.org/wikipedia/en/1/1c/The_Dark_Knight_%282008_film%29.jpg"),
                     createMovie("La La Land", LocalDate.of(2016,12,9),"129 min",
-                            "tt3783958","https://upload.wikimedia.org/wikipedia/en/a/ab/La_La_Land_%28film%29.png",
-                            List.of()),
+                            "tt3783958","https://upload.wikimedia.org/wikipedia/en/a/ab/La_La_Land_%28film%29.png"),
                     createMovie("The Matrix", LocalDate.of(1999,3,31), "136 min",
-                            "tt0133093", "https://upload.wikimedia.org/wikipedia/en/c/c1/The_Matrix_Poster.jpg",
-                            List.of()),
+                            "tt0133093", "https://upload.wikimedia.org/wikipedia/en/c/c1/The_Matrix_Poster.jpg"),
                     createMovie("A Bronx Tale", LocalDate.of(1993,10,1),"121 min",
-                            "tt0106489", "https://upload.wikimedia.org/wikipedia/en/3/3e/A_Bronx_Tale.jpg",
-                            List.of()),
+                            "tt0106489", "https://upload.wikimedia.org/wikipedia/en/3/3e/A_Bronx_Tale.jpg"),
                     createMovie("Heat", LocalDate.of(1995,12,5),"170 min",
-                            "tt0113277", "https://upload.wikimedia.org/wikipedia/en/6/6c/Heatposter.jpg",
-                            List.of()),
+                            "tt0113277", "https://upload.wikimedia.org/wikipedia/en/6/6c/Heatposter.jpg"),
                     createMovie("Taxi Driver", LocalDate.of(1976,2,8), "114 min",
-                            "tt0075314", "https://upload.wikimedia.org/wikipedia/en/3/33/Taxi_Driver_%281976_film_poster%29.jpg",
-                            List.of())
+                            "tt0075314", "https://upload.wikimedia.org/wikipedia/en/3/33/Taxi_Driver_%281976_film_poster%29.jpg")
             );
 
 //            Movie m14 = new Movie("Nightcrawler","Dan Gilroy", LocalDate.of(2014,10,31),"Thriller", "118 min",
@@ -314,13 +278,17 @@ public class TestDataLoader {
             movies.sort(Comparator.comparing(movie -> idOrderMap.get(movie.getId())));
 
             List<User> users = List.of(
-                    new User("UserA", "Peter Klein", encodedPassword, "peter.klein@example.com","", "USER", false,
+                    new User("UserA", "Peter Klein", encodedPassword,
+                            "peter.klein@example.com","", "USER", false,
                     Set.of(movies.get(0), movies.get(1), movies.get(2))),
-                    new User("UserB", "Susan McDonald", encodedPassword, "susan.mcdonald@example.com", "","USER", true,
+                    new User("UserB", "Susan McDonald", encodedPassword,
+                            "susan.mcdonald@example.com", "","USER", true,
                     Set.of(movies.get(3), movies.get(4), movies.get(5))),
-                    new User("UserC", "Jane Smith", encodedPassword, "jane.smith@example.com", "","ADMIN", true,
+                    new User("UserC", "Jane Smith", encodedPassword,
+                            "jane.smith@example.com", "","ADMIN", true,
                     Set.of(movies.get(6), movies.get(0), movies.get(4))),
-                    new User("UserD", "Mark Taylor", encodedPassword, "mark.taylor@example.com", "","USER", false,
+                    new User("UserD", "Mark Taylor", encodedPassword,
+                            "mark.taylor@example.com", "","USER", false,
                     Set.of(movies.get(4), movies.get(3), movies.get(6)))
             );
 
@@ -447,9 +415,7 @@ public class TestDataLoader {
     }
 
     private Movie createMovie(String title, LocalDate releaseDate, String duration,
-                              String imdbId, String posterUrl, List<Actor> actors) {
-        Movie movie = new Movie(title, releaseDate, duration, imdbId, posterUrl);
-        movie.setActors(actors);
-        return movie;
+                              String imdbId, String posterUrl) {
+        return new Movie(title, releaseDate, duration, imdbId, posterUrl);
     }
 }

@@ -1,8 +1,5 @@
 package at.saekenz.cinerator.controller;
 
-import at.saekenz.cinerator.model.actor.Actor;
-import at.saekenz.cinerator.model.actor.ActorModelAssembler;
-import at.saekenz.cinerator.model.actor.ActorNotFoundException;
 import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.country.CountryDTO;
@@ -46,9 +43,6 @@ public class MovieController {
     IMovieService movieService;
 
     @Autowired
-    IActorService actorService;
-
-    @Autowired
     IReviewService reviewService;
 
     @Autowired
@@ -79,7 +73,6 @@ public class MovieController {
     CollectionModelBuilderService collectionModelBuilderService;
 
     private final MovieDTOModelAssembler movieDTOAssembler;
-    private final ActorModelAssembler actorAssembler;
     private final ReviewModelAssembler reviewAssembler;
     private final GenreDTOModelAssembler genreDTOAssembler;
     private final CountryDTOModelAssembler countryDTOAssembler;
@@ -90,11 +83,10 @@ public class MovieController {
             new HateoasPageableHandlerMethodArgumentResolver(), null);
 
     public MovieController(MovieDTOModelAssembler movieDTOAssembler, ReviewModelAssembler reviewAssembler,
-                           ActorModelAssembler actorAssembler, GenreDTOModelAssembler genreDTOAssembler,
-                           CountryDTOModelAssembler countryDTOAssembler, PersonDTOModelAssembler personDTOAssembler) {
+                           GenreDTOModelAssembler genreDTOAssembler, CountryDTOModelAssembler countryDTOAssembler,
+                           PersonDTOModelAssembler personDTOAssembler) {
         this.movieDTOAssembler = movieDTOAssembler;
         this.reviewAssembler = reviewAssembler;
-        this.actorAssembler = actorAssembler;
         this.genreDTOAssembler = genreDTOAssembler;
         this.countryDTOAssembler = countryDTOAssembler;
         this.personDTOAssembler = personDTOAssembler;
@@ -415,57 +407,6 @@ public class MovieController {
                         linkTo(methodOn(MovieController.class).findActorsByMovie(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
-    }
-
-    /**
-     *
-     * @param movieId number of the {@link Movie} from which the {@link Actor} is to be retrieved
-     * @param actorId number of the {@link Actor} that is to be retrieved from the {@link Movie}
-     * @return {@link Actor} and HTTP code 200 if the {@link Actor} was found. HTTP code 404 otherwise
-     */
-    @GetMapping("/{movieId}/actors/{actorId}")
-    public ResponseEntity<EntityModel<Actor>> findActorById(@PathVariable Long movieId, @PathVariable Long actorId) {
-        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
-        Actor actor = movie.getActors().stream()
-                .filter(a -> Objects.equals(a.getId(), actorId)).findFirst().orElseThrow(() -> new ActorNotFoundException(actorId));
-
-        return ResponseEntity.ok(actorAssembler.toModel(actor));
-    }
-
-    /**
-     *
-     * @param movieId identifies the {@link Movie} to which the {@link Actor} is to be added
-     * @param actorId identifies the {@link Actor} which is to be added to the {@link Movie}
-     * @return HTTP code 204 if the {@link Actor} was successfully added
-     * or HTTP code 404 if the {@link Movie}/{@link Actor} was not found
-     */
-    @PutMapping("/{movieId}/actors")
-    public ResponseEntity<?> addActorToMovie(@PathVariable Long movieId, @RequestBody Long actorId) {
-        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
-        Actor actor = actorService.findById(actorId).orElseThrow(() -> new ActorNotFoundException(actorId));
-//        Actor actor = actorService.getReferenceById(actorId);
-
-        movie.addActor(actor);
-        EntityModel<MovieDTO> entityModel = movieDTOAssembler
-                .toModel(movieMapper.toDTO(movieService.save(movie)));
-
-        return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
-    }
-
-    /**
-     *
-     * @param movieId identifies the {@link Movie} from which the {@link Actor} is to be removed
-     * @param actorId identifies the {@link Actor} that is to be removed
-     * @return HTTP code 204 if the {@link Actor} was successfully removed or HTTP code 404 if the {@link Movie} was not found
-     */
-    @DeleteMapping("/{movieId}/actors/{actorId}")
-    public ResponseEntity<?> removeActorFromMovie(@PathVariable Long movieId, @PathVariable Long actorId) {
-        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
-
-        movie.removeActor(actorId);
-        movieService.save(movie);
-
-        return ResponseEntity.noContent().build();
     }
 
     /**

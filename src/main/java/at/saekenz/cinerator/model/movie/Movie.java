@@ -1,6 +1,5 @@
 package at.saekenz.cinerator.model.movie;
 
-import at.saekenz.cinerator.model.actor.Actor;
 import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.genre.Genre;
@@ -14,7 +13,6 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -71,13 +69,6 @@ public class Movie {
     @OneToMany(mappedBy = "movie")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<CastInfo> castInfos;
-
-    @ManyToMany
-    @JoinTable(
-            name = "movie_actors",
-            joinColumns = @JoinColumn(name = "MOV_ID"),
-            inverseJoinColumns = @JoinColumn(name = "ACT_ID"))
-    private List<Actor> actors; // ok if actors contained multiple times -> multiple roles! (impl in future)
 
     public Movie() {
 
@@ -137,14 +128,6 @@ public class Movie {
     public List<Review> getReviews() { return reviews; }
 
     public void setReviews(List<Review> reviews) { this.reviews = reviews; }
-
-    public List<Actor> getActors() { return actors; }
-
-    public void setActors(List<Actor> actors) { this.actors = actors; }
-
-    public void addActor(Actor actor) { this.actors.add(actor); }
-
-    public void removeActor(Long id) { this.actors.removeIf(a -> Objects.equals(a.getId(), id)); }
 
     public Set<Genre> getGenres() { return genres; }
 
