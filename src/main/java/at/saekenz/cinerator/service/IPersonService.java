@@ -5,6 +5,7 @@ import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.person.Person;
 import at.saekenz.cinerator.model.person.PersonDTO;
+import at.saekenz.cinerator.model.role.Role;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
@@ -39,4 +40,6 @@ public interface IPersonService {
     Person findPersonById(Long id);
 
     List<CastInfo> findCastInfosByPersonId(Long personId);
+
+    List<Role> findRolesByPersonId(Long personId);
 }

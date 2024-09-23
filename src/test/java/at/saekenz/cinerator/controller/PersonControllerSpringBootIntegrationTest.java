@@ -6,6 +6,7 @@ import at.saekenz.cinerator.model.country.CountryDTO;
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.person.Person;
 import at.saekenz.cinerator.model.person.PersonDTO;
+import at.saekenz.cinerator.model.role.Role;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -484,6 +485,43 @@ public class PersonControllerSpringBootIntegrationTest {
         Long personId = -999L;
 
         mockMvc.perform(get("/persons/{id}/credits", personId).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"));
+    }
+
+    /**
+     * Creates a request which fetches {@link Role} resources which {@link Person} with {@code id 22}
+     * is credited with.
+     * The API has to return a 200 Ok status and all {@link Role} resources that match this condition (each
+     * {@link Role} is only returned once even if the {@link Person} is credited with the same {@link Role}
+     * multiple times).
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenFindRolesByPersonIdRequest_shouldSucceedWith200() throws Exception {
+        Long personId = 22L;
+
+        mockMvc.perform(get("/persons/{id}/roles", personId).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.roleDTOList").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.roleDTOList[*].role",
+                        containsInAnyOrder("Actor", "Director")));
+    }
+
+    /**
+     * Creates a request which fetches {@link Role} resources which {@link Person} with {@code id -999}
+     * is credited with.
+     * The API has to return a 404 Not Found status since no {@link Person} exists with this {@code id}.
+     *
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenFindRolesByPersonIdRequest_shouldFailWith404() throws Exception {
+        Long personId = -999L;
+
+        mockMvc.perform(get("/persons/{id}/roles", personId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.title").value("Not Found"))
                 .andExpect(jsonPath("$.status").value("404"));

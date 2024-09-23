@@ -6,6 +6,7 @@ import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.person.Person;
 import at.saekenz.cinerator.model.person.PersonDTO;
 import at.saekenz.cinerator.model.person.PersonMapper;
+import at.saekenz.cinerator.model.role.Role;
 import at.saekenz.cinerator.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -124,5 +125,11 @@ public class PersonServiceImpl implements IPersonService {
     public List<CastInfo> findCastInfosByPersonId(Long personId) {
         findPersonById(personId);
         return personRepository.findCastInfosByPersonId(personId);
+    }
+
+    @Override
+    public List<Role> findRolesByPersonId(Long personId) {
+        findPersonById(personId);
+        return personRepository.findRolesByPersonId(personId);
     }
 }
