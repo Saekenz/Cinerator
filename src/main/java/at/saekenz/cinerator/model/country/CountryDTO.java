@@ -1,5 +1,7 @@
 package at.saekenz.cinerator.model.country;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record CountryDTO(Long id,
-                         String name) {
+                         @NotBlank String name) {
 }

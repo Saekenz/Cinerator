@@ -4,6 +4,10 @@ import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.country.CountryDTO;
 import at.saekenz.cinerator.model.country.CountryDTOModelAssembler;
 import at.saekenz.cinerator.model.country.CountryMapper;
+import at.saekenz.cinerator.model.movie.Movie;
+import at.saekenz.cinerator.model.movie.MovieDTO;
+import at.saekenz.cinerator.model.movie.MovieDTOModelAssembler;
+import at.saekenz.cinerator.model.movie.MovieMapper;
 import at.saekenz.cinerator.model.person.Person;
 import at.saekenz.cinerator.model.person.PersonDTO;
 import at.saekenz.cinerator.model.person.PersonDTOModelAssembler;
@@ -12,7 +16,6 @@ import at.saekenz.cinerator.service.ICountryService;
 import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
 import jakarta.validation.Valid;
-import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
@@ -42,6 +45,9 @@ public class CountryController {
     PersonMapper personMapper;
 
     @Autowired
+    MovieMapper movieMapper;
+
+    @Autowired
     CollectionModelBuilderService collectionModelBuilderService;
 
     @Autowired
@@ -49,14 +55,17 @@ public class CountryController {
 
     private final CountryDTOModelAssembler countryDTOAssembler;
     private final PersonDTOModelAssembler personDTOModelAssembler;
+    private final MovieDTOModelAssembler movieDTOModelAssembler;
 
     private final PagedResourcesAssembler<CountryDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
             new HateoasPageableHandlerMethodArgumentResolver(), null);
 
     public CountryController(CountryDTOModelAssembler countryDTOAssembler,
-                             PersonDTOModelAssembler personDTOModelAssembler) {
+                             PersonDTOModelAssembler personDTOModelAssembler,
+                             MovieDTOModelAssembler movieDTOModelAssembler) {
         this.countryDTOAssembler = countryDTOAssembler;
         this.personDTOModelAssembler = personDTOModelAssembler;
+        this.movieDTOModelAssembler = movieDTOModelAssembler;
     }
 
     /**
@@ -156,9 +165,7 @@ public class CountryController {
      */
     @GetMapping("/{id}/persons")
     public ResponseEntity<CollectionModel<EntityModel<PersonDTO>>> findPersonsByCountry(@PathVariable Long id) {
-        Country country = countryService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, Country.class.getSimpleName()));
-
+        Country country = countryService.findCountryById(id);
         Set<Person> persons = country.getPersons();
 
         if (persons.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
@@ -167,7 +174,28 @@ public class CountryController {
                 .createCollectionModelFromList(persons, personMapper, personDTOModelAssembler,
                         linkTo(methodOn(CountryController.class).findPersonsByCountry(id)).withSelfRel());
 
-        return ResponseEntity
-                .ok(collectionModel);
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    /**
+     * Fetch every {@link Movie} associated with {@link Country} with {@code id}.
+     *
+     * @param id the ID of the {@link Country} for which movies are fetched
+     * @return ResponseEntity containing a 200 Ok status and the persons associated
+     * with that {@link Country}. (Returns a 404 Not Found status if the {@link Country}
+     * does not exist.)
+     */
+    @GetMapping("/{id}/movies")
+    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findMoviesByCountry(@PathVariable Long id) {
+        Country country = countryService.findCountryById(id);
+        Set<Movie> movies = country.getMovies();
+
+        if (movies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
+
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(movies, movieMapper, movieDTOModelAssembler,
+        linkTo(methodOn(CountryController.class).findMoviesByCountry(id)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
 }
