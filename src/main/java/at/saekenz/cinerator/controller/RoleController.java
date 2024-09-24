@@ -5,19 +5,17 @@ import at.saekenz.cinerator.model.role.RoleDTO;
 import at.saekenz.cinerator.model.role.RoleDTOModelAssembler;
 import at.saekenz.cinerator.model.role.RoleMapper;
 import at.saekenz.cinerator.service.IRoleService;
-import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
-import org.hibernate.ObjectNotFoundException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.CollectionModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/roles")
@@ -30,36 +28,37 @@ public class RoleController {
     RoleMapper roleMapper;
 
     @Autowired
-    private CollectionModelBuilderService modelBuilderService;
-
-    @Autowired
     private ResponseBuilderService responseBuilderService;
 
     private final RoleDTOModelAssembler roleDTOModelAssembler;
-//    private final Logger log = LoggerFactory.getLogger(RoleController.class);
+
+    private final PagedResourcesAssembler<RoleDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
+            new HateoasPageableHandlerMethodArgumentResolver(), null);
 
     public RoleController(RoleDTOModelAssembler roleDTOModelAssembler) {
         this.roleDTOModelAssembler = roleDTOModelAssembler;
     }
 
     /**
-     * Fetch every {@link Role} from the database.
+     * Fetch every {@link Role} from the database (in a paged format).
      *
-     * @return ResponseEntity containing 200 Ok status and a collection of every
-     * {@link Role} stored in the database.
+     * @param page number of the page returned
+     * @param size number of {@link Role} resources returned for each page
+     * @param sortField attribute that determines how returned resources will be sorted
+     * @param sortDirection order of sorting (can be ASC or DESC)
+     * @return {@link PagedModel} object with sorted/filtered {@link Role} resources wrapped
+     * in {@link ResponseEntity<>}
      */
     @GetMapping()
-    public ResponseEntity<CollectionModel<EntityModel<RoleDTO>>> findAllRoles() {
-        List<Role> roles = roleService.findAll();
+    public ResponseEntity<PagedModel<EntityModel<RoleDTO>>> findAllRoles(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "5") int size,
+            @RequestParam(name = "sortField", defaultValue = "id") String sortField,
+            @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+        Page<RoleDTO> roles = roleService.findAllPaged(page, size, sortField, sortDirection)
+                .map(roleMapper::toDTO);
 
-        if (roles.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
-
-        CollectionModel<EntityModel<RoleDTO>> collectionModel = modelBuilderService
-                .createCollectionModelFromList(roles, roleMapper, roleDTOModelAssembler,
-                        linkTo(methodOn(RoleController.class).findAllRoles()).withSelfRel());
-
-        return ResponseEntity.ok(collectionModel);
-
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(roles, roleDTOModelAssembler));
     }
 
     /**
@@ -70,14 +69,13 @@ public class RoleController {
      * (Returns 404 Not Found if the {@link Role} does not exist for this {@code id}.)
      */
     @GetMapping("/{id}")
-    public ResponseEntity<EntityModel<RoleDTO>> findRoleById(@PathVariable Long id) {
-        Role role = roleService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, Role.class.getSimpleName()));
+    public ResponseEntity<EntityModel<RoleDTO>> findRoleById(@NotNull @PathVariable Long id) {
+        Role role = roleService.findRoleById(id);
 
-        return ResponseEntity
-                .ok(roleDTOModelAssembler
-                        .toModel(roleMapper.toDTO(role)));
+        return ResponseEntity.ok(roleDTOModelAssembler.toModel(roleMapper.toDTO(role)));
     }
+
+// ------------------------------ CREATE/UPDATE/DELETE --------------------------------------------------------------
 
     /**
      * Creates a new {@link Role}.
@@ -86,12 +84,11 @@ public class RoleController {
      * @return ResponseEntity containing a 201 Created status and the created {@link Role}.
      */
     @PostMapping
-    public ResponseEntity<EntityModel<RoleDTO>> createRole(@RequestBody RoleDTO roleDTO) {
-        Role createdRole = roleService.save(roleMapper.toRole(roleDTO));
-        EntityModel<RoleDTO> roleModel = roleDTOModelAssembler
-                .toModel(roleMapper.toDTO(createdRole));
+    public ResponseEntity<EntityModel<RoleDTO>> createRole(@Valid @RequestBody RoleDTO roleDTO) {
+        Role createdRole = roleService.createRole(roleDTO);
+        EntityModel<RoleDTO> createdRoleModel = roleDTOModelAssembler.toModel(roleMapper.toDTO(createdRole));
 
-        return responseBuilderService.buildCreatedResponseWithBody(roleModel);
+        return responseBuilderService.buildCreatedResponseWithBody(createdRoleModel);
     }
 
     /**
@@ -103,13 +100,10 @@ public class RoleController {
      * (Returns 404 Not Found if the to be updated {@link Role} does not exist in the database)
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateRole(@PathVariable Long id, @RequestBody RoleDTO roleDTO) {
-        Role existingRole = roleService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, Role.class.getSimpleName()));
-
-        existingRole.setRole(roleDTO.role());
-        EntityModel<RoleDTO> entityModel = roleDTOModelAssembler
-                .toModel(roleMapper.toDTO(roleService.save(existingRole)));
+    public ResponseEntity<?> updateRole(@NotNull @PathVariable Long id, @Valid @RequestBody RoleDTO roleDTO) {
+        Role existingRole = roleService.updateRole(id, roleDTO);
+        EntityModel<RoleDTO> entityModel = roleDTOModelAssembler.toModel(
+                roleMapper.toDTO(roleService.save(existingRole)));
 
         return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
     }
@@ -122,8 +116,7 @@ public class RoleController {
      * 404 Not Found status if no {@link Role} exists with the specified {@code id}.)
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteRole(@PathVariable Long id) {
-        roleService.findById(id).orElseThrow(() -> new ObjectNotFoundException(id, Role.class.getSimpleName()));
+    public ResponseEntity<?> deleteRole(@NotNull @PathVariable Long id) {
         roleService.deleteById(id);
 
         return ResponseEntity.noContent().build();

@@ -1,4 +1,7 @@
 package at.saekenz.cinerator.model.role;
 
-public record RoleDTO(Long id, String role) {
+import jakarta.validation.constraints.NotBlank;
+
+public record RoleDTO(Long id,
+                      @NotBlank String role) {
 }

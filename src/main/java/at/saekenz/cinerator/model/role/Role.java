@@ -27,7 +27,7 @@ public class Role {
 
     public Role(String role) {
         this.role = role;
-        this.castInfos = new HashSet<CastInfo>();
+        this.castInfos = new HashSet<>();
     }
 
     public Long getId() {
@@ -44,5 +44,9 @@ public class Role {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public Set<CastInfo> getCastInfos() {
+        return castInfos;
     }
 }
