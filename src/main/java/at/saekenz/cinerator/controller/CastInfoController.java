@@ -1,28 +1,22 @@
 package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.castinfo.*;
-import at.saekenz.cinerator.model.movie.Movie;
-import at.saekenz.cinerator.model.movie.MovieNotFoundException;
-import at.saekenz.cinerator.model.person.Person;
-import at.saekenz.cinerator.model.role.Role;
 import at.saekenz.cinerator.service.ICastInfoService;
 import at.saekenz.cinerator.service.IMovieService;
 import at.saekenz.cinerator.service.IPersonService;
 import at.saekenz.cinerator.service.IRoleService;
 import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
-import org.hibernate.ObjectNotFoundException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.CollectionModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Objects;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/castinfo")
@@ -51,28 +45,33 @@ public class CastInfoController {
 
     private final CastInfoDTOModelAssembler castInfoDTOModelAssembler;
 
+    private final PagedResourcesAssembler<CastInfoDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
+            new HateoasPageableHandlerMethodArgumentResolver(), null);
+
     public CastInfoController(CastInfoDTOModelAssembler castInfoDTOModelAssembler) {
         this.castInfoDTOModelAssembler = castInfoDTOModelAssembler;
     }
 
     /**
-     * Fetch every {@link CastInfo} from the database.
-     *
-     * @return ResponseEntity containing 200 Ok status and a collection of every
-     * {@link CastInfo} stored in the database.
-     */
+     * Fetch every {@link CastInfo} from the database (in a paged format).
+     *      *
+     *      * @param page number of the page returned
+     *      * @param size number of {@link CastInfo} resources returned for each page
+     *      * @param sortField attribute that determines how returned resources will be sorted
+     *      * @param sortDirection order of sorting (can be ASC or DESC)
+     *      * @return {@link PagedModel} object with sorted/filtered {@link CastInfo} resources wrapped
+     *      * in {@link ResponseEntity<>}
+     *      */
     @GetMapping()
-    public ResponseEntity<CollectionModel<EntityModel<CastInfoDTO>>> findAllCastInfos() {
-        List<CastInfo> castInfos = castInfoService.findAll();
+    public ResponseEntity<PagedModel<EntityModel<CastInfoDTO>>> findAllCastInfos(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "5") int size,
+            @RequestParam(name = "sortField", defaultValue = "id") String sortField,
+            @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+        Page<CastInfoDTO> pagedCastInfos = castInfoService.findAllPaged(page, size, sortField, sortDirection)
+                .map(castInfoMapper::toDTO);
 
-        if (castInfos.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
-
-        CollectionModel<EntityModel<CastInfoDTO>> collectionModel = collectionModelBuilderService
-                .createCollectionModelFromList(castInfos, castInfoMapper, castInfoDTOModelAssembler,
-                        linkTo(methodOn(CastInfoController.class).findAllCastInfos()).withSelfRel());
-
-        return ResponseEntity.ok(collectionModel);
-
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(pagedCastInfos, castInfoDTOModelAssembler));
     }
 
     /**
@@ -84,12 +83,9 @@ public class CastInfoController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<CastInfoDTO>> findCastInfoById(@PathVariable Long id) {
-        CastInfo castInfo = castInfoService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, CastInfo.class.getSimpleName()));
+        CastInfo castInfo = castInfoService.findCastInfoById(id);
 
-        return ResponseEntity
-                .ok(castInfoDTOModelAssembler
-                        .toModel(castInfoMapper.toDTO(castInfo)));
+        return ResponseEntity.ok(castInfoDTOModelAssembler.toModel(castInfoMapper.toDTO(castInfo)));
     }
 
     /**
@@ -100,17 +96,8 @@ public class CastInfoController {
      */
     @PostMapping
     public ResponseEntity<EntityModel<CastInfoDTO>> createCastInfo(
-            @RequestBody CastInfoCreationDTO castInfoCreationDTO) {
-        Movie movie = movieService.findById(castInfoCreationDTO.getMovieId()).orElseThrow(
-                () -> new MovieNotFoundException(castInfoCreationDTO.getMovieId()));
-        Person person = personService.findById(castInfoCreationDTO.getPersonId()).orElseThrow(
-                () -> new ObjectNotFoundException(castInfoCreationDTO.getPersonId(), Person.class.getSimpleName()));
-        Role role = roleService.findById(castInfoCreationDTO.getRoleId()).orElseThrow(
-                () -> new ObjectNotFoundException(castInfoCreationDTO.getRoleId(), Role.class.getSimpleName()));
-
-        CastInfo createdCastInfo = castInfoService.save(new CastInfo(movie, person, role,
-                castInfoCreationDTO.getCharacterName()));
-
+            @Valid @RequestBody CastInfoCreationDTO castInfoCreationDTO) {
+        CastInfo createdCastInfo = castInfoService.createCastInfo(castInfoCreationDTO);
         EntityModel<CastInfoDTO> castInfoModel = castInfoDTOModelAssembler
                 .toModel(castInfoMapper.toDTO(createdCastInfo));
 
@@ -126,35 +113,13 @@ public class CastInfoController {
      * (Returns 404 Not Found if the to be updated {@link CastInfo} does not exist in the database)
      */
     @PutMapping("/{id}")
-    public ResponseEntity<EntityModel<CastInfoDTO>> updateCastInfo(@PathVariable Long id,
-                                                                   @RequestBody CastInfoCreationDTO castInfoCreationDTO) {
-        CastInfo existingCastInfo = castInfoService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, CastInfo.class.getSimpleName()));
+    public ResponseEntity<EntityModel<CastInfoDTO>> updateCastInfo(@NotNull @PathVariable Long id,
+                                                                   @Valid @RequestBody CastInfoCreationDTO castInfoCreationDTO) {
+        CastInfo updatedCastInfo = castInfoService.updateCastInfo(id, castInfoCreationDTO);
+        EntityModel<CastInfoDTO> updatedCastInfoModel = castInfoDTOModelAssembler
+                .toModel(castInfoMapper.toDTO(updatedCastInfo));
 
-        if (!Objects.equals(existingCastInfo.getMovie().getId(), castInfoCreationDTO.getMovieId())) {
-            Movie newMovie = movieService.findById(castInfoCreationDTO.getMovieId()).orElseThrow(
-                    () -> new MovieNotFoundException(castInfoCreationDTO.getMovieId()));
-            existingCastInfo.setMovie(newMovie);
-        }
-
-        if (!Objects.equals(existingCastInfo.getPerson().getId(), castInfoCreationDTO.getPersonId())) {
-            Person newPerson = personService.findById(castInfoCreationDTO.getPersonId()).orElseThrow(
-                    () -> new ObjectNotFoundException(castInfoCreationDTO.getPersonId(), Person.class.getSimpleName()));
-            existingCastInfo.setPerson(newPerson);
-        }
-
-        if (!Objects.equals(existingCastInfo.getRole().getId(), castInfoCreationDTO.getRoleId())) {
-            Role newRole = roleService.findById(castInfoCreationDTO.getRoleId()).orElseThrow(
-                    () -> new ObjectNotFoundException(castInfoCreationDTO.getRoleId(), Role.class.getSimpleName()));
-            existingCastInfo.setRole(newRole);
-        }
-
-        existingCastInfo.setCharacterName(castInfoCreationDTO.getCharacterName());
-
-        EntityModel<CastInfoDTO> updatedCastInfo =  castInfoDTOModelAssembler
-                .toModel(castInfoMapper.toDTO(castInfoService.save(existingCastInfo)));
-
-        return responseBuilderService.buildNoContentResponseWithLocation(updatedCastInfo);
+        return responseBuilderService.buildNoContentResponseWithLocation(updatedCastInfoModel);
     }
 
     /**
@@ -166,11 +131,8 @@ public class CastInfoController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCastInfo(@PathVariable Long id) {
-        castInfoService.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException(id, CastInfo.class.getSimpleName()));
         castInfoService.deleteById(id);
 
         return ResponseEntity.noContent().build();
     }
-
 }

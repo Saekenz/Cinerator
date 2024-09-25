@@ -4,13 +4,25 @@ import at.saekenz.cinerator.model.movie.MovieDTO;
 import at.saekenz.cinerator.model.person.PersonDTO;
 import at.saekenz.cinerator.model.role.RoleDTO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 public class CastInfoDTO {
 
     private Long id;
+
+    @Valid
+    @NotNull(message = "A valid movie is required.")
     private MovieDTO movieDTO;
+
+    @Valid
+    @NotNull(message = "A valid person is required.")
     private PersonDTO personDTO;
+
+    @Valid
+    @NotNull(message = "A valid role is required.")
     private RoleDTO roleDTO;
+
     private String characterName;
 
     public CastInfoDTO() {}
