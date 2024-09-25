@@ -501,7 +501,7 @@ public class UserControllerSpringBootIntegrationTest {
     }
 
 // -------------------------------------- FOLLOWERS -------------------------------------------------------------------
-
+    // TODO -> add test(s) for following a user that is already followed
     /**
      * Creates a request to retrieve {@link User} objects which follow {@link User} with id = 2.
      * Returns a list of {@link User} objects and HTTP code 200.
