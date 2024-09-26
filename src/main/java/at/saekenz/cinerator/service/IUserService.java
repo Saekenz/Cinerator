@@ -2,6 +2,9 @@ package at.saekenz.cinerator.service;
 
 import at.saekenz.cinerator.model.movie.Movie;
 import at.saekenz.cinerator.model.user.User;
+import at.saekenz.cinerator.model.user.UserCreationDTO;
+import at.saekenz.cinerator.model.user.UserDTO;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +18,8 @@ public interface IUserService {
     List<User> findAll();
 
     Optional<User> findById(Long id);
+
+    User findUserById(Long id);
 
     User getReferenceById(Long id);
 
@@ -33,4 +38,14 @@ public interface IUserService {
     List<Movie> findMoviesRatedByUser(Long userId, Integer rating);
 
     List<User> searchUsers(String name, String username, String email, String role);
+
+    Page<User> findAllPaged(int page, int size, String sortField, String sortDirection);
+
+    User createUser(UserCreationDTO userCreationDTO);
+
+    User updateUser(Long id, UserDTO userDTO);
+
+    Movie findMovieInUsersWatchlist(Long userId, Long movieId);
+
+    User addMovieToWatchlistById(Long userId, Long movieId);
 }

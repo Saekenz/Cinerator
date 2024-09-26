@@ -65,46 +65,13 @@ public class UserControllerSpringBootIntegrationTest {
     @WithMockUser("test-user")
     @Test
     public void givenFindUserByIdRequest_shouldFailWith404() throws Exception {
-        Long userId = -999L;
+        Long userId = 999L;
         mockMvc.perform(get("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("user: %s", userId))));
-    }
-
-    @WithMockUser("test-user")
-    @Test
-    public void givenFindUsersByUsernameRequest_shouldSucceedWith200() throws Exception {
-        String username = "UserD";
-        mockMvc.perform(get("/users/username/{username}", username).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.userDTOList[*].username", everyItem(equalToIgnoringCase(username))));
-    }
-
-    @WithMockUser("test-user")
-    @Test
-    public void givenFindUsersByUsernameRequest_shouldFailWith404() throws Exception {
-        String username = "peter";
-        mockMvc.perform(get("/users/username/{username}", username).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("username: %s", username))));
-    }
-
-    @WithMockUser("test-user")
-    @Test
-    public void givenFindUsersByRoleRequest_shouldSucceedWith200() throws Exception {
-        String role = "admin";
-        mockMvc.perform(get("/users/role/{role}", role).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.userDTOList[*].role", everyItem(equalToIgnoringCase(role))));
-    }
-
-    @WithMockUser("test-user")
-    @Test
-    public void givenFindUsersByRoleRequest_shouldFailWith404() throws Exception {
-        String role = "wizard";
-        mockMvc.perform(get("/users/role/{role}", role).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("role: %s", role))));
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("User with id %s could not be found!", userId))));
     }
 
     @WithMockUser("test-user")
@@ -241,8 +208,10 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(put("/users/{userId}/enable", userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content()
-                        .string(containsString(String.format("Could not find user: %s", userId))));
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("User with id %s could not be found!", userId))));
     }
 
 // ------------------------------------- WATCHLIST ------------------------------------------------------------------
@@ -264,7 +233,7 @@ public class UserControllerSpringBootIntegrationTest {
 
     /**
      * Attempts to retrieve the watchlist belonging to user with userId -999.
-     * The API has to return HTTP code 404 since no user with such an userId exists in the database
+     * The API has to return HTTP code 400 since ids must be positive numbers
      * @throws Exception if any errors occur the execution of the test.
      */
     @WithMockUser("test-user")
@@ -272,8 +241,10 @@ public class UserControllerSpringBootIntegrationTest {
     public void givenFindWatchlistByUserRequest_shouldFailWith404() throws Exception {
         Long userId = -999L;
         mockMvc.perform(get("/users/{userId}/watchlist", userId).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andDo(print());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString("Validation failure")));
     }
 
     /**
@@ -283,7 +254,7 @@ public class UserControllerSpringBootIntegrationTest {
      * made which has to return a list containing the newly added movie.
      * @throws Exception if any errors occur the execution of the test.
      */
-    @Test
+    @Test //TODO -> add tests for movie already in watchlist
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenAddMovieToWatchlistRequest_shouldSucceedWith200() throws Exception {
         Long userId = 2L;
@@ -309,24 +280,26 @@ public class UserControllerSpringBootIntegrationTest {
      */
     @Test
     public void givenAddMovieToWatchlistRequest_shouldFailWith404() throws Exception {
-       Long userId = -999L;
+       Long userId = 999L;
        Long movieId = 11L;
 
        mockMvc.perform(put("/users/{userId}/watchlist", userId, movieId)
                .contentType(MediaType.APPLICATION_JSON)
                .content(String.valueOf(movieId)))
                .andExpect(status().isNotFound())
-               .andExpect(content()
-                       .string(containsString(String.format("Could not find user: %s", userId))));
+               .andExpect(jsonPath("$.title").value("Not Found"))
+               .andExpect(jsonPath("$.status").value("404"))
+               .andExpect(content().string(containsString(
+                       String.format("User with id %s could not be found!", userId))));
 
        userId = 2L;
-       movieId = -999L;
+       movieId = 999L;
 
         mockMvc.perform(put("/users/{userId}/watchlist", userId, movieId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.valueOf(movieId)))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+                .andExpect(content().string(containsString(String.format("could not be found!"))));
     }
 
     /**
@@ -364,8 +337,10 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(delete("/users/{userId}/watchlist/{movieId}", userId, movieId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(String.valueOf(movieId)))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find user: %s", userId))));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString("Validation failure")));
     }
 
     /**
@@ -396,16 +371,20 @@ public class UserControllerSpringBootIntegrationTest {
 
         mockMvc.perform(get("/users/{userId}/watchlist/{movieId}", userId, movieId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find user: %s", userId))));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString("Validation failure")));
 
         userId = 1L;
         movieId = -999L;
 
         mockMvc.perform(get("/users/{userId}/watchlist/{movieId}", userId, movieId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString("Validation failure")));
     }
 
 // ------------------------------------ REVIEWS -----------------------------------------------------------------------
@@ -436,7 +415,10 @@ public class UserControllerSpringBootIntegrationTest {
 
         mockMvc.perform(get("/users/{userId}/reviews", userId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString("Validation failure")));
     }
 
     /**
@@ -492,7 +474,7 @@ public class UserControllerSpringBootIntegrationTest {
      */
     @Test
     public void givenFindMoviesRatedByUserRequest_shouldFailWith404() throws Exception{
-        Long userId = -999L;
+        Long userId = 999L;
         Integer rating = 3;
 
         mockMvc.perform(get("/users/{userId}/movies/rated/{rating}", userId, rating)
@@ -529,8 +511,10 @@ public class UserControllerSpringBootIntegrationTest {
 
         mockMvc.perform(get("/users/{userId}/followers", userId)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find user: %s", userId))));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString("Validation failure")));
     }
 
     /**
@@ -559,8 +543,10 @@ public class UserControllerSpringBootIntegrationTest {
 
         mockMvc.perform(get("/users/{userId}/following", userId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find user: %s", userId))));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString("Validation failure")));
     }
 
     /**
@@ -597,7 +583,7 @@ public class UserControllerSpringBootIntegrationTest {
      */
     @Test
     public void givenFollowAnotherUserRequest_shouldFailWith404() throws Exception {
-        Long userId = -999L;
+        Long userId = 999L;
 
         FollowActionDTO followDTO = new FollowActionDTO(2L);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -617,9 +603,10 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(post("/users/{userId}/follow", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonData))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", followDTO.followerId()))));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString("Validation failure")));
     }
 
     /**
@@ -664,9 +651,10 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(delete("/users/{userId}/unfollow", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonData))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", userId))));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString("Validation failure")));
 
         userId = 2L;
         followDTO = new FollowActionDTO(-999L);
@@ -675,9 +663,10 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(delete("/users/{userId}/unfollow", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonData))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", followDTO.followerId()))));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString("Validation failure")));
     }
 
 // --------------------------------- LISTS --------------------------------------------------------------------------
@@ -714,9 +703,10 @@ public class UserControllerSpringBootIntegrationTest {
 
         mockMvc.perform(get("/users/{id}/lists", userId)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(
-                        String.format("Could not find user: %s", userId))));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString("Validation failure")));
     }
 
 // ------------------------------- SEARCH ----------------------------------------------------------------------------

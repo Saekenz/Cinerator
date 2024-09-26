@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
@@ -44,4 +45,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
                                        @Param("username") String username,
                                        @Param("email") String email,
                                        @Param("role") String role);
+
+    @Query("SELECT m FROM User u JOIN u.watchlist m WHERE " +
+            "u.id = :userId and m.id = :movieId")
+    Optional<Movie> findMovieInUsersWatchlist(@Param("userId") Long userId, @Param("movieId") Long movieId);
 }
