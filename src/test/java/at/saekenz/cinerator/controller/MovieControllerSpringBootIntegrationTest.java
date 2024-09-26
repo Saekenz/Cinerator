@@ -210,7 +210,7 @@ public class MovieControllerSpringBootIntegrationTest {
                   "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg",
                   "reviews": []
                 }""";
-
+        // TODO: add validation to MovieController + DTOs to fix test
         mockMvc.perform(post("/movies").contentType(MediaType.APPLICATION_JSON).content(movieJsonData))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("\"description\":\"Error caused by: runtime\\\" of relation \\\"movies\"")));

@@ -1,9 +1,16 @@
 package at.saekenz.cinerator.model.user;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class UserCreationDTO {
 
+    @NotBlank(message = "A valid email address is required.")
     private String email;
+
+    @NotBlank(message = "A valid username is required.")
     private String username;
+
+    @NotBlank(message = "A valid password is required.")
     private String password;
 
     public UserCreationDTO() {}

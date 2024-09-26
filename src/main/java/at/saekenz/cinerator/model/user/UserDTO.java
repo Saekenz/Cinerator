@@ -1,16 +1,30 @@
 package at.saekenz.cinerator.model.user;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDateTime;
 
 public class UserDTO {
 
     private Long id;
+
+    @NotBlank(message = "A valid username is required.")
     private String username;
+
+    @NotNull(message = "A valid name is required.")
     private String name;
+
+    @NotBlank(message = "A valid email address is required.")
     private String email;
+
+    @NotNull(message = "A valid bio is required.")
     private String bio;
+
     private String role;
+
     private boolean enabled;
+
     private LocalDateTime createdAt;
 
     public UserDTO() {}
