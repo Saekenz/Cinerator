@@ -25,7 +25,6 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
@@ -250,7 +249,7 @@ public class UserControllerSpringBootIntegrationTest {
      */
     @WithMockUser("test-user")
     @Test
-    public void givenFindWatchlistByUserRequest_shouldFailWith404() throws Exception {
+    public void givenFindWatchlistByUserRequest_shouldFailWith400() throws Exception {
         Long userId = -999L;
         mockMvc.perform(get("/users/{userId}/watchlist", userId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
@@ -260,10 +259,10 @@ public class UserControllerSpringBootIntegrationTest {
     }
 
     /**
-     * Performs request for adding a movie to a user's watchlist.
+     * Performs request for adding a {@link Movie} to a user's watchlist.
      * The API has to return HTTP code 204.
-     * To check if the movie was added correctly an HTTP GET is then
-     * made which has to return a list containing the newly added movie.
+     * To check if the {@link Movie} was added correctly an HTTP GET is then
+     * made which has to return a list containing the newly added {@link Movie}.
      * @throws Exception if any errors occur the execution of the test.
      */
     @Test //TODO -> add tests for movie already in watchlist
@@ -281,6 +280,27 @@ public class UserControllerSpringBootIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(String.format("$._embedded.movieDTOList[?(@.id == %s)]", movieId)).exists());
+    }
+
+    /**
+     * Performs request for adding a {@link Movie} to a user's watchlist.
+     * The API has to return a 400 Bad Request status (the {@link Movie} already exists in the watchlist).
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenAddMovieToWatchlistRequest_shouldFailWith400() throws Exception {
+        Long userId = 2L;
+        Long movieId = 2L;
+
+        mockMvc.perform(put("/users/{userId}/watchlist", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.valueOf(movieId)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString(
+                        String.format("Movie with id %s already exists in watchlist belonging to User with id %s!",
+                        movieId, userId))));
     }
 
     /**
@@ -336,7 +356,12 @@ public class UserControllerSpringBootIntegrationTest {
 
         mockMvc.perform(delete("/users/{userId}/watchlist/{movieId}", userId, movieId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("Movie with id %s was not found in watchlist belonging to User with id %s!",
+                        movieId, userId))));
     }
 
     /**
@@ -516,23 +541,6 @@ public class UserControllerSpringBootIntegrationTest {
     }
 
     /**
-     * Creates a request to retrieve {@link User} objects which follow {@link User} with id = -999.
-     * Returns a 400 Bad Request status since ids have to be positive.
-     * @throws Exception if any errors occur the execution of the test.
-     */
-    @Test
-    public void givenFindFollowersByUser_shouldFailWith400() throws Exception {
-        Long userId = -999L;
-
-        mockMvc.perform(get("/users/{userId}/followers", userId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.title").value("Bad Request"))
-                .andExpect(jsonPath("$.status").value("400"))
-                .andExpect(content().string(containsString("Validation failure")));
-    }
-
-    /**
      * Creates a request to retrieve {@link User} objects which follow {@link User} with id = 999.
      * Returns a 404 Not Found status since no {@link User} exists with this id.
      * @throws Exception if any errors occur the execution of the test.
@@ -544,11 +552,10 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/users/{userId}/followers", userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-//                .andExpect(jsonPath("$.title").value("Not Found"))
-//                .andExpect(jsonPath("$.status").value("404"))
-//                .andExpect(content().string(containsString(
-//                        String.format("User with id %s could not be found!", userId))))
-        ;
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("User with id %s could not be found!", userId))));
     }
 
     /**
@@ -610,6 +617,29 @@ public class UserControllerSpringBootIntegrationTest {
 
     /**
      * Performs request for following another {@link User}.
+     * The API has to return a 400 Bad Request status (the following relationship already exists).
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenFollowAnotherUserRequest_shouldFailWith400() throws Exception {
+        Long userId = 2L;
+        Long followerId = 1L;
+
+        FollowActionDTO followDTO = new FollowActionDTO(followerId);
+        String jsonData = new ObjectMapper().writeValueAsString(followDTO);
+
+        mockMvc.perform(post("/users/{userId}/follow", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonData))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString(
+                        String.format("User with id %s is already following User with id %s!", followerId, userId))));
+    }
+
+    /**
+     * Performs request for following another {@link User}.
      * The first time the request contains an invalid userId and a valid followerId.
      * The second time the request contains a valid userId and an invalid followerId.
      * Both requests have to return HTTP code 404.
@@ -627,11 +657,10 @@ public class UserControllerSpringBootIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonData))
                 .andExpect(status().isNotFound())
-//                .andExpect(jsonPath("$.title").value("Not Found"))
-//                .andExpect(jsonPath("$.status").value("404"))
-//                .andExpect(content().string(containsString(
-//                        String.format("User with id %s could not be found!", userId))))
-        ;
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("User with id %s could not be found!", userId))));
 
         userId = 2L;
         followDTO = new FollowActionDTO(999L);
@@ -641,11 +670,10 @@ public class UserControllerSpringBootIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonData))
                 .andExpect(status().isNotFound())
-//                .andExpect(jsonPath("$.title").value("Not Found"))
-//                .andExpect(jsonPath("$.status").value("404"))
-//                .andExpect(content().string(containsString(
-//                        String.format("User with id %s could not be found!", userId))))
-        ;
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("User with id %s could not be found!", followDTO.followerId()))));
     }
 
     /**
@@ -680,7 +708,7 @@ public class UserControllerSpringBootIntegrationTest {
      * @throws Exception if any errors occur the execution of the test.
      */
     @Test
-    public void givenUnfollowAnotherUserRequest_shouldFailWith404() throws Exception {
+    public void givenUnfollowAnotherUserRequest_shouldFailWith400() throws Exception {
         Long userId = -999L;
 
         FollowActionDTO followDTO = new FollowActionDTO(2L);
@@ -706,6 +734,30 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(jsonPath("$.title").value("Bad Request"))
                 .andExpect(jsonPath("$.status").value("400"))
                 .andExpect(content().string(containsString("Validation failure")));
+    }
+
+    /**
+     * Performs request for unfollowing another {@link User}.
+     * The API has to return a 404 Not Found status (the following relationship does not exist).
+     * @throws Exception if any errors occur the execution of the test.
+     */
+    @Test
+    public void givenUnfollowAnotherUserRequest_shouldFailWith404() throws Exception {
+        Long userId = 4L;
+
+        FollowActionDTO followDTO = new FollowActionDTO(2L);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonData = objectMapper.writeValueAsString(followDTO);
+
+        mockMvc.perform(delete("/users/{userId}/unfollow", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonData))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("User with id %s is not following User with id %s!",
+                                followDTO.followerId(), userId))));
     }
 
 // --------------------------------- LISTS --------------------------------------------------------------------------
@@ -743,11 +795,10 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/users/{id}/lists", userId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-//                .andExpect(jsonPath("$.title").value("Not Found"))
-//                .andExpect(jsonPath("$.status").value("404"))
-//                .andExpect(content().string(containsString(
-//                        String.format("User with id %s could not be found!", userId))))
-        ;
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("User with id %s could not be found!", userId))));
     }
 
 // ------------------------------- SEARCH ----------------------------------------------------------------------------

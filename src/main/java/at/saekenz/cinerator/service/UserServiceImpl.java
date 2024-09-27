@@ -1,11 +1,17 @@
 package at.saekenz.cinerator.service;
 
+import at.saekenz.cinerator.model.follow.Follow;
+import at.saekenz.cinerator.model.follow.FollowKey;
 import at.saekenz.cinerator.model.movie.Movie;
+import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserCreationDTO;
 import at.saekenz.cinerator.model.user.UserDTO;
 import at.saekenz.cinerator.model.user.UserMapper;
+import at.saekenz.cinerator.model.userlist.UserList;
 import at.saekenz.cinerator.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +27,9 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements IUserService {
     private final IMovieService movieService;
+    private final IFollowService followService;
+
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -28,8 +37,9 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private UserMapper userMapper;
 
-    public UserServiceImpl(IMovieService movieService) {
+    public UserServiceImpl(IMovieService movieService, IFollowService followService) {
         this.movieService = movieService;
+        this.followService = followService;
     }
 
     @Override
@@ -91,11 +101,13 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public List<Movie> findMoviesLikedByUser(Long userId) {
+        findUserById(userId);
         return userRepository.findMoviesLikedByUser(userId);
     }
 
     @Override
     public List<Movie> findMoviesRatedByUser(Long userId, Integer rating) {
+        findUserById(userId);
         return userRepository.findMoviesRatedByUser(userId, rating);
     }
 
@@ -145,12 +157,89 @@ public class UserServiceImpl implements IUserService {
         Movie foundMovie = movieService.getReferenceById(movieId);
 
         if (foundUser.addMovieToWatchlist(foundMovie)) {
+            log.info("Movie with id {} added to watchlist of User with id {}.", movieId, userId);
             return save(foundUser);
         }
         else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("Movie with id %s already exists in watchlist belonging to User with id %s!",
                             movieId, userId));
+        }
+    }
+
+    @Override
+    public void removeMovieFromWatchlistById(Long userId, Long movieId) {
+        User foundUser = findUserById(userId);
+        boolean isRemoved = foundUser.removeMovieFromWatchlist(movieId);
+
+        if (isRemoved) {
+            log.info("Movie with id {} removed from watchlist of User with id {}.", movieId, userId);
+            save(foundUser);
+        }
+        else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    String.format("Movie with id %s was not found in watchlist belonging to User with id %s!",
+                            movieId, userId));
+        }
+    }
+
+    @Override
+    public List<Review> findReviewsByUserId(Long userId) {
+        findUserById(userId);
+        return userRepository.findReviewsByUserId(userId);
+    }
+
+    @Override
+    public List<User> findFollowersByUserId(Long userId) {
+        findUserById(userId);
+        return userRepository.findFollowersByUserId(userId);
+    }
+
+    @Override
+    public List<User> findFollowingByUserId(Long userId) {
+        findUserById(userId);
+        return userRepository.findFollowingByUserId(userId);
+    }
+
+    @Override
+    public List<UserList> findUserListsByUserId(Long userId) {
+        findUserById(userId);
+        return userRepository.findUserListsByUserId(userId);
+    }
+
+    @Override
+    public Follow followAnotherUser(Long userId, Long followerId) {
+        User user = findUserById(userId);
+        User follower = findUserById(followerId);
+
+        FollowKey followKey = new FollowKey(userId, followerId);
+
+        if (followService.findByKey(followKey).isEmpty()) {
+            return followService.save(new Follow(followKey, user, follower));
+        }
+        else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("User with id %s is already following User with id %s!",followerId, userId));
+        }
+    }
+
+    @Override
+    public void unfollowAnotherUser(Long userId, Long followerId) {
+        FollowKey followKey = new FollowKey(userId, followerId);
+        if (followService.findByKey(followKey).isPresent()) {
+            followService.deleteByKey(followKey);
+        }
+        else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    String.format("User with id %s is not following User with id %s!",followerId, userId));
+        }
+    }
+
+    @Override
+    public void enableUser(Long userId) {
+        if (userRepository.enableUser(userId) == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    String.format("User with id %s could not be found!", userId));
         }
     }
 }

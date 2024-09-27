@@ -1,9 +1,12 @@
 package at.saekenz.cinerator.service;
 
+import at.saekenz.cinerator.model.follow.Follow;
 import at.saekenz.cinerator.model.movie.Movie;
+import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.user.UserCreationDTO;
 import at.saekenz.cinerator.model.user.UserDTO;
+import at.saekenz.cinerator.model.userlist.UserList;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -48,4 +51,20 @@ public interface IUserService {
     Movie findMovieInUsersWatchlist(Long userId, Long movieId);
 
     User addMovieToWatchlistById(Long userId, Long movieId);
+
+    void removeMovieFromWatchlistById(Long userId, Long movieId);
+
+    List<Review> findReviewsByUserId(Long userId);
+
+    List<User> findFollowersByUserId(Long userId);
+
+    List<User> findFollowingByUserId(Long userId);
+
+    List<UserList> findUserListsByUserId(Long userId);
+
+    Follow followAnotherUser(Long userId, Long followerId);
+
+    void unfollowAnotherUser(Long userId, Long followerId);
+
+    void enableUser(Long userId);
 }

@@ -9,22 +9,18 @@ import at.saekenz.cinerator.model.userlist.UserList;
 import at.saekenz.cinerator.model.userlist.UserListDTO;
 import at.saekenz.cinerator.model.userlist.UserListDTOModelAssembler;
 import at.saekenz.cinerator.model.userlist.UserListMapper;
-import at.saekenz.cinerator.service.IFollowService;
 import at.saekenz.cinerator.service.IUserService;
 import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Range;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -44,9 +40,6 @@ public class UserController {
     IUserService userService;
 
     @Autowired
-    IFollowService followService;
-
-    @Autowired
     ResponseBuilderService responseBuilderService;
 
     @Autowired
@@ -54,9 +47,6 @@ public class UserController {
 
     @Autowired
     UserListMapper userListMapper;
-
-    @Autowired
-    UserListDTOModelAssembler userListDTOAssembler;
 
     @Autowired
     MovieDTOModelAssembler movieDTOAssembler;
@@ -71,8 +61,6 @@ public class UserController {
 
     private final UserMapper userMapper;
     private final UserDTOAssembler userDTOAssembler;
-
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
     private UserListDTOModelAssembler userListDTOModelAssembler;
@@ -267,40 +255,35 @@ public class UserController {
     }
 
     /**
+     * Removes a {@link Movie} resource specified by {@code movieId} from the watchlist belonging to {@link User}
+     * identified by {@code userId}
      *
-     * @param userId identifies the {@link User} that owns the watchlist
-     * @param movieId identifies the {@link Movie} that is to be removed
-     * @return HTTP code 204 (or HTTP code 404 if the {@link User} does not exist or
-     * the watchlist does not contain the {@link Movie})
+     * @param userId the ID of the {@link User} for which the {@link Movie} is to be removed
+     * @param movieId the ID of the {@link Movie} that is to be removed
+     * @return {@link ResponseEntity<>} containing a 204 No Content status (or a 404 Not Found status if the
+     * {@link User} does not exist or the {@link Movie} is not found in the watchlist).
      */
     @DeleteMapping("/{userId}/watchlist/{movieId}")
     public ResponseEntity<?> removeMovieFromWatchlist(@NotNull @Range(min = 1) @PathVariable Long userId,
                                                       @NotNull @Range(min = 1) @PathVariable Long movieId) {
-        User user = userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        // todo move
-        if (user.removeMovieFromWatchlist(movieId)) {
-            userService.save(user);
-            log.info(String.format("Movie with id %s removed from watchlist", movieId));
-            return ResponseEntity.noContent().build();
-        }
-        else {
-            return ResponseEntity.notFound().build();
-        }
+        userService.removeMovieFromWatchlistById(userId, movieId);
+
+        return ResponseEntity.noContent().build();
     }
 
 // ------------------------------------------ REVIEWS -----------------------------------------------------------------
 
     /**
+     * Fetches every {@link Review} that was created by {@link User} with {@code userId}.
      *
-     * @param userId number of the user for which {@link Review} objects are to be retrieved
-     * @return List of {@link Review} objects (empty list if the {@link User} did not create any reviews yet) and HTTP code 200
-     * or HTTP code 404 if the {@link User} does not exist
-     */ // todo move to service
+     * @param userId the ID of the {@link User} for which the {@link Review} resources are to be retrieved
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and a collection of {@link Review} resources
+     * (or a 404 Not Found status if the {@link User} does not exist).
+     */ //TODO: change to ReviewDTO
     @GetMapping("/{userId}/reviews")
     public ResponseEntity<CollectionModel<EntityModel<Review>>> findReviewsByUser(
             @NotNull @Range(min = 1) @PathVariable Long userId) {
-       User user = userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-       List<Review> reviews = user.getReviews();
+       List<Review> reviews = userService.findReviewsByUserId(userId);
 
        if (reviews.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
@@ -315,15 +298,15 @@ public class UserController {
     }
 
     /**
+     * Fetches every {@link Movie} that was liked by {@link User} with {@code userId}.
      *
-     * @param userId number of the user for which liked {@link Movie} objects are to be retrieved
-     * @return List of {@link Movie} objects (empty list if the {@link User} did not like any movies yet) and HTTP code 200
-     * or HTTP code 404 if the {@link User} does not exist
-     */ // todo move to service
+     * @param userId the ID of the {@link User} for which the liked {@link Movie} resources are to be retrieved
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and a collection of {@link Movie} resources
+     * (or a 404 Not Found status if the {@link User} does not exist).
+     */
     @GetMapping("/{userId}/movies/liked")
     public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findMoviesLikedByUser(
             @NotNull @Range(min = 1) @PathVariable Long userId) {
-        userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         List<Movie> likedMovies = userService.findMoviesLikedByUser(userId);
 
         if (likedMovies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
@@ -336,24 +319,24 @@ public class UserController {
     }
 
     /**
+     * Fetches every {@link Movie} that was rated with {@code rating} by {@link User} with {@code userId}.
      *
-     * @param userId number of the {@link User} for which rated movies will be retrieved
+     * @param userId the ID of the {@link User} for which rated movies will be retrieved
      * @param rating number the {@link User} has rated movies with
-     * @return List of {@link Movie} objects (empty list if the {@link User} has not rated
-     * any movies with this specific rating) and HTTP code 200
-     * or HTTP code 404 if the {@link User} does not exist
-     */ // todo move to service
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and a collection of {@link Movie} resources
+     * (or a 404 Not Found status if the {@link User} does not exist).
+     */
     @GetMapping("/{userId}/movies/rated/{rating}")
     public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findMoviesRatedByUser(
-            @NotNull @Range(min = 1) @PathVariable Long userId, @NotNull @Range(min = 1) @PathVariable Integer rating) {
-        userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+            @NotNull @Range(min = 1) @PathVariable Long userId,
+            @NotNull @Range(min = 1) @PathVariable Integer rating) {
         List<Movie> ratedMovies = userService.findMoviesRatedByUser(userId, rating);
 
         if (ratedMovies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-                CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
-                        .createCollectionModelFromList(ratedMovies,
-                linkTo(methodOn(UserController.class).findMoviesRatedByUser(userId, rating)).withSelfRel());
+        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(ratedMovies,
+                        linkTo(methodOn(UserController.class).findMoviesRatedByUser(userId, rating)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
@@ -361,110 +344,77 @@ public class UserController {
 // ----------------------------------------- FOLLOWERS ----------------------------------------------------------------
 
     /**
+     * Fetches every {@link User} that follows {@link User} with {@code id}.
      *
-     * @param id number of the {@link User} for which followers are to be retrieved
-     * @return List of {@link User} objects (or empty list) and HTTP code 200 or HTTP code
-     * 404 if the {@link User} does not exist
-     */ // todo move to service
+     * @param id the ID of the {@link User} for which followers are to be retrieved
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and a collection of {@link User} resources
+     * (or a 404 Not Found status if the {@link User} does not exist).
+     */
     @GetMapping("/{id}/followers")
     public ResponseEntity<CollectionModel<EntityModel<UserDTO>>> findFollowersByUser(
             @NotNull @Range(min = 1) @PathVariable Long id) {
-        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        Set<Follow> followers = user.getFollowers();
+        List<User> followers = userService.findFollowersByUserId(id);
 
         if (followers.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        List<EntityModel<UserDTO>> userModels = followers.stream()
-                .map(follow -> userMapper.toDTO(follow.getFollower()))
-                .map(userDTOAssembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<UserDTO>> collectionModel = CollectionModel.of(userModels,
-                linkTo(methodOn(UserController.class).findFollowersByUser(user.getId())).withSelfRel());
+        CollectionModel<EntityModel<UserDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(followers, userMapper, userDTOAssembler,
+                        linkTo(methodOn(UserController.class).findFollowersByUser(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
 
     /**
+     * Fetches every {@link User} that {@link User} with {@code id} is following.
      *
-     * @param id number of the {@link User} of which users they follow are to be retrieved
-     * @return List of {@link User} objects (or empty list) and HTTP code 200 or HTTP code
-     * 404 if the {@link User} does not exist
-     */ // todo move to service
+     * @param id the ID of the {@link User} for which followed {@link User} resources are to be retrieved
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and a collection of {@link User} resources
+     * (or a 404 Not Found status if the {@link User} does not exist).
+     */
     @GetMapping("/{id}/following")
     public ResponseEntity<CollectionModel<EntityModel<UserDTO>>> findFollowingByUser(
             @NotNull @Range(min = 1) @PathVariable Long id) {
-        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        Set<Follow> following = user.getFollows();
+        List<User> following = userService.findFollowingByUserId(id);
 
         if (following.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        List<EntityModel<UserDTO>> userModels = following.stream()
-                .map(follow -> userMapper.toDTO(follow.getUser()))
-                .map(userDTOAssembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<UserDTO>> collectionModel = CollectionModel.of(userModels,
-                linkTo(methodOn(UserController.class).findFollowingByUser(user.getId())).withSelfRel());
+        CollectionModel<EntityModel<UserDTO>> collectionModel = collectionModelBuilderService
+               .createCollectionModelFromList(following, userMapper, userDTOAssembler,
+                       linkTo(methodOn(UserController.class).findFollowingByUser(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
 
     /**
+     * Adds {@link User} contained in {@code followActionDTO} to follower list of {@link User} with {@code id}.
      *
-     * @param id number of the {@link User} that will be followed
-     * @param followActionDTO contains the id of {@link User} that wants to follow
-     * @return HTTP code 201 if the request is successful, HTTP code 404 if one of the users is not found in the database
-     * and HTTP code 400 if the {@link User} is already following
-     */ // todo move to service
+     * @param id the ID of the {@link User} that will be followed
+     * @param followActionDTO contains the ID of the {@link User} that wants to follow
+     * @return {@link ResponseEntity<>} containing a 201 Created status (or a 404 Not Found status if
+     * any of the {@link User} resources does not exist or a 400 Bad Request status if the following
+     * relationship already exists).
+     */
     @PostMapping("/{id}/follow")
     public ResponseEntity<?> followAnotherUser(@NotNull @Range(min = 1) @PathVariable Long id,
                                                @Valid @RequestBody FollowActionDTO followActionDTO) {
-        Long followerId = followActionDTO.followerId();
+        Follow newFollow = userService.followAnotherUser(id, followActionDTO.followerId());
+        EntityModel<FollowDTO> entityModel = followAssembler.toModel(followMapper.toDTO(newFollow));
 
-        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        User follower = userService.findById(followerId).orElseThrow(() -> new UserNotFoundException(followerId));
-        FollowKey key = new FollowKey(id, followerId);
-
-        if (followService.findByKey(key).isEmpty()) {
-            Follow follow = followService.save(new Follow(new FollowKey(id, followerId), user, follower));
-
-            EntityModel<FollowDTO> entityModel = followAssembler
-                    .toModel(followMapper.toDTO(follow));
-
-            return ResponseEntity
-                    .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                    .body(entityModel);
-        }
-        else {
-            return ResponseEntity
-                    .badRequest()
-                    .body(String.format("User %s is already following user %s!", followerId, id));
-        }
+        return responseBuilderService.buildCreatedResponseWithBody(entityModel);
     }
 
     /**
+     * Removes {@link User} contained in {@code followActionDTO} from follower list of {@link User} with {@code id}.
      *
-     * @param id number of the {@link User} that will be unfollowed
-     * @param followActionDTO contains the id of {@link User} that wants to unfollow
-     * @return HTTP code 204 or HTTP code 404 if one of the users is not found in the database
-     */ // todo move to service
+     * @param id the ID of the {@link User} that will be unfollowed
+     * @param followActionDTO contains the ID of {@link User} that wants to unfollow
+     * @return {@link ResponseEntity<>} containing a 204 No Content status (or a 404 Not Found status if the
+     * following relationship does not exist).
+     */
     @DeleteMapping("/{id}/unfollow")
     public ResponseEntity<?> unfollowAnotherUser(@NotNull @Range(min = 1) @PathVariable Long id,
                                                  @Valid @RequestBody FollowActionDTO followActionDTO) {
-        Long followerId = followActionDTO.followerId();
-        List<User> involvedUsers = userService.findAllById(List.of(id, followerId));
-
-        if (involvedUsers.size() != 2) {
-            if (involvedUsers.stream().noneMatch(u -> u.getId().equals(id))) {
-                throw new UserNotFoundException(id);
-            }
-            if (involvedUsers.stream().noneMatch(u -> u.getId().equals(followerId))) {
-                throw new UserNotFoundException(followerId);
-            }
-        }
-
-        followService.deleteByKey(new FollowKey(id, followerId));
+        userService.unfollowAnotherUser(id, followActionDTO.followerId());
 
         return ResponseEntity.noContent().build();
     }
@@ -472,28 +422,21 @@ public class UserController {
 // ---------------------------------------- LISTS ---------------------------------------------------------------------
 
     /**
-     * Fetches every {@link UserList} associated with the {@link User} with a
-     * specific {@code id}.
+     * Fetches every {@link UserList} associated with the {@link User} with a specific {@code id}.
      *
      * @param id the ID of the {@link User} for which the lists are to be fetched
-     * @return ResponseEntity containing a 200 Ok status and every {@link UserList}
-     * associated with this {@link User} (returns a 404 Not Found status if
-     * no {@link User} exists with this {@code id}).
-     */ // todo move to service
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and every {@link UserList}
+     * associated with this {@link User} (or a 404 Not Found status if no {@link User} exists with this {@code id}).
+     */
     @GetMapping("/{id}/lists")
     public ResponseEntity<?> findListsByUser(@NotNull @Range(min = 1) @PathVariable Long id) {
-        User user = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        List<UserList> userLists = user.getUserlists();
+        List<UserList> userLists = userService.findUserListsByUserId(id);
 
         if (userLists.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-        List<EntityModel<UserListDTO>> userListModels = userLists.stream()
-                .map(userListMapper::toDTO)
-                .map(userListDTOModelAssembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<UserListDTO>> collectionModel = CollectionModel.of(userListModels,
-                linkTo(methodOn(UserController.class).findListsByUser(id)).withSelfRel());
+        CollectionModel<EntityModel<UserListDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(userLists, userListMapper, userListDTOModelAssembler,
+                        linkTo(methodOn(UserController.class).findListsByUser(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
@@ -501,17 +444,21 @@ public class UserController {
 // -------------------------------------- OTHER -------------------------------------------------------------------
 
     /**
+     * Enable the account of {@link User} with {@code id}.
      *
-     * @param id number of the user which should have their account enabled
-     * @return HTTP code 204 or HTTP code 404 if the user is not found in the database
-     */ // todo move to service
+     * @param id the ID of the {@link User} which will have their account enabled
+     * @return {@link ResponseEntity<>} containing a 204 No Content status
+     * (or a 404 Not Found status if no {@link User} exists with this {@code id}).
+     */
     @PutMapping("/{id}/enable")
     public ResponseEntity<Object> enableUser(@NotNull @Range(min = 1) @PathVariable Long id) {
-        User user = userService.findUserById(id);
+       userService.enableUser(id);
 
-        user.setEnabled(true);
-        EntityModel<UserDTO> entityModel = userDTOAssembler.toModel(userMapper.toDTO(userService.save(user)));
+       UserDTO updatedUserDTO = new UserDTO();
+       updatedUserDTO.setId(id); // only valid id needed to build links
 
-        return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
+       EntityModel<UserDTO> entityModel = userDTOAssembler.toModel(updatedUserDTO);
+
+       return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
     }
 }
