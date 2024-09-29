@@ -1,8 +1,12 @@
 package at.saekenz.cinerator.model.userlist;
 
-public record UserListCreationDTO(String name,
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Range;
+
+public record UserListCreationDTO(@NotBlank String name,
                                   String description,
-                                  boolean isPrivate,
-                                  Long userId) {
+                                  @NotNull boolean isPrivate,
+                                  @Range(min = 1) Long userId) {
 
 }

@@ -1,5 +1,7 @@
 package at.saekenz.cinerator.repository;
 
+import at.saekenz.cinerator.model.movie.Movie;
+import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.model.userlist.UserList;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,4 +18,12 @@ public interface UserListRepository extends JpaRepository<UserList, Long> {
     List<UserList> findUserListsBySearchParams(@Param("name") String name,
                                                @Param("description") String description,
                                                @Param("userId") Long userId);
+
+    @Query("SELECT ul.user FROM UserList ul WHERE " +
+            "ul.id = :userListId")
+    User findUserByUserListId(@Param("userListId") Long userListId);
+
+    @Query("SELECT ul.movielist FROM UserList ul WHERE " +
+            "ul.id = :userListId")
+    List<Movie> findMoviesByUserListId(@Param("userListId") Long userListId);
 }
