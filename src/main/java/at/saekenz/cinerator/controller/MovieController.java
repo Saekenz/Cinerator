@@ -6,6 +6,7 @@ import at.saekenz.cinerator.model.country.CountryDTO;
 import at.saekenz.cinerator.model.country.CountryDTOModelAssembler;
 import at.saekenz.cinerator.model.country.CountryMapper;
 import at.saekenz.cinerator.model.genre.Genre;
+import at.saekenz.cinerator.model.genre.GenreDTO;
 import at.saekenz.cinerator.model.genre.GenreDTOModelAssembler;
 import at.saekenz.cinerator.model.genre.GenreMapper;
 import at.saekenz.cinerator.model.movie.*;
@@ -14,11 +15,14 @@ import at.saekenz.cinerator.model.person.PersonDTO;
 import at.saekenz.cinerator.model.person.PersonDTOModelAssembler;
 import at.saekenz.cinerator.model.person.PersonMapper;
 import at.saekenz.cinerator.model.review.*;
+import at.saekenz.cinerator.model.role.Role;
 import at.saekenz.cinerator.model.user.User;
-import at.saekenz.cinerator.model.user.UserNotFoundException;
 import at.saekenz.cinerator.service.*;
 import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
@@ -29,7 +33,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -73,7 +76,7 @@ public class MovieController {
     CollectionModelBuilderService collectionModelBuilderService;
 
     private final MovieDTOModelAssembler movieDTOAssembler;
-    private final ReviewModelAssembler reviewAssembler;
+    private final ReviewDTOModelAssembler reviewAssembler;
     private final GenreDTOModelAssembler genreDTOAssembler;
     private final CountryDTOModelAssembler countryDTOAssembler;
     private final PersonDTOModelAssembler personDTOAssembler;
@@ -82,7 +85,7 @@ public class MovieController {
     private final PagedResourcesAssembler<MovieDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
             new HateoasPageableHandlerMethodArgumentResolver(), null);
 
-    public MovieController(MovieDTOModelAssembler movieDTOAssembler, ReviewModelAssembler reviewAssembler,
+    public MovieController(MovieDTOModelAssembler movieDTOAssembler, ReviewDTOModelAssembler reviewAssembler,
                            GenreDTOModelAssembler genreDTOAssembler, CountryDTOModelAssembler countryDTOAssembler,
                            PersonDTOModelAssembler personDTOAssembler) {
         this.movieDTOAssembler = movieDTOAssembler;
@@ -93,88 +96,81 @@ public class MovieController {
     }
 
     /**
+     * Fetch every {@link Movie} resource from the database (in a paged format).
      *
-     * @return HTTP code 200 and a list of {@link Movie} objects currently stored in the database
+     * @param page number of the page returned
+     * @param size number of movies listed in every page
+     * @param sortBy attribute which determines how movies will be sorted
+     * @param sortDirection order of sorting. Can be ASC or DESC
+     * @return {@link PagedModel} object with sorted/filtered movies wrapped in {@link ResponseEntity<>}
      */
-    @GetMapping
-    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findAll() {
-        List<Movie> movies = movieService.findAll();
+    @GetMapping()
+    public ResponseEntity<PagedModel<EntityModel<MovieDTO>>> findAllMovies(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "5") int size,
+            @RequestParam(name = "sortBy", defaultValue = "id") String sortBy,
+            @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+        Page<MovieDTO> movies = movieService.findAllPaged(page, size, sortBy, sortDirection)
+                .map(movieMapper::toDTO);
 
-        if (movies.isEmpty()) { return ResponseEntity.ok().build(); }
-
-        CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
-                .createCollectionModelFromList(movies, linkTo(methodOn(MovieController.class).findAll()).withSelfRel());
-
-        return ResponseEntity.ok(collectionModel);
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(movies,movieDTOAssembler));
     }
 
     /**
+     * Fetch a specific {@link Movie} by its {@code id}.
      *
-     * @param id number of the {@link Movie} that is to be retrieved
-     * @return HTTP code 200 and the {@link Movie} object if it was found. HTTP code 404 otherwise
+     * @param id the ID of the {@link Movie} that will be retrieved.
+     * @return ResponseEntity containing 200 Ok status and the {@link Movie} resource.
+     * (Returns 404 Not Found if the {@link Movie} does not exist for this {@code id}.)
      */
     @GetMapping("/{id}")
-    public ResponseEntity<EntityModel<MovieDTO>> findById(@PathVariable Long id) {
-        Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
+    public ResponseEntity<EntityModel<MovieDTO>> findMovieById(@PathVariable Long id) {
+        Movie movie = movieService.findMovieById(id);
         return ResponseEntity.ok(movieDTOAssembler.toModel(movieMapper.toDTO(movie)));
     }
 
+// ------------------------------ CREATE/UPDATE/DELETE --------------------------------------------------------------
+
     /**
+     * Creates a new {@link Movie}.
      *
-     * @param newMovie information about the {@link Movie} that is to be added to the database
-     * @return HTTP code 201 and the {@link Movie} object that was created
+     * @param creationDTO a DTO containing data of the new {@link Movie}
+     * @return {@link ResponseEntity<>} containing a 201 Created status and the created {@link Movie}.
      */
     @PostMapping()
-    public ResponseEntity<?> createMovie(@RequestBody Movie newMovie) {
-        EntityModel<MovieDTO> entityModel = movieDTOAssembler
-                .toModel(movieMapper.toDTO(movieService.save(newMovie)));
+    public ResponseEntity<EntityModel<MovieDTO>> createMovie(@Valid @RequestBody MovieCreationDTO creationDTO) {
+        Movie createdMovie = movieService.createMovie(creationDTO);
+        EntityModel<MovieDTO> createdMovieModel = movieDTOAssembler.toModel(movieMapper.toDTO(createdMovie));
 
-        return responseBuilderService.buildCreatedResponseWithBody(entityModel);
+        return responseBuilderService.buildCreatedResponseWithBody(createdMovieModel);
     }
 
     /**
+     * Updates a {@link Movie} based on its {@code id}.
      *
-     * @param id number of the {@link Movie} that is to be updated (or added if the number does not exist in the database yet)
-     * @param newMovie information about the to be updated/added {@link Movie} object
-     * @return HTTP code 201 and the created {@link Movie} object (or HTTP code 204 if an existing {@link Movie} object was updated)
+     * @param id the ID of the {@link Movie} that is to be updated
+     * @param movieDTO a DTO containing the needed data
+     * @return {@link ResponseEntity<>} containing a 204 No Content status
+     * (or a 404 Not Found if the to be updated {@link Movie} does not exist in the database).
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateMovie(@PathVariable Long id, @RequestBody Movie newMovie) {
-        Optional<Movie> existingMovie = movieService.findById(id);
+    public ResponseEntity<Object> updateMovie(@NotNull @Range(min = 1) @PathVariable Long id,
+                                         @Valid @RequestBody MovieCreationDTO movieDTO) {
+        Movie updatedMovie = movieService.updateMovie(id, movieDTO);
+        EntityModel<MovieDTO> updatedMovieModel = movieDTOAssembler.toModel(movieMapper.toDTO(updatedMovie));
 
-        Movie updatedMovie = existingMovie.map(
-                        movie -> {
-                            movie.setTitle(newMovie.getTitle());
-                            movie.setReleaseDate(newMovie.getReleaseDate());
-                            movie.setRuntime(newMovie.getRuntime());
-//                            movie.setGenres(newMovie.getGenres());
-//                            movie.setCountries(newMovie.getCountries());
-                            movie.setImdbId(newMovie.getImdbId());
-                            movie.setPosterUrl(newMovie.getPosterUrl());
-                            movie.setReviews(newMovie.getReviews());
-                            return movieService.save(movie);
-                        })
-                .orElseGet(() -> movieService.save(newMovie));
-
-        EntityModel<MovieDTO> entityModel = movieDTOAssembler
-                .toModel(movieMapper.toDTO(updatedMovie));
-
-        if (existingMovie.isPresent()) {
-            return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
-        }
-        else {
-            return responseBuilderService.buildCreatedResponseWithBody(entityModel);
-        }
+        return responseBuilderService.buildNoContentResponseWithLocation(updatedMovieModel);
     }
 
     /**
+     * Deletes a {@link Movie} by its {@code id}.
      *
-     * @param id number of {@link Movie} that is to be removed from the database
-     * @return HTTP code 204 if {@link Movie} was deleted. HTTP code 404 if {@link Movie} was not found
+     * @param id the ID of the {@link Movie} that is to be removed from the database
+     * @return {@link ResponseEntity<>} containing a 204 No Content status(or a
+     * 404 Not Found status if no {@link Movie} exists with the specified {@code id}.)
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMovie(@PathVariable Long id) {
-        movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
         movieService.deleteById(id);
 
         return ResponseEntity.noContent().build();
@@ -270,23 +266,22 @@ public class MovieController {
 // -------------------------------------- REVIEWS ---------------------------------------------------------------------
 
     /**
+     * Fetches {@link Review} resources associated with the {@link Movie} identified by {@code id}.
      *
-     * @param id number of the {@link Movie} for which all reviews shall be retrieved
-     * @return list of all {@link Review} objects associated with the given {@link Movie}
+     * @param id the ID of the {@link Movie} for which the {@link Review} resources are to be fetched
+     * @return ResponseEntity containing a 200 Ok status and the requested {@link Review} resources
+     * (or a 404 Not Found if no {@link Movie} exists for this {@code id}).
      */
     @GetMapping("/{id}/reviews")
-    public ResponseEntity<CollectionModel<EntityModel<Review>>> findReviewsByMovie(@PathVariable Long id) {
-        Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
-        List<Review> reviews = movie.getReviews();
+    public ResponseEntity<CollectionModel<EntityModel<ReviewDTO>>> findReviewsByMovie(
+            @NotNull @Range(min = 1) @PathVariable Long id) {
+        List<Review> reviews = movieService.findReviewsByMovieId(id);
 
         if (reviews.isEmpty()) { return ResponseEntity.ok().build(); }
 
-        List<EntityModel<Review>> reviewModels = reviews.stream()
-                .map(reviewAssembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviewModels,
-                linkTo(methodOn(MovieController.class).findReviewsByMovie(id)).withSelfRel());
+        CollectionModel<EntityModel<ReviewDTO>> collectionModel = collectionModelBuilderService
+                .createCollectionModelFromList(reviews, reviewMapper, reviewAssembler,
+                        linkTo(methodOn(MovieController.class).findReviewsByMovie(id)).withSelfRel());
 
         return ResponseEntity.ok(collectionModel);
     }
@@ -298,30 +293,33 @@ public class MovieController {
      * @return {@link Review} and HTTP code 200 if the review was found. HTTP code 404 otherwise
      */
     @GetMapping("/{movieId}/reviews/{reviewId}")
-    public ResponseEntity<EntityModel<Review>> findReviewById(@PathVariable Long movieId, @PathVariable Long reviewId) {
-        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
-        Review review = movie.getReviews().stream().filter(r -> Objects.equals(r.getId(), reviewId)).findFirst()
-                .orElseThrow(() -> new ReviewNotFoundException(reviewId));
+    public ResponseEntity<EntityModel<ReviewDTO>> findReviewById(@NotNull @Range(min = 1) @PathVariable Long movieId,
+                                                              @NotNull @Range(min = 1) @PathVariable Long reviewId) {
+        Review review = movieService.findReviewByMovieId(movieId, reviewId);
 
-        return ResponseEntity.ok(reviewAssembler.toModel(review));
+        return ResponseEntity.ok(reviewAssembler.toModel(reviewMapper.toDTO(review)));
     }
 
     /**
      *
-     * @param id number of the {@link Movie} to which the new {@link Review} will be added
+     * @param movieId number of the {@link Movie} to which the new {@link Review} will be added
      * @param reviewDTO {@link ReviewDTO} object that will be created and added to the {@link Movie}
      * @return HTTP code 201 and the created {@link Review}. HTTP code 404 if the {@link Movie} was not found
      */
-    @PostMapping("/{id}/reviews")
-    public ResponseEntity<?> addReviewToMovie(@PathVariable Long id, @RequestBody ReviewDTO reviewDTO) {
-        Movie reviewedMovie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
-        User reviewingUser = userService.findById(reviewDTO.getUserId()).orElseThrow(() -> new UserNotFoundException(reviewDTO.getUserId()));
+    @PostMapping("/{movieId}/reviews")
+    public ResponseEntity<Object> addReviewToMovie(@NotNull @Range(min = 1) @PathVariable Long movieId,
+                                                   @Valid @RequestBody ReviewCreationDTO reviewDTO) {
+        Movie reviewedMovie = movieService.findMovieById(movieId);
+        User reviewingUser = userService.findUserById(reviewDTO.userId());
 
-        Review newReview = reviewMapper.toReview(reviewDTO, reviewingUser, reviewedMovie);
+        Review newReview = reviewMapper.toReview(reviewDTO);
+        newReview.setUser(reviewingUser);
+        newReview.setMovie(reviewedMovie);
 
-        EntityModel<Review> entityModel = reviewAssembler.toModel(reviewService.save(newReview));
+        EntityModel<ReviewDTO> entityModel = reviewAssembler.toModel(reviewMapper
+                .toDTO(reviewService.save(newReview)));
 
-        return responseBuilderService.buildCreatedResponseWithBody(entityModel);
+        return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
     }
 
     /**
@@ -332,51 +330,49 @@ public class MovieController {
      * @return HTTP code 204 if the {@link Review} was updated. HTTP code 404 if the {@link Movie}/{@link Review} was not found
      */
     @PutMapping("/{movieId}/reviews/{reviewId}")
-    public ResponseEntity<?> editReviewById(@PathVariable Long movieId, @PathVariable Long reviewId,
-                                            @RequestBody ReviewUpdateDTO reviewDTO) {
-        movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
-        Review review = reviewService.findById(reviewId).orElseThrow(() -> new ReviewNotFoundException(reviewId));
+    public ResponseEntity<Object> editReviewById(@NotNull @Range(min = 1) @PathVariable Long movieId,
+                                                 @NotNull @Range(min = 1)@PathVariable Long reviewId,
+                                                 @Valid @RequestBody ReviewUpdateDTO reviewDTO) {
+        Review foundReview = movieService.findReviewByMovieId(movieId, reviewId);
 
-        review.updateFromDTO(reviewDTO);
-        EntityModel<Review> entityModel = reviewAssembler.toModel(reviewService.save(reviewService.save(review)));
+        foundReview.updateFromDTO(reviewDTO);
+        EntityModel<ReviewDTO> entityModel = reviewAssembler.toModel(reviewMapper
+                .toDTO(reviewService.save(foundReview)));
 
         return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
     }
 
     /**
+     * Removes a {@link Review} resource specified by {@code reviewId} from the {@link Movie}
+     * identified by {@code userId}
      *
-     * @param movieId identifies the {@link Movie} from which the review is to be removed
-     * @param reviewId identifies the review that is to be removed
-     * @return HTTP code 204 if the review was successfully removed or HTTP code 404 if the {@link Movie} was not found
+     * @param movieId the ID of the {@link Movie} from which the {@link Review} is to be removed
+     * @param reviewId the ID of the {@link Review} that is to be removed
+     * @return {@link ResponseEntity<>} containing a 204 No Content status (or a 404 Not Found status if the
+     * {@link Movie} does not exist or the {@link Review} is not found).
      */
     @DeleteMapping("/{movieId}/reviews/{reviewId}")
-    public ResponseEntity<?> deleteReviewById(@PathVariable Long movieId, @PathVariable Long reviewId) {
-        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+    public ResponseEntity<?> removeReviewById(@NotNull @Range(min = 1) @PathVariable Long movieId,
+                                              @NotNull @Range(min = 1) @PathVariable Long reviewId) {
+        movieService.removeReviewFromMovie(movieId, reviewId);
 
-        if (movie.getReviews().stream().anyMatch(r -> Objects.equals(r.getId(), reviewId))) {
-            reviewService.deleteById(reviewId);
-            return ResponseEntity.noContent().build();
-        }
-        else {
-            throw new ReviewNotFoundException(reviewId);
-        }
+        return ResponseEntity.noContent().build();
     }
 
 // ---------------------------------------- CAST/CREW --------------------------------------------------------------------
 
     /**
+     * Fetches all {@link Person} resources that have {@link Role} {@code actor} in the {@link Movie}
+     * identified by {@code id}.
      *
-     * @param id number of the {@link Movie} for which all actors shall be retrieved
-     * @return list of all {@link Person} objects that have role "Actor" for the given {@link Movie}
+     * @param id the ID of the {@link Movie} for which all actors shall be retrieved
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and a collection of all fitting {@link Person}
+     * resources (or 404 Not Found status if the {@link Movie} does not exist).
      */
     @GetMapping("/{id}/actors")
-    public ResponseEntity<CollectionModel<EntityModel<PersonDTO>>> findActorsByMovie(@PathVariable Long id) {
-        Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
-        Set<CastInfo> castAndCrew = movie.getCastInfos();
-        List<Person> actorsInMovie = castAndCrew.stream()
-                .filter(c -> c.getRoleName().equals("Actor"))
-                .map(CastInfo::getPerson)
-                .toList();
+    public ResponseEntity<CollectionModel<EntityModel<PersonDTO>>> findActorsByMovie(
+            @NotNull @Range(min = 1) @PathVariable Long id) {
+        List<Person> actorsInMovie = movieService.findActorsByMovieId(id);
 
         if (actorsInMovie.isEmpty()) { return ResponseEntity.ok().build(); }
 
@@ -388,17 +384,17 @@ public class MovieController {
     }
 
     /**
+     * Fetches all {@link Person} resources that have {@link Role} {@code director} in the {@link Movie}
+     * identified by {@code id}.
      *
-     * @param id number of the {@link Movie} for which all actors shall be retrieved
-     * @return list of all {@link Person} objects that have role "Director" for the given {@link Movie}
+     * @param id the ID of the {@link Movie} for which all actors shall be retrieved
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and a collection of all fitting {@link Person}
+     * resources (or 404 Not Found status if the {@link Movie} does not exist).
      */
     @GetMapping("/{id}/directors")
-    public ResponseEntity<CollectionModel<EntityModel<PersonDTO>>> findDirectorsByMovie(@PathVariable Long id) {
-        Movie movie = movieService.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
-        List<Person> directorsInMovie = movie.getCastInfos().stream()
-                .filter(c -> c.getRoleName().equals("Director"))
-                .map(CastInfo::getPerson)
-                .toList();
+    public ResponseEntity<CollectionModel<EntityModel<PersonDTO>>> findDirectorsByMovie(
+            @NotNull @Range(min = 1) @PathVariable Long id) {
+        List<Person> directorsInMovie = movieService.findDirectorsByMovieId(id);
 
         if (directorsInMovie.isEmpty()) { return ResponseEntity.ok().build(); }
 
@@ -409,43 +405,23 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
-    /**
-     *
-     * @param page number of the page returned
-     * @param size number of movies listed in every page
-     * @param sortBy attribute which determines how movies will be sorted
-     * @param sortDirection order of sorting. Can be ASC or DESC
-     * @return {@link PagedModel} object with sorted/filtered movies wrapped in {@link ResponseEntity<>}
-     */
-    @GetMapping("/all")
-    public ResponseEntity<PagedModel<EntityModel<MovieDTO>>> allMovies(@RequestParam(name = "page", defaultValue = "0") int page,
-                                                                    @RequestParam(name = "size", defaultValue = "5") int size,
-                                                                    @RequestParam(name = "sortBy", defaultValue = "id") String sortBy,
-                                                                    @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
-
-        Page<MovieDTO> movies = movieService.findAll(page, size, sortBy, sortDirection).map(movieMapper::toDTO);
-
-        return ResponseEntity.ok(pagedResourcesAssembler.toModel(movies,movieDTOAssembler));
-    }
-
 // --------------------------------------------------- GENRES --------------------------------------------------------
 
     /**
+     * Fetches every {@link Genre} associated with the {@link Movie} with a specific {@code id}.
      *
-     * @param movieId the id of the {@link Movie} for which genres are fetched
-     * @return ResponseEntity containing a 200 Ok status and the genres associated
-     * with that {@link Movie}. (Returns a 404 Not Found status if the {@link Movie}
-     * does not exist.)
+     * @param movieId the ID of the {@link Movie} for which genres are to be fetched
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and every {@link Genre} associated with this
+     * {@link Movie} (or a 404 Not Found status if no {@link Movie} exists with this {@code id}).
      */
     @GetMapping("/{movieId}/genres")
-    public ResponseEntity<?> findGenresByMovie(@PathVariable Long movieId) {
-        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
-
-        Set<Genre> genres = movie.getGenres();
+    public ResponseEntity<CollectionModel<EntityModel<GenreDTO>>> findGenresByMovie(
+            @NotNull @Range(min = 1) @PathVariable Long movieId) {
+        List<Genre> genres = movieService.findGenresByMovieId(movieId);
 
         if (genres.isEmpty()) { return ResponseEntity.ok().build(); }
 
-        CollectionModel<?> collectionModel = collectionModelBuilderService
+        CollectionModel<EntityModel<GenreDTO>> collectionModel = collectionModelBuilderService
                 .createCollectionModelFromList(genres, genreMapper, genreDTOAssembler,
                         linkTo(methodOn(MovieController.class).findGenresByMovie(movieId)).withSelfRel());
 
@@ -455,17 +431,16 @@ public class MovieController {
 // ------------------------------------------------- COUNTRIES --------------------------------------------------------
 
     /**
+     * Fetches every {@link Country} associated with the {@link Movie} with a specific {@code id}.
      *
-     * @param movieId the id of the {@link Movie} for which countries are fetched
-     * @return ResponseEntity containing a 200 Ok status and the countries associated
-     * with that {@link Movie}. (Returns a 404 Not Found status if the {@link Movie}
-     * does not exist.)
+     * @param movieId the ID of the {@link Movie} for which countries are to be fetched
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and every {@link Country} associated with this
+     * {@link Movie} (or a 404 Not Found status if no {@link Movie} exists with this {@code id}).
      */
     @GetMapping("/{movieId}/countries")
-    public ResponseEntity<?> findCountriesByMovie(@PathVariable Long movieId) {
-        Movie movie = movieService.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
-
-        Set<Country> countries = movie.getCountries();
+    public ResponseEntity<CollectionModel<EntityModel<CountryDTO>>> findCountriesByMovie(
+            @NotNull @Range(min = 1) @PathVariable Long movieId) {
+        List<Country> countries = movieService.findCountriesByMovieId(movieId);
 
         if (countries.isEmpty()) {
             return ResponseEntity.ok().build();

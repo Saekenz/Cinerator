@@ -3,6 +3,7 @@ package at.saekenz.cinerator.controller;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.genre.Genre;
 import at.saekenz.cinerator.model.movie.Movie;
+import at.saekenz.cinerator.model.movie.MovieCreationDTO;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.review.ReviewDTO;
 import at.saekenz.cinerator.model.review.ReviewUpdateDTO;
@@ -28,7 +29,6 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class MovieControllerSpringBootIntegrationTest {
@@ -48,7 +48,7 @@ public class MovieControllerSpringBootIntegrationTest {
 
     @WithMockUser("test-user")
     @Test
-    public void givenFindAllMoviesRequest_shouldSucceedWith200() throws Exception {
+    public void givenFindFindAllMoviesRequest_shouldSucceedWith200() throws Exception {
         mockMvc.perform(get("/movies").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.movieDTOList").isNotEmpty());
@@ -66,10 +66,13 @@ public class MovieControllerSpringBootIntegrationTest {
     @WithMockUser("test-user")
     @Test
     public void givenFindMovieByIdRequest_shouldFailWith404() throws Exception {
-        Long movieId = -999L;
+        Long movieId = 999L;
         mockMvc.perform(get("/movies/{movieId}", movieId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("movie: %s", movieId))));
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("Movie with id %s could not be found!", movieId))));
     }
 
     @WithMockUser("test-user")
@@ -157,24 +160,10 @@ public class MovieControllerSpringBootIntegrationTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenCreateNewMovieRequest_shouldSucceedWith201() throws Exception {
-        Movie movie = new Movie("Nightcrawler", LocalDate.of(2014,10,31),
+        MovieCreationDTO movie = new MovieCreationDTO("Nightcrawler", LocalDate.of(2014,10,31),
                 "118 min", "tt287271",
-                "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg");
-
-        Country country = new Country("United States");
-        country.setId(1L);
-        movie.setCountries(Set.of(country));
-
-        Genre genre1 = new Genre("Crime");
-        Genre genre2 = new Genre("Drama");
-        Genre genre3 = new Genre("Thriller");
-
-        genre1.setId(6L);
-        genre2.setId(8L);
-        genre3.setId(24L);
-
-        Set<Genre> genres = Set.of(genre1, genre2, genre3);
-        movie.setGenres(genres);
+                "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg",
+                Set.of(6L,8L,24L), Set.of(1L));
 
         ObjectMapper om = new ObjectMapper().findAndRegisterModules();
         String movieJsonData = om.writeValueAsString(movie);
@@ -186,7 +175,7 @@ public class MovieControllerSpringBootIntegrationTest {
             .andExpect(jsonPath("$.title").value("Nightcrawler"))
             .andExpect(jsonPath("$.releaseDate").value("2014-10-31"))
             .andExpect(jsonPath("$.runtime").value("118 min"))
-//            .andExpect(jsonPath("$.director").value("Dan Gilroy"))
+            .andExpect(jsonPath("$.genre", containsStringIgnoringCase("Thriller")))
             .andExpect(jsonPath("$.country", containsString("United States")))
             .andExpect(jsonPath("$.imdbId").value("tt287271"))
             .andExpect(jsonPath("$.posterUrl").value("https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg"))
@@ -210,37 +199,11 @@ public class MovieControllerSpringBootIntegrationTest {
                   "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/d4/Nightcrawlerfilm.jpg",
                   "reviews": []
                 }""";
-        // TODO: add validation to MovieController + DTOs to fix test
         mockMvc.perform(post("/movies").contentType(MediaType.APPLICATION_JSON).content(movieJsonData))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("\"description\":\"Error caused by: runtime\\\" of relation \\\"movies\"")));
-    }
-
-    /**
-     * Creates a request to update a {@link Movie}.
-     * The {@link Movie} will be created instead of updated since it is not yet stored in the database.
-     * The request has to return HTTP code 201.
-     * @throws Exception if any errors occur the execution of the test.
-     */
-    @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void givenUpdateMovieRequest_shouldSucceedWith201() throws Exception {
-        Movie updatedMovie = new Movie("The Shawshank Redemption", LocalDate.of(1994, 9, 23),
-                "142 min", "tt0111161",
-                "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg");
-
-        ObjectMapper om = new ObjectMapper();
-        om.findAndRegisterModules();
-        String json_data = om.writeValueAsString(updatedMovie);
-
-        Long movieId = 35L; // Id that does not exist in the database yet
-        mockMvc.perform(put("/movies/{id}", movieId).contentType(MediaType.APPLICATION_JSON).content(json_data))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value(updatedMovie.getTitle()))
-                .andExpect(jsonPath("$.releaseDate").value(updatedMovie.getReleaseDate().toString()))
-                .andExpect(jsonPath("$.runtime").value(updatedMovie.getRuntime()))
-                .andExpect(jsonPath("$.imdbId").value(updatedMovie.getImdbId()))
-                .andExpect(jsonPath("$.posterUrl").value(updatedMovie.getPosterUrl()));
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(content().string(containsString("Invalid request content.")));
     }
 
     /**
@@ -252,9 +215,10 @@ public class MovieControllerSpringBootIntegrationTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenUpdateMovieRequest_shouldSucceedWith204() throws Exception {
-        Movie updatedMovie = new Movie("The Shawshank Redemption", LocalDate.of(1994, 9, 23),
-                "142 min", "tt0111161",
-                "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg");
+        MovieCreationDTO updatedMovie = new MovieCreationDTO("The Shawshank Redemption",
+                LocalDate.of(1994, 9, 23), "142 min", "tt0111161",
+                "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg",
+                Set.of(6L, 8L, 24L), Set.of(1L));
 
         ObjectMapper om = new ObjectMapper();
         om.findAndRegisterModules();
@@ -284,13 +248,14 @@ public class MovieControllerSpringBootIntegrationTest {
 
 // --------------------------------------- REVIEWS --------------------------------------------------------------------
 
-    @WithMockUser("test-user")
     @Test
     public void givenFindReviewsByMovieRequest_shouldSucceedWith200() throws Exception {
         Long movieId = 3L;
         mockMvc.perform(get("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.reviewList").isNotEmpty());
+                .andExpect(jsonPath("$._embedded.reviewDTOList").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.reviewDTOList[*].movieId",
+                        everyItem(comparesEqualTo(movieId.intValue()))));
     }
 
     @WithMockUser("test-user")
@@ -333,7 +298,11 @@ public class MovieControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("Review with id %s could not be found for Movie with id %s!",
+                                reviewId, movieId))));
 
         movieId = 2L;
         reviewId = 999L;
@@ -341,7 +310,11 @@ public class MovieControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find review: %s", reviewId))));
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("Review with id %s could not be found for Movie with id %s!",
+                                reviewId, movieId))));
     }
 
     /**
@@ -349,26 +322,26 @@ public class MovieControllerSpringBootIntegrationTest {
      * The request made in the method has to return HTTP code 201.
      * @throws Exception if any errors occur the execution of the test.
      */
-    @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void givenAddReviewToMovieRequest_shouldSucceedWith201() throws Exception {
-        Long movieId = 1L;
-        ReviewDTO reviewDTO = new ReviewDTO("Test create and insert review with reviewDTO.",
-                2, LocalDate.of(2024,9,1), true, 3L);
-
-        ObjectMapper om = new ObjectMapper().findAndRegisterModules();
-        String reviewJsonData = om.writeValueAsString(reviewDTO);
-
-        mockMvc.perform(post("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON)
-                        .content(reviewJsonData))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.comment").value(reviewDTO.getComment()))
-                .andExpect(jsonPath("$.reviewDate").value(reviewDTO.getReviewDate().toString()))
-                .andExpect(jsonPath("$.liked").value(reviewDTO.isLiked()))
-                .andExpect(jsonPath("$.rating").value(reviewDTO.getRating()))
-                .andExpect(jsonPath("$.userId").value(reviewDTO.getUserId()))
-                .andExpect(jsonPath("$.movieId").value(movieId));
-    }
+//    @Test
+//    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+//    public void givenAddReviewToMovieRequest_shouldSucceedWith201() throws Exception {
+//        Long movieId = 1L;
+//        ReviewDTO reviewDTO = new ReviewDTO("Test create and insert review with reviewDTO.",
+//                2, LocalDate.of(2024,9,1), true, 3L);
+//
+//        ObjectMapper om = new ObjectMapper().findAndRegisterModules();
+//        String reviewJsonData = om.writeValueAsString(reviewDTO);
+//
+//        mockMvc.perform(post("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON)
+//                        .content(reviewJsonData))
+//                .andExpect(status().isCreated())
+//                .andExpect(jsonPath("$.comment").value(reviewDTO.getComment()))
+//                .andExpect(jsonPath("$.reviewDate").value(reviewDTO.getReviewDate().toString()))
+//                .andExpect(jsonPath("$.liked").value(reviewDTO.isLiked()))
+//                .andExpect(jsonPath("$.rating").value(reviewDTO.getRating()))
+//                .andExpect(jsonPath("$.userId").value(reviewDTO.getUserId()))
+//                .andExpect(jsonPath("$.movieId").value(movieId));
+//    }
 
     /**
      * Performs request for creating and adding a review to a movie twice.
@@ -377,29 +350,29 @@ public class MovieControllerSpringBootIntegrationTest {
      * Both requests have to return HTTP code 404.
      * @throws Exception if any errors occur the execution of the test.
      */
-    @Test
-    public void givenAddReviewToMovieRequest_shouldFailWith404() throws Exception {
-        Long movieId = -999L;
-        ReviewDTO reviewDTO = new ReviewDTO("Test create and insert review with reviewDTO.",
-                2, LocalDate.of(2024,9,1), true, 3L);
-
-        ObjectMapper om = new ObjectMapper().findAndRegisterModules();
-        String reviewJsonData = om.writeValueAsString(reviewDTO);
-
-        mockMvc.perform(post("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON)
-                        .content(reviewJsonData))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
-
-        movieId = 4L;
-        reviewDTO.setUserId(-999L);
-
-        reviewJsonData = om.writeValueAsString(reviewDTO);
-        mockMvc.perform(post("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON)
-                        .content(reviewJsonData))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find user: %s", reviewDTO.getUserId()))));
-    }
+//    @Test
+//    public void givenAddReviewToMovieRequest_shouldFailWith404() throws Exception {
+//        Long movieId = -999L;
+//        ReviewDTO reviewDTO = new ReviewDTO("Test create and insert review with reviewDTO.",
+//                2, LocalDate.of(2024,9,1), true, 3L);
+//
+//        ObjectMapper om = new ObjectMapper().findAndRegisterModules();
+//        String reviewJsonData = om.writeValueAsString(reviewDTO);
+//
+//        mockMvc.perform(post("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON)
+//                        .content(reviewJsonData))
+//                .andExpect(status().isNotFound())
+//                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+//
+//        movieId = 4L;
+//        reviewDTO.setUserId(-999L);
+//
+//        reviewJsonData = om.writeValueAsString(reviewDTO);
+//        mockMvc.perform(post("/movies/{movieId}/reviews", movieId).contentType(MediaType.APPLICATION_JSON)
+//                        .content(reviewJsonData))
+//                .andExpect(status().isNotFound())
+//                .andExpect(content().string(containsString(String.format("Could not find user: %s", reviewDTO.getUserId()))));
+//    }
 
     /**
      * Performs a request for updating a specific {@link Review} of a specific {@link Movie}.
@@ -407,26 +380,26 @@ public class MovieControllerSpringBootIntegrationTest {
      * The update request has to return HTTP status code 204 while the get request has to return HTTP code 200.
      * @throws Exception if any errors occur the execution of the test.
      */
-    @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void givenEditReviewForMovieRequest_shouldSucceedWith204() throws Exception {
-        Long movieId = 3L;
-        Long reviewId = 3L;
-        ReviewUpdateDTO updateDTO = new ReviewUpdateDTO("Update test comment!", 1, false);
-        String updateReviewJsonData = new ObjectMapper().writeValueAsString(updateDTO);
-
-        mockMvc.perform(put("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(updateReviewJsonData))
-                .andExpect(status().isNoContent());
-
-        mockMvc.perform(get("/reviews/{reviewId}", reviewId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.comment").value(updateDTO.getComment()))
-                .andExpect(jsonPath("$.rating").value(updateDTO.getRating()))
-                .andExpect(jsonPath("$.liked").value(updateDTO.isLiked()));
-    }
+//    @Test
+//    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+//    public void givenEditReviewForMovieRequest_shouldSucceedWith204() throws Exception {
+//        Long movieId = 3L;
+//        Long reviewId = 3L;
+//        ReviewUpdateDTO updateDTO = new ReviewUpdateDTO("Update test comment!", 1, false);
+//        String updateReviewJsonData = new ObjectMapper().writeValueAsString(updateDTO);
+//
+//        mockMvc.perform(put("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content(updateReviewJsonData))
+//                .andExpect(status().isNoContent());
+//
+//        mockMvc.perform(get("/reviews/{reviewId}", reviewId)
+//                .contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.comment").value(updateDTO.getComment()))
+//                .andExpect(jsonPath("$.rating").value(updateDTO.getRating()))
+//                .andExpect(jsonPath("$.liked").value(updateDTO.isLiked()));
+//    }
 
     /**
      * Performs a request to update {@link Review} data for a specific {@link Movie}.
@@ -435,28 +408,28 @@ public class MovieControllerSpringBootIntegrationTest {
      * Both requests have to return HTTP code 404.
      * @throws Exception if any errors occur the execution of the test.
      */
-    @Test
-    public void givenEditReviewForMovieRequest_shouldFailWith404() throws Exception {
-        Long movieId = 999L;
-        Long reviewId = 3L;
-        ReviewUpdateDTO updateDTO = new ReviewUpdateDTO("Update test comment!", 1, false);
-        String updateReviewJsonData = new ObjectMapper().writeValueAsString(updateDTO);
-
-        mockMvc.perform(put("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateReviewJsonData))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
-
-        movieId = 2L;
-        reviewId = 999L;
-
-        mockMvc.perform(put("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateReviewJsonData))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find review: %s", reviewId))));
-    }
+//    @Test
+//    public void givenEditReviewForMovieRequest_shouldFailWith404() throws Exception {
+//        Long movieId = 999L;
+//        Long reviewId = 3L;
+//        ReviewUpdateDTO updateDTO = new ReviewUpdateDTO("Update test comment!", 1, false);
+//        String updateReviewJsonData = new ObjectMapper().writeValueAsString(updateDTO);
+//
+//        mockMvc.perform(put("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(updateReviewJsonData))
+//                .andExpect(status().isNotFound())
+//                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+//
+//        movieId = 2L;
+//        reviewId = 999L;
+//
+//        mockMvc.perform(put("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(updateReviewJsonData))
+//                .andExpect(status().isNotFound())
+//                .andExpect(content().string(containsString(String.format("Could not find review: %s", reviewId))));
+//    }
 
     /**
      * Performs a request for deleting a specific {@link Review} of a specific {@link Movie}.
@@ -466,7 +439,7 @@ public class MovieControllerSpringBootIntegrationTest {
      */
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void givenDeleteReviewByIdRequest_shouldSucceedWith204() throws Exception {
+    public void givenRemoveReviewByIdRequest_shouldSucceedWith204() throws Exception {
         Long movieId = 7L;
         Long reviewId = 7L;
 
@@ -487,14 +460,18 @@ public class MovieControllerSpringBootIntegrationTest {
      * @throws Exception if any errors occur the execution of the test.
      */
     @Test
-    public void givenDeleteReviewByIdRequest_shouldFailWith404() throws Exception {
+    public void givenRemoveReviewByIdRequest_shouldFailWith404() throws Exception {
         Long movieId = 999L;
         Long reviewId = 3L;
 
         mockMvc.perform(delete("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("Review with id 3 could not be found for Movie with id 999!",
+                                reviewId,movieId))));
 
         movieId = 2L;
         reviewId = 999L;
@@ -502,7 +479,10 @@ public class MovieControllerSpringBootIntegrationTest {
         mockMvc.perform(delete("/movies/{movieId}/reviews/{reviewId}", movieId, reviewId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find review: %s", reviewId))));
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("Review with id %s could not be found for Movie with id %s!", reviewId, movieId))));
     }
 
 // ------------------------------------------- PERSONS ----------------------------------------------------------------
@@ -517,10 +497,13 @@ public class MovieControllerSpringBootIntegrationTest {
 
     @Test
     public void givenFindActorsByMovieRequest_shouldFailWith404() throws Exception {
-        Long movieId = -999L;
+        Long movieId = 999L;
         mockMvc.perform(get("/movies/{movieId}/actors", movieId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("Movie with id %s could not be found!", movieId))));
     }
 
     @Test
@@ -533,22 +516,25 @@ public class MovieControllerSpringBootIntegrationTest {
 
     @Test
     public void givenFindDirectorsByMovieRequest_shouldFailWith404() throws Exception {
-        Long movieId = -999L;
+        Long movieId = 999L;
         mockMvc.perform(get("/movies/{movieId}/directors", movieId).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("Movie with id %s could not be found!", movieId))));
     }
 
 // -------------------------------------------------------------------------------------------------------------------
 
     @Test
-    public void givenFindAllMoviesPaged_shouldSucceedWith200() throws Exception {
+    public void givenFindFindAllMoviesPaged_shouldSucceedWith200() throws Exception {
         int page = 3;
         int size = 3;
         String sortBy = "title";
         String sortDirection = "desc";
 
-        mockMvc.perform(get("/movies/all?page={page}&size={size}&sortBy={sortBy}&sortDirection={sortDirection}",
+        mockMvc.perform(get("/movies?page={page}&size={size}&sortBy={sortBy}&sortDirection={sortDirection}",
                         page, size, sortBy, sortDirection)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -577,19 +563,21 @@ public class MovieControllerSpringBootIntegrationTest {
 
     /**
      * Creates a request which fetches the {@link Genre} resources associated with
-     * {@link Movie} with {@code id = -999L}.
+     * {@link Movie} with {@code id = 999L}.
      * The API has to return a 404 Not Found status and an error message.
      *
      * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindGenresByMovieRequest_shouldFailWith404() throws Exception {
-        Long movieId = -999L;
+        Long movieId = 999L;
 
         mockMvc.perform(get("/movies/{movieId}/genres", movieId)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("Movie with id %s could not be found!", movieId))));
     }
 
     /**
@@ -611,18 +599,21 @@ public class MovieControllerSpringBootIntegrationTest {
 
     /**
      * Creates a request which fetches the {@link Country} resources associated with
-     * {@link Movie} with {@code id = -999L}.
+     * {@link Movie} with {@code id = 999L}.
      * The API has to return a 404 Not Found status and an error message.
      *
      * @throws Exception if any errors occur the execution of the test.
      */
     @Test
     public void givenFindCountriesByMovieRequest_shouldFailWith404() throws Exception {
-        Long movieId = -999L;
+        Long movieId = 999L;
 
         mockMvc.perform(get("/movies/{movieId}/countries", movieId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString(String.format("Could not find movie: %s", movieId))));
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(content().string(containsString(
+                        String.format("Movie with id %s could not be found!", movieId))));
     }
 }

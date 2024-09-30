@@ -2,8 +2,7 @@ package at.saekenz.cinerator.controller;
 
 import at.saekenz.cinerator.model.follow.*;
 import at.saekenz.cinerator.model.movie.*;
-import at.saekenz.cinerator.model.review.Review;
-import at.saekenz.cinerator.model.review.ReviewModelAssembler;
+import at.saekenz.cinerator.model.review.*;
 import at.saekenz.cinerator.model.user.*;
 import at.saekenz.cinerator.model.userlist.UserList;
 import at.saekenz.cinerator.model.userlist.UserListDTO;
@@ -35,6 +34,14 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    private final ReviewMapper reviewMapper;
+    private final ReviewDTOModelAssembler reviewAssembler;
+
+    private final FollowMapper followMapper;
+    private final FollowDTOModelAssembler followAssembler;
+
+    private final UserMapper userMapper;
+    private final UserDTOAssembler userDTOAssembler;
 
     @Autowired
     IUserService userService;
@@ -54,27 +61,21 @@ public class UserController {
     @Autowired
     MovieMapper movieMapper;
 
-    private final ReviewModelAssembler reviewAssembler;
-
-    private final FollowMapper followMapper;
-    private final FollowDTOModelAssembler followAssembler;
-
-    private final UserMapper userMapper;
-    private final UserDTOAssembler userDTOAssembler;
-
     @Autowired
     private UserListDTOModelAssembler userListDTOModelAssembler;
 
     private final PagedResourcesAssembler<UserDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
             new HateoasPageableHandlerMethodArgumentResolver(), null);
 
-    UserController(UserDTOAssembler userDTOAssembler,
-                   ReviewModelAssembler reviewAssembler, FollowDTOModelAssembler followAssembler) {
+    UserController(ReviewMapper reviewMapper, UserDTOAssembler userDTOAssembler,
+                   ReviewDTOModelAssembler reviewAssembler, FollowMapper followMapper,
+                   FollowDTOModelAssembler followAssembler, UserMapper userMapper) {
+        this.reviewMapper = reviewMapper;
         this.reviewAssembler = reviewAssembler;
-        this.followMapper = new FollowMapper();
+        this.followMapper = followMapper;
         this.followAssembler = followAssembler;
         this.userDTOAssembler = userDTOAssembler;
-        this.userMapper = new UserMapper();
+        this.userMapper = userMapper;
     }
 
     // for testing only
@@ -279,20 +280,17 @@ public class UserController {
      * @param userId the ID of the {@link User} for which the {@link Review} resources are to be retrieved
      * @return {@link ResponseEntity<>} containing a 200 Ok status and a collection of {@link Review} resources
      * (or a 404 Not Found status if the {@link User} does not exist).
-     */ //TODO: change to ReviewDTO
+     */
     @GetMapping("/{userId}/reviews")
-    public ResponseEntity<CollectionModel<EntityModel<Review>>> findReviewsByUser(
+    public ResponseEntity<CollectionModel<EntityModel<ReviewDTO>>> findReviewsByUser(
             @NotNull @Range(min = 1) @PathVariable Long userId) {
        List<Review> reviews = userService.findReviewsByUserId(userId);
 
        if (reviews.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
 
-       List<EntityModel<Review>> reviewModels = reviews.stream()
-               .map(reviewAssembler::toModel)
-               .toList();
-
-       CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviewModels,
-               linkTo(methodOn(UserController.class).findReviewsByUser(userId)).withSelfRel());
+       CollectionModel<EntityModel<ReviewDTO>> collectionModel = collectionModelBuilderService
+               .createCollectionModelFromList(reviews, reviewMapper, reviewAssembler,
+                       linkTo(methodOn(UserController.class).findReviewsByUser(userId)).withSelfRel());
 
        return ResponseEntity.ok(collectionModel);
     }

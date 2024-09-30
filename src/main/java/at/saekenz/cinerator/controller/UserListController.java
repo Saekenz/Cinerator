@@ -97,7 +97,7 @@ public class UserListController {
      * Creates a new {@link UserList}.
      *
      * @param userListCreationDTO a DTO containing data of the new {@link UserList}
-     * @return ResponseEntity containing a 201 Created status and the created {@link UserList}
+     * @return {@link ResponseEntity<>} containing a 201 Created status and the created {@link UserList}
      * (or a 404 Not Found if the {@link User} owning the new {@link UserList} does not exist in the database).
      */
     @PostMapping

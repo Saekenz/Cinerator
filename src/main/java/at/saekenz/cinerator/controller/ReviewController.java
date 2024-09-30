@@ -1,146 +1,86 @@
 package at.saekenz.cinerator.controller;
 
-import at.saekenz.cinerator.model.review.Review;
-import at.saekenz.cinerator.model.review.ReviewModelAssembler;
-import at.saekenz.cinerator.model.review.ReviewNotFoundException;
+import at.saekenz.cinerator.model.movie.Movie;
+import at.saekenz.cinerator.model.movie.MovieDTO;
+import at.saekenz.cinerator.model.movie.MovieDTOModelAssembler;
+import at.saekenz.cinerator.model.movie.MovieMapper;
+import at.saekenz.cinerator.model.review.*;
+import at.saekenz.cinerator.model.user.User;
+import at.saekenz.cinerator.model.user.UserDTO;
+import at.saekenz.cinerator.model.user.UserDTOAssembler;
+import at.saekenz.cinerator.model.user.UserMapper;
 import at.saekenz.cinerator.service.IReviewService;
-import at.saekenz.cinerator.util.ResponseBuilderService;
+import jakarta.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.CollectionModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/reviews")
 public class ReviewController {
+    private final ReviewMapper reviewMapper;
+    private final ReviewDTOModelAssembler reviewDTOModelAssembler;
+
+    private final UserMapper userMapper;
+    private final UserDTOAssembler userDTOAssembler;
+
+    private final MovieMapper movieMapper;
+    private final MovieDTOModelAssembler movieDTOModelAssembler;
 
     @Autowired
-    IReviewService reviewService;
+    private IReviewService reviewService;
 
-    @Autowired
-    ResponseBuilderService responseBuilderService;
+    private final PagedResourcesAssembler<ReviewDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
+            new HateoasPageableHandlerMethodArgumentResolver(), null);
 
-    private final ReviewModelAssembler assembler;
-
-    public ReviewController(ReviewModelAssembler assembler) {
-        this.assembler = assembler;
+    public ReviewController(ReviewMapper reviewMapper, ReviewDTOModelAssembler reviewDTOModelAssembler,
+                            UserMapper userMapper, UserDTOAssembler userDTOAssembler,
+                            MovieMapper movieMapper, MovieDTOModelAssembler movieDTOModelAssembler) {
+        this.reviewMapper = reviewMapper;
+        this.reviewDTOModelAssembler = reviewDTOModelAssembler;
+        this.userMapper = userMapper;
+        this.userDTOAssembler = userDTOAssembler;
+        this.movieMapper = movieMapper;
+        this.movieDTOModelAssembler = movieDTOModelAssembler;
     }
 
     @GetMapping
-    public ResponseEntity<CollectionModel<EntityModel<Review>>> findAll() {
-        List<Review> reviews = reviewService.findAll();
+    public ResponseEntity<PagedModel<EntityModel<ReviewDTO>>> findAllPaged(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "5") int size,
+            @RequestParam(name = "sortField", defaultValue = "id") String sortField,
+            @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+        Page<ReviewDTO> reviews = reviewService.findAllPaged(page, size, sortField, sortDirection)
+                .map(reviewMapper::toDTO);
 
-        if (reviews.isEmpty()) {
-            throw new ReviewNotFoundException();
-        }
-
-        List<EntityModel<Review>> reviewModels = reviews.stream()
-                .map(assembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviewModels,
-                linkTo(methodOn(ReviewController.class).findAll()).withSelfRel());
-
-        return ResponseEntity.ok(collectionModel);
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(reviews, reviewDTOModelAssembler));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EntityModel<Review>> findById(@PathVariable Long id) {
-        Review review = reviewService.findById(id).orElseThrow(() -> new ReviewNotFoundException(id));
-        return ResponseEntity.ok(assembler.toModel(review));
+    public ResponseEntity<EntityModel<ReviewDTO>> findDTOById(@NotNull @Range(min = 1) @PathVariable Long id) {
+        ReviewDTO reviewDTO = reviewService.findReviewDTOById(id);
+        return ResponseEntity.ok(reviewDTOModelAssembler.toModel(reviewDTO));
     }
 
-    @PostMapping()
-    public ResponseEntity<?> createReview(@RequestBody Review review) {
-        EntityModel<Review> entityModel = assembler.toModel(reviewService.save(review));
-        return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                .body(entityModel);
+    @GetMapping("/{id}/user")
+    public ResponseEntity<EntityModel<UserDTO>> findUserByReviewId(@NotNull @Range(min = 1) @PathVariable Long id) {
+        User user = reviewService.findUserByReviewId(id);
+        EntityModel<UserDTO> userDTOEntityModel = userDTOAssembler.toModel(userMapper.toDTO(user));
+
+        return ResponseEntity.ok(userDTOEntityModel);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteReview(@PathVariable Long id) {
-        reviewService.findById(id).orElseThrow(() -> new ReviewNotFoundException(id));
-        reviewService.deleteById(id);
+    @GetMapping("/{id}/movie")
+    public ResponseEntity<EntityModel<MovieDTO>> findMovieByReviewId(@NotNull @Range(min = 1) @PathVariable Long id) {
+        Movie movie = reviewService.findMovieByReviewId(id);
+        EntityModel<MovieDTO> movieDTOEntityModel = movieDTOModelAssembler.toModel(movieMapper.toDTO(movie));
 
-        return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateReview(@PathVariable Long id, @RequestBody Review newReview) {
-        Optional<Review> existingReview = reviewService.findById(id);
-
-        Review updatedReview = existingReview.map(
-                review -> {
-                    review.setComment(newReview.getComment());
-                    review.setRating(newReview.getRating());
-                    review.setIsLiked(newReview.isLiked());
-                    return reviewService.save(review);
-                })
-                .orElseGet(() -> reviewService.save(newReview));
-        EntityModel<Review> entityModel = assembler.toModel(updatedReview);
-
-        if (existingReview.isPresent()) {
-            return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
-        }
-        else {
-            return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                    .body(entityModel);
-        }
-    }
-
-    @GetMapping("/user/{user_id}")
-    public ResponseEntity<CollectionModel<EntityModel<Review>>> findByUserId(@PathVariable Long user_id) {
-        List<Review> reviews = reviewService.findReviewsByUser(user_id);
-
-        if (reviews.isEmpty()) { throw new ReviewNotFoundException(); }
-
-        List<EntityModel<Review>> reviewModels = reviews.stream()
-                .map(assembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviewModels,
-                linkTo(methodOn(ReviewController.class).findByUserId(user_id)).withSelfRel());
-
-        return ResponseEntity.ok(collectionModel);
-    }
-
-    @GetMapping("/user/{user_id}/likes")
-    public ResponseEntity<CollectionModel<EntityModel<Review>>> findLikedByUser(@PathVariable Long user_id) {
-        List<Review> reviews = reviewService.findReviewsLikedByUser(user_id);
-
-        if (reviews.isEmpty()) { throw new ReviewNotFoundException(); }
-
-        List<EntityModel<Review>> reviewModels = reviews.stream()
-                .map(assembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviewModels,
-                linkTo(methodOn(ReviewController.class).findLikedByUser(user_id)).withSelfRel());
-
-        return ResponseEntity.ok(collectionModel);
-    }
-
-    @GetMapping("user/{user_id}/rating/{rating}")
-    public ResponseEntity<CollectionModel<EntityModel<Review>>> findRatingByUser(@PathVariable Long user_id, @PathVariable Integer rating) {
-        List<Review> reviews = reviewService.findReviewsRatedByUser(user_id, rating);
-
-        if (reviews.isEmpty()) { throw new ReviewNotFoundException(); }
-
-        List<EntityModel<Review>> reviewModels = reviews.stream()
-                .map(assembler::toModel)
-                .toList();
-
-        CollectionModel<EntityModel<Review>> collectionModel = CollectionModel.of(reviewModels,
-                linkTo(methodOn(ReviewController.class).findRatingByUser(user_id, rating)).withSelfRel());
-
-        return ResponseEntity.ok(collectionModel);
+        return ResponseEntity.ok(movieDTOEntityModel);
     }
 }

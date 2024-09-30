@@ -18,7 +18,7 @@ public class CastInfoDTOModelAssembler implements RepresentationModelAssembler<C
     public EntityModel<CastInfoDTO> toModel(CastInfoDTO castInfoDTO) {
         return EntityModel.of(castInfoDTO,
                 linkTo(methodOn(CastInfoController.class).findCastInfoById(castInfoDTO.getId())).withSelfRel(),
-                linkTo(methodOn(MovieController.class).findById(castInfoDTO.getMovieId())).withRel("movie"),
+                linkTo(methodOn(MovieController.class).findMovieById(castInfoDTO.getMovieId())).withRel("movie"),
                 linkTo(methodOn(PersonController.class).findPersonById(castInfoDTO.getPersonId())).withRel("person"),
                 linkTo(methodOn(RoleController.class).findRoleById(castInfoDTO.getRoleId())).withRel("role"));
     }

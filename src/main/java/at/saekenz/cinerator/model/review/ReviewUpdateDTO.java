@@ -1,30 +1,14 @@
 package at.saekenz.cinerator.model.review;
 
-import java.util.Objects;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import org.hibernate.validator.constraints.Range;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
-public class ReviewUpdateDTO {
+import java.time.LocalDate;
 
-    private String comment;
-    private int rating;
-    private boolean liked;
-
-    public ReviewUpdateDTO() {}
-
-    public ReviewUpdateDTO(String comment, int rating, boolean liked) {
-        this.comment = Objects.requireNonNull(comment, "comment must not be null");
-        this.rating = rating;
-        this.liked = liked;
-    }
-
-    public String getComment() { return comment; }
-
-    public void setComment(String comment) { this.comment = comment; }
-
-    public int getRating() { return rating; }
-
-    public void setRating(int rating) { this.rating = rating; }
-
-    public boolean isLiked() { return liked; }
-
-    public void setLiked(boolean liked) { this.liked = liked; }
+public record ReviewUpdateDTO(@NotNull @PastOrPresent LocalDate reviewDate,
+                              @NotNull @DefaultValue("") String comment,
+                              @NotNull @Range(min = 1, max = 5) int rating,
+                              @NotNull boolean isLiked) {
 }

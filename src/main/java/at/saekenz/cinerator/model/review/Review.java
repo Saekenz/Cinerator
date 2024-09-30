@@ -8,6 +8,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
+import java.time.Year;
 
 @Entity
 @Table(name = "reviews")
@@ -101,9 +102,14 @@ public class Review {
 
     public String getUsername() { return user.getUsername(); }
 
+    public String getMovieTitle() { return movie.getTitle(); }
+
+    public Year getMovieYear() { return Year.of(movie.getReleaseDate().getYear()); }
+
     public void updateFromDTO(ReviewUpdateDTO reviewUpdateDTO) {
-        setComment(reviewUpdateDTO.getComment());
-        setRating(reviewUpdateDTO.getRating());
+        setReviewDate(reviewUpdateDTO.reviewDate());
+        setComment(reviewUpdateDTO.comment());
+        setRating(reviewUpdateDTO.rating());
         setIsLiked(reviewUpdateDTO.isLiked());
     }
 

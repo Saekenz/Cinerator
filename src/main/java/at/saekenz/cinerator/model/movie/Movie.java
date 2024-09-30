@@ -151,9 +151,21 @@ public class Movie {
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", releaseDate=" + releaseDate +
-                ", runtime=" + runtime +
+                ", runtime='" + runtime + '\'' +
                 ", imdbId='" + imdbId + '\'' +
                 ", posterUrl='" + posterUrl + '\'' +
+                ", genres=" + genres +
+                ", countries=" + countries +
+                ", user=" + user +
+                ", userlist=" + userlist +
+                ", reviews=" + reviews +
+                ", castInfos=" + castInfos +
                 '}';
     }
+
+    public boolean removeReview(Long reviewId) {
+        return this.reviews.removeIf(r -> r.getId().equals(reviewId));
+    }
+
+
 }
