@@ -50,6 +50,16 @@ public class ReviewController {
         this.movieDTOModelAssembler = movieDTOModelAssembler;
     }
 
+    /**
+     * Fetch every {@link Review} resource from the database (in a paged format).
+     *
+     * @param page number of the page returned
+     * @param size number of {@link Review} resources returned for each page
+     * @param sortField attribute that determines how returned resources will be sorted
+     * @param sortDirection order of sorting (can be ASC or DESC)
+     * @return {@link PagedModel} object with sorted/filtered {@link Review} resources wrapped
+     * in {@link ResponseEntity<>}
+     */
     @GetMapping
     public ResponseEntity<PagedModel<EntityModel<ReviewDTO>>> findAllPaged(
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -62,12 +72,26 @@ public class ReviewController {
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(reviews, reviewDTOModelAssembler));
     }
 
+    /**
+     * Fetch a specific {@link Review} by its {@code id}.
+     *
+     * @param id the ID of the {@link Review} that will be retrieved.
+     * @return {@link ResponseEntity<>} containing 200 Ok status and the {@link Review} resource.
+     * (Returns 404 Not Found if the {@link Review} does not exist for this {@code id}.)
+     */
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<ReviewDTO>> findDTOById(@NotNull @Range(min = 1) @PathVariable Long id) {
         ReviewDTO reviewDTO = reviewService.findReviewDTOById(id);
         return ResponseEntity.ok(reviewDTOModelAssembler.toModel(reviewDTO));
     }
 
+    /**
+     * Fetches the {@link User} that created the {@link Review} specified by {@code id}.
+     *
+     * @param id id the ID of the {@link Review} for which the {@link User} is to be fetched
+     * @return {@link ResponseEntity<>} containing 200 Ok status and the {@link User} resource.
+     * (Returns 404 Not Found if the {@link Review} does not exist for this {@code id}.)
+     */
     @GetMapping("/{id}/user")
     public ResponseEntity<EntityModel<UserDTO>> findUserByReviewId(@NotNull @Range(min = 1) @PathVariable Long id) {
         User user = reviewService.findUserByReviewId(id);
@@ -76,6 +100,13 @@ public class ReviewController {
         return ResponseEntity.ok(userDTOEntityModel);
     }
 
+    /**
+     * Fetches the {@link Movie} for which the {@link Review} specified by {@code id} was created.
+     *
+     * @param id id the ID of the {@link Review} for which the {@link Movie} is to be fetched
+     * @return {@link ResponseEntity<>} containing 200 Ok status and the {@link Movie} resource.
+     * (Returns 404 Not Found if the {@link Review} does not exist for this {@code id}.)
+     */
     @GetMapping("/{id}/movie")
     public ResponseEntity<EntityModel<MovieDTO>> findMovieByReviewId(@NotNull @Range(min = 1) @PathVariable Long id) {
         Movie movie = reviewService.findMovieByReviewId(id);

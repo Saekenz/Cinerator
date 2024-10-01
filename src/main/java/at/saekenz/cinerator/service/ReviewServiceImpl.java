@@ -50,14 +50,14 @@ public class ReviewServiceImpl implements IReviewService {
     public Review findReviewById(Long id) {
         return reviewRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("Review with id %d could not be found", id)));
+                        String.format("Review with id %d could not be found!", id)));
     }
 
     @Override
     public ReviewDTO findReviewDTOById(Long id) {
         return findDTOById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("Review with id %d could not be found", id)));
+                        String.format("Review with id %d could not be found!", id)));
     }
 
     @Override

@@ -129,7 +129,7 @@ public class UserController {
      * @return {@link ResponseEntity<>} containing a 201 Created status and the created {@link User}.
      */
     @PostMapping
-    public ResponseEntity<?> createUser(@Valid @RequestBody UserCreationDTO userCreationDTO) {
+    public ResponseEntity<EntityModel<UserDTO>> createUser(@Valid @RequestBody UserCreationDTO userCreationDTO) {
         User createdUser = userService.createUser(userCreationDTO);
         EntityModel<UserDTO> entityModel = userDTOAssembler.toModel(userMapper.toDTO(createdUser));
 
@@ -247,7 +247,7 @@ public class UserController {
      * if the {@link Movie} is already present in this watchlist.
      */
     @PutMapping("/{userId}/watchlist")
-    public ResponseEntity<?> addMovieToWatchlist(@NotNull @Range(min = 1) @PathVariable Long userId,
+    public ResponseEntity<Object> addMovieToWatchlist(@NotNull @Range(min = 1) @PathVariable Long userId,
                                                  @NotNull @RequestBody Long movieId) {
         User updatedUser = userService.addMovieToWatchlistById(userId, movieId);
         EntityModel<UserDTO> entityModel = userDTOAssembler.toModel(userMapper.toDTO(updatedUser));

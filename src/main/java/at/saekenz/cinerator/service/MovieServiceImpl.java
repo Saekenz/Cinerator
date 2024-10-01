@@ -8,11 +8,10 @@ import at.saekenz.cinerator.model.movie.MovieMapper;
 import at.saekenz.cinerator.model.person.Person;
 import at.saekenz.cinerator.model.review.Review;
 import at.saekenz.cinerator.model.review.ReviewCreationDTO;
+import at.saekenz.cinerator.model.review.ReviewMapper;
 import at.saekenz.cinerator.model.review.ReviewUpdateDTO;
-import at.saekenz.cinerator.repository.CountryRepository;
-import at.saekenz.cinerator.repository.GenreRepository;
-import at.saekenz.cinerator.repository.MovieRepository;
-import at.saekenz.cinerator.repository.ReviewRepository;
+import at.saekenz.cinerator.model.user.User;
+import at.saekenz.cinerator.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +31,8 @@ import java.util.Set;
 
 @Service
 public class MovieServiceImpl implements IMovieService{
-
     private static final Logger log = LoggerFactory.getLogger(MovieServiceImpl.class);
+
     @Autowired
     private MovieRepository movieRepository;
 
@@ -48,6 +47,12 @@ public class MovieServiceImpl implements IMovieService{
 
     @Autowired
     private ReviewRepository reviewRepository;
+
+    @Autowired
+    private ReviewMapper reviewMapper;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public List<Movie> findAll() {
@@ -73,7 +78,14 @@ public class MovieServiceImpl implements IMovieService{
 
     @Override
     public List<Movie> findByTitle(String title) {
-        return movieRepository.findByTitle(title);
+        if(title.matches("^tt\\d{6,9}$")) {
+            return movieRepository.findMoviesBySearchParams(null, null, null,
+                    null, title, null, null);
+        }
+        else {
+            return movieRepository.findMoviesBySearchParams(title, null, null,
+                    null, null, null, null);
+        }
     }
 
     @Override
@@ -89,22 +101,20 @@ public class MovieServiceImpl implements IMovieService{
 
     @Override
     public List<Movie> findByGenre(String genre) {
-        return movieRepository.findByGenres_Name(genre);
+        return movieRepository.findMoviesBySearchParams(null,null,null,
+                null,null, genre,null);
     }
 
     @Override
     public List<Movie> findByCountry(String country) {
-        return movieRepository.findByCountries_Name(country);
+        return movieRepository.findMoviesBySearchParams(null,null,null,
+                null,null, null, country);
     }
 
     @Override
     public List<Movie> findByYear(int year) {
-        return movieRepository.findByYearReleased(year);
-    }
-
-    @Override
-    public Optional<Movie> findByImdbId(String imdbId) {
-        return movieRepository.findByImdbId(imdbId);
+        return movieRepository.findMoviesBySearchParams(null,null,year,
+                null,null, null, null);
     }
 
     @Override
@@ -148,8 +158,10 @@ public class MovieServiceImpl implements IMovieService{
     }
 
     @Override
-    public List<Movie> searchMovies(String title, LocalDate releaseDate, String runtime, String imdbId, String genre, String country) {
-        return List.of();
+    public List<Movie> findMoviesBySearchParams(String title, LocalDate releaseDate, Integer releaseYear,
+                                                String runtime, String imdbId, String genre, String country) {
+        return movieRepository.findMoviesBySearchParams(title, releaseDate, releaseYear,
+                runtime, imdbId, genre, country);
     }
 
     @Override
@@ -167,12 +179,24 @@ public class MovieServiceImpl implements IMovieService{
 
     @Override
     public Review addReviewToMovie(Long movieId, ReviewCreationDTO reviewCreationDTO) {
-        return null;
+        Review newReview = reviewMapper.toReview(reviewCreationDTO);
+        Movie reviewedMovie = findMovieById(movieId);
+        User reviewingUser = userRepository.findById(reviewCreationDTO.userId()).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                String.format("User with id %s could not be found!", reviewCreationDTO.userId())));
+
+        newReview.setUser(reviewingUser);
+        newReview.setMovie(reviewedMovie);
+
+        return reviewRepository.save(newReview);
     }
 
     @Override
     public Review editReviewForMovie(Long movieId, Long reviewId, ReviewUpdateDTO reviewUpdateDTO) {
-        return null;
+        Review foundReview = findReviewByMovieId(movieId, reviewId);
+        foundReview.updateFromDTO(reviewUpdateDTO);
+
+        return reviewRepository.save(foundReview);
     }
 
     @Override

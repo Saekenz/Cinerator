@@ -95,7 +95,7 @@ public class UserControllerSpringBootIntegrationTest {
 
     /**
      * missing username -> 400 bad request
-     * @throws Exception
+     * @throws Exception if any errors occur the execution of the test.
      */
     @WithMockUser("test-user")
     @Test
@@ -193,7 +193,7 @@ public class UserControllerSpringBootIntegrationTest {
     }
 
     /**
-     * Creates a request to set a user's account status to enabled.
+     * Creates a request to set a user's account status to "enabled".
      * The API has to return HTTP code 204.
      * @throws Exception if any errors occur the execution of the test.
      */
@@ -228,7 +228,7 @@ public class UserControllerSpringBootIntegrationTest {
 // ------------------------------------- WATCHLIST ------------------------------------------------------------------
 
     /**
-     * Attempts to retrieve the watchlist belonging to user with userId 2.
+     * Attempts to retrieve the watchlist belonging to {@link User} with userId 2.
      * This user's watchlist should contain movies with movieIds [2,3,7].
      * @throws Exception if any errors occur the execution of the test.
      */
@@ -243,7 +243,7 @@ public class UserControllerSpringBootIntegrationTest {
     }
 
     /**
-     * Attempts to retrieve the watchlist belonging to user with userId -999.
+     * Attempts to retrieve the watchlist belonging to {@link User} with userId -999.
      * The API has to return HTTP code 400 since ids must be positive numbers
      * @throws Exception if any errors occur the execution of the test.
      */
@@ -265,7 +265,7 @@ public class UserControllerSpringBootIntegrationTest {
      * made which has to return a list containing the newly added {@link Movie}.
      * @throws Exception if any errors occur the execution of the test.
      */
-    @Test //TODO -> add tests for movie already in watchlist
+    @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenAddMovieToWatchlistRequest_shouldSucceedWith204() throws Exception {
         Long userId = 2L;
@@ -365,7 +365,7 @@ public class UserControllerSpringBootIntegrationTest {
     }
 
     /**
-     * Creates a request to remove a specific movie from a user's watchlist.
+     * Creates a request to remove a specific {@link Movie} from a user's watchlist.
      * Has to return a 400 Bad Request status since ids have to be positive.
      * @throws Exception if any errors occur the execution of the test.
      */
@@ -384,7 +384,7 @@ public class UserControllerSpringBootIntegrationTest {
     }
 
     /**
-     * Creates a request to fetch a specific movie from a user's watchlist.
+     * Creates a request to fetch a specific {@link Movie} from a user's watchlist.
      * Has to return HTTP code 200 and a JSON representation of the movie resource.
      * @throws Exception if any errors occur the execution of the test.
      */
@@ -400,7 +400,7 @@ public class UserControllerSpringBootIntegrationTest {
     }
 
     /**
-     * Creates two requests to fetch a specific movie from a user's watchlist.
+     * Creates two requests to fetch a specific {@link Movie} from a user's watchlist.
      * Has to return a 400 Bad Request status since ids have to be positive.
      * @throws Exception if any errors occur the execution of the test.
      */
@@ -441,16 +441,16 @@ public class UserControllerSpringBootIntegrationTest {
         mockMvc.perform(get("/users/{userId}/reviews", userId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.reviewList[*].id", hasItems(1,5,9,12,13)));
+                .andExpect(jsonPath("$._embedded.reviewDTOList[*].id", hasItems(1,5,9,12,13)));
     }
 
     /**
      * Creates a request to retrieve all reviews created by {@link User} with id = -999.
-     * Since this user does not exist in the database the request returns HTTP code 404.
+     * Since this {@link User} is invalid the request returns HTTP code 400.
      * @throws Exception if any errors occur the execution of the test.
      */
     @Test
-    public void givenFindReviewsByUserRequest_shouldFailWith404() throws Exception {
+    public void givenFindReviewsByUserRequest_shouldFailWith400() throws Exception {
         Long userId = -999L;
 
         mockMvc.perform(get("/users/{userId}/reviews", userId)
@@ -523,7 +523,6 @@ public class UserControllerSpringBootIntegrationTest {
     }
 
 // -------------------------------------- FOLLOWERS -------------------------------------------------------------------
-    // TODO -> add test(s) for following a user that is already followed
     /**
      * Creates a request to retrieve {@link User} objects which follow {@link User} with id = 2.
      * Returns a list of {@link User} objects and HTTP code 200.
@@ -537,7 +536,6 @@ public class UserControllerSpringBootIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.userDTOList[*].id", hasItems(1,3,4)));
-
     }
 
     /**
@@ -579,7 +577,7 @@ public class UserControllerSpringBootIntegrationTest {
      * @throws Exception if any errors occur the execution of the test.
      */
     @Test
-    public void givenFindFollowingByUser_shouldFailWith404() throws Exception {
+    public void givenFindFollowingByUser_shouldFailWith400() throws Exception {
         Long userId = -999L;
 
         mockMvc.perform(get("/users/{userId}/following", userId)
@@ -821,10 +819,14 @@ public class UserControllerSpringBootIntegrationTest {
                         nameSearchTerm, usernameSearchTerm, emailSearchTerm, roleSearchTerm)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.userDTOList[*].name", everyItem(containsStringIgnoringCase(nameSearchTerm))))
-                .andExpect(jsonPath("$._embedded.userDTOList[*].username", everyItem(containsStringIgnoringCase(usernameSearchTerm))))
-                .andExpect(jsonPath("$._embedded.userDTOList[*].email", everyItem(containsStringIgnoringCase(emailSearchTerm))))
-                .andExpect(jsonPath("$._embedded.userDTOList[*].role", everyItem(containsStringIgnoringCase(roleSearchTerm))));
+                .andExpect(jsonPath("$._embedded.userDTOList[*].name",
+                        everyItem(containsStringIgnoringCase(nameSearchTerm))))
+                .andExpect(jsonPath("$._embedded.userDTOList[*].username",
+                        everyItem(containsStringIgnoringCase(usernameSearchTerm))))
+                .andExpect(jsonPath("$._embedded.userDTOList[*].email",
+                        everyItem(containsStringIgnoringCase(emailSearchTerm))))
+                .andExpect(jsonPath("$._embedded.userDTOList[*].role",
+                        everyItem(containsStringIgnoringCase(roleSearchTerm))));
 
     }
 
@@ -845,6 +847,4 @@ public class UserControllerSpringBootIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(is("{}")));
     }
-
-
 }

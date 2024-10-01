@@ -412,8 +412,8 @@ public class UserListControllerSpringBootIntegrationTest {
 
     /**
      * Create a request which removes a {@link Movie} from {@link UserList} with {@code id = 2L}.
-     * The API has to return a 204 No Content status. To check if the operation was successful, a second request is made which
-     * fetches the {@link UserList}'s movies via HTTP GET.
+     * The API has to return a 204 No Content status. To check if the operation was successful,
+     * a second request is made which fetches the {@link UserList}'s movies via HTTP GET.
      *
      * @throws Exception if any errors occur the execution of the test.
      */
@@ -470,9 +470,12 @@ public class UserListControllerSpringBootIntegrationTest {
                         nameSearchTerm,descriptionSearchTerm,userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.userListDTOList[*].name", everyItem(containsStringIgnoringCase(nameSearchTerm))))
-                .andExpect(jsonPath("$._embedded.userListDTOList[*].description", everyItem(containsStringIgnoringCase(descriptionSearchTerm))))
-                .andExpect(jsonPath("$._embedded.userListDTOList[*].userId", everyItem(comparesEqualTo(4))));
+                .andExpect(jsonPath("$._embedded.userListDTOList[*].name",
+                        everyItem(containsStringIgnoringCase(nameSearchTerm))))
+                .andExpect(jsonPath("$._embedded.userListDTOList[*].description",
+                        everyItem(containsStringIgnoringCase(descriptionSearchTerm))))
+                .andExpect(jsonPath("$._embedded.userListDTOList[*].userId",
+                        everyItem(comparesEqualTo(4))));
     }
 
     /**

@@ -36,15 +36,13 @@ public interface IMovieService {
 
     List<Movie> findByYear(int year);
 
-    Optional<Movie> findByImdbId(String imdbId);
-
     Page<Movie> findAllPaged(int page, int size, String sortField, String sortDirection);
 
     Movie createMovie(MovieCreationDTO movieCreationDTO);
 
     Movie updateMovie(Long id, MovieCreationDTO movieCreationDTO);
 
-    List<Movie> searchMovies(String title, LocalDate releaseDate, String runtime,
+    List<Movie> findMoviesBySearchParams(String title, LocalDate releaseDate, Integer releaseYear, String runtime,
                              String imdbId, String genre, String country);
 
     List<Review> findReviewsByMovieId(Long id);

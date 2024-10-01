@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,4 +37,22 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Query("SELECT c.person FROM Movie m JOIN m.castInfos c WHERE " +
             "c.role.id = 2 AND m.id = :movieId")
     List<Person> findDirectorsByMovieId(@Param("movieId") Long movieId);
+
+
+
+    @Query("SELECT m FROM Movie m LEFT JOIN m.genres g LEFT JOIN m.countries c WHERE " +
+            "(LOWER(m.title) LIKE LOWER(CONCAT('%', :title, '%')) OR :title IS NULL) AND " +
+            "(m.releaseDate = :releaseDate OR CAST(:releaseDate as timestamp) IS NULL) AND " +
+            "(CAST(EXTRACT(YEAR FROM m.releaseDate) AS INTEGER) = :releaseYear OR :releaseYear IS NULL) AND " +
+            "(LOWER(m.runtime) LIKE LOWER(CONCAT('%', :runtime, '%')) OR :runtime IS NULL) AND " +
+            "(LOWER(m.imdbId) LIKE LOWER(CONCAT('%', :imdbId, '%')) OR :imdbId IS NULL) AND " +
+            "(LOWER(g.name) LIKE LOWER(CONCAT('%', :genre, '%')) OR :genre IS NULL) AND " +
+            "(LOWER(c.name) LIKE LOWER(CONCAT('%', :country, '%')) OR :country IS NULL)")
+    List<Movie> findMoviesBySearchParams(@Param("title") String title,
+                                         @Param("releaseDate") LocalDate releaseDate,
+                                         @Param("releaseYear") Integer releaseYear,
+                                         @Param("runtime") String runtime,
+                                         @Param("imdbId") String imdbId,
+                                         @Param("genre") String genre,
+                                         @Param("country") String country);
 }

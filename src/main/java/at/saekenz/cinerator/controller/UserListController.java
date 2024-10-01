@@ -101,7 +101,8 @@ public class UserListController {
      * (or a 404 Not Found if the {@link User} owning the new {@link UserList} does not exist in the database).
      */
     @PostMapping
-    public ResponseEntity<EntityModel<UserListDTO>> createUserList(@Valid @RequestBody UserListCreationDTO userListCreationDTO) {
+    public ResponseEntity<EntityModel<UserListDTO>> createUserList(
+            @Valid @RequestBody UserListCreationDTO userListCreationDTO) {
         UserList createdUserList = userListService.createUserList(userListCreationDTO);
         EntityModel<UserListDTO> entityModel = userListDTOAssembler.toModel(userListMapper.toDTO(createdUserList));
 

@@ -34,6 +34,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping("/countries")
 public class CountryController {
+    private final CountryDTOModelAssembler countryDTOAssembler;
+    private final PersonDTOModelAssembler personDTOModelAssembler;
+    private final MovieDTOModelAssembler movieDTOModelAssembler;
 
     @Autowired
     ICountryService countryService;
@@ -52,10 +55,6 @@ public class CountryController {
 
     @Autowired
     ResponseBuilderService responseBuilderService;
-
-    private final CountryDTOModelAssembler countryDTOAssembler;
-    private final PersonDTOModelAssembler personDTOModelAssembler;
-    private final MovieDTOModelAssembler movieDTOModelAssembler;
 
     private final PagedResourcesAssembler<CountryDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
             new HateoasPageableHandlerMethodArgumentResolver(), null);

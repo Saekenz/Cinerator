@@ -1,6 +1,5 @@
 package at.saekenz.cinerator.controller;
 
-import at.saekenz.cinerator.model.castinfo.CastInfo;
 import at.saekenz.cinerator.model.country.Country;
 import at.saekenz.cinerator.model.country.CountryDTO;
 import at.saekenz.cinerator.model.country.CountryDTOModelAssembler;
@@ -16,7 +15,6 @@ import at.saekenz.cinerator.model.person.PersonDTOModelAssembler;
 import at.saekenz.cinerator.model.person.PersonMapper;
 import at.saekenz.cinerator.model.review.*;
 import at.saekenz.cinerator.model.role.Role;
-import at.saekenz.cinerator.model.user.User;
 import at.saekenz.cinerator.service.*;
 import at.saekenz.cinerator.util.CollectionModelBuilderService;
 import at.saekenz.cinerator.util.ResponseBuilderService;
@@ -31,9 +29,8 @@ import org.springframework.hateoas.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -41,6 +38,11 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping("/movies")
 public class MovieController {
+    private final MovieDTOModelAssembler movieDTOAssembler;
+    private final ReviewDTOModelAssembler reviewAssembler;
+    private final GenreDTOModelAssembler genreDTOAssembler;
+    private final CountryDTOModelAssembler countryDTOAssembler;
+    private final PersonDTOModelAssembler personDTOAssembler;
 
     @Autowired
     IMovieService movieService;
@@ -74,12 +76,6 @@ public class MovieController {
 
     @Autowired
     CollectionModelBuilderService collectionModelBuilderService;
-
-    private final MovieDTOModelAssembler movieDTOAssembler;
-    private final ReviewDTOModelAssembler reviewAssembler;
-    private final GenreDTOModelAssembler genreDTOAssembler;
-    private final CountryDTOModelAssembler countryDTOAssembler;
-    private final PersonDTOModelAssembler personDTOAssembler;
 
     // Workaround since using the @Autowired annotation causes Intellij to report an error
     private final PagedResourcesAssembler<MovieDTO> pagedResourcesAssembler = new PagedResourcesAssembler<>(
@@ -120,7 +116,7 @@ public class MovieController {
      * Fetch a specific {@link Movie} by its {@code id}.
      *
      * @param id the ID of the {@link Movie} that will be retrieved.
-     * @return ResponseEntity containing 200 Ok status and the {@link Movie} resource.
+     * @return {@link ResponseEntity<>} containing 200 Ok status and the {@link Movie} resource.
      * (Returns 404 Not Found if the {@link Movie} does not exist for this {@code id}.)
      */
     @GetMapping("/{id}")
@@ -179,9 +175,46 @@ public class MovieController {
 // ----------------------------------- SEARCH ------------------------------------------------------------------------
 
     /**
+     * Fetches {@link Movie} resources based on search parameters.
      *
-     * @param title title of searched for {@link Movie} objects
-     * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
+     * @param title title of the searched for movie(s)
+     * @param releaseDate initial date of release of the searched for movie(s)
+     * @param releaseYear year of release of the searched for movie(s)
+     * @param runtime runtime of the searched for movie(s)
+     * @param imdbId imdbId of the searched for movie(s)
+     * @param genre genre of the searched for movie(s)
+     * @param country country of origin of the searched for movie(s)
+     * @return {@link ResponseEntity<>}  containing a 200 Ok status and a collection of the found
+     * {@link Movie} resources.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> searchMovies(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) LocalDate releaseDate,
+            @RequestParam(required = false) Integer releaseYear,
+            @RequestParam(required = false) String runtime,
+            @RequestParam(required = false) String imdbId,
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) String country) {
+       List<Movie> foundMovies = movieService.findMoviesBySearchParams(title, releaseDate,
+               releaseYear, runtime, imdbId, genre, country);
+
+       if (foundMovies.isEmpty()) { return ResponseEntity.ok(CollectionModel.empty()); }
+
+       CollectionModel<EntityModel<MovieDTO>> collectionModel = collectionModelBuilderService
+               .createCollectionModelFromList(foundMovies, movieMapper, movieDTOAssembler,
+                       linkTo(methodOn(MovieController.class).searchMovies(title, releaseDate, releaseYear,
+                               runtime, imdbId, genre, country)).withSelfRel());
+
+       return ResponseEntity.ok(collectionModel);
+    }
+
+    /**
+     * Fetches {@link Movie} resources based on their {@code title}.
+     *
+     * @param title title of the searched for {@link Movie} resources
+     * @return {@link ResponseEntity<>}  containing a 200 Ok status and a collection of the found
+     * {@link Movie} resources.
      */
     @GetMapping("/title/{title}")
     public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findByTitle(@PathVariable String title) {
@@ -197,9 +230,11 @@ public class MovieController {
     }
 
     /**
+     * Fetches {@link Movie} resources based on their
      *
-     * @param genre genre with which searched for {@link Movie} objects are associated
-     * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
+     * @param genre genre with which the searched for {@link Movie} resources are associated
+     * @return {@link ResponseEntity<>}  containing a 200 Ok status and a collection of the found
+     * {@link Movie} resources.
      */
     @GetMapping("/genre/{genre}")
     public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findByGenre(@PathVariable String genre) {
@@ -215,9 +250,11 @@ public class MovieController {
     }
 
     /**
+     * Fetches {@link Movie} resources based on their
      *
-     * @param country country in which searched for {@link Movie} objects were created
-     * @return list of {@link Movie} objects and HTTP code 200 if any movies were found. HTTP code 404 otherwise
+     * @param country country in which the searched for {@link Movie} resources were created
+     * @return {@link ResponseEntity<>}  containing a 200 Ok status and a collection of the found
+     * {@link Movie} resources.
      */
     @GetMapping("/country/{country}")
     public ResponseEntity<CollectionModel<EntityModel<MovieDTO>>> findByCountry(@PathVariable String country) {
@@ -233,10 +270,11 @@ public class MovieController {
     }
 
     /**
+     * Fetches {@link Movie} resources based on their
      *
-     * @param year year in which searched for {@link Movie} objects were released
-     * @return ResponseEntity containing a 200 Ok status and a list of {@link Movie}
-     * resources
+     * @param year year in which the searched for {@link Movie} resources were released
+     * @return {@link ResponseEntity<>}  containing a 200 Ok status and a collection of the found
+     * {@link Movie} resources.
      */
     @GetMapping("/year/{year}")
     public ResponseEntity<?> findByYearReleased(@PathVariable int year) {
@@ -251,25 +289,13 @@ public class MovieController {
         return ResponseEntity.ok(collectionModel);
     }
 
-    /**
-     *
-     * @param imdbId IMDb ID of the {@link Movie} that shall be retrieved
-     * @return {@link Movie} and HTTP code 200 if a match was found. HTTP code 404 otherwise
-     */
-    @GetMapping("/imdbId/{imdbId}")
-    public ResponseEntity<EntityModel<MovieDTO>> findByImdbId(@PathVariable String imdbId) {
-        Movie movie = movieService.findByImdbId(imdbId).orElseThrow(() -> new MovieNotFoundException(imdbId));
-        return ResponseEntity
-                .ok(movieDTOAssembler.toModel(movieMapper.toDTO(movie)));
-    }
-
 // -------------------------------------- REVIEWS ---------------------------------------------------------------------
 
     /**
      * Fetches {@link Review} resources associated with the {@link Movie} identified by {@code id}.
      *
      * @param id the ID of the {@link Movie} for which the {@link Review} resources are to be fetched
-     * @return ResponseEntity containing a 200 Ok status and the requested {@link Review} resources
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and the requested {@link Review} resources
      * (or a 404 Not Found if no {@link Movie} exists for this {@code id}).
      */
     @GetMapping("/{id}/reviews")
@@ -287,10 +313,13 @@ public class MovieController {
     }
 
     /**
+     * Fetches a specific {@link Review} resource by its {@code id} if it exists for the {@link Movie}
+     * identified by {@code movieId}.
      *
-     * @param movieId number of the {@link Movie} from which the review is to be retrieved
-     * @param reviewId number of the review that is to be retrieved from the {@link Movie}
-     * @return {@link Review} and HTTP code 200 if the review was found. HTTP code 404 otherwise
+     * @param movieId the ID of the {@link Movie} from which the review is to be retrieved
+     * @param reviewId the ID of the {@link Review} that is to be retrieved from the {@link Movie}
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and the {@link Review} resource (or a
+     * 404 Not Found status if no {@link Movie}/{@link Review} exists with the specified {@code movieId/reviewId}).
      */
     @GetMapping("/{movieId}/reviews/{reviewId}")
     public ResponseEntity<EntityModel<ReviewDTO>> findReviewById(@NotNull @Range(min = 1) @PathVariable Long movieId,
@@ -301,43 +330,40 @@ public class MovieController {
     }
 
     /**
+     * Creates and adds a new {@link Review} resource specified by {@code reviewDTO} to {@link Movie}
+     * identified by {@code movieId}.
      *
-     * @param movieId number of the {@link Movie} to which the new {@link Review} will be added
-     * @param reviewDTO {@link ReviewDTO} object that will be created and added to the {@link Movie}
-     * @return HTTP code 201 and the created {@link Review}. HTTP code 404 if the {@link Movie} was not found
+     * @param movieId the ID of the {@link Movie} to which the new {@link Review} will be added
+     * @param reviewDTO a DTO containing data of the new {@link ReviewDTO}
+     * @return {@link ResponseEntity<>} containing a 201 Created status and the created {@link Review}
+     * (or a 404 Not Found status if no {@link Movie} exists with the specified {@code movieId}).
      */
     @PostMapping("/{movieId}/reviews")
-    public ResponseEntity<Object> addReviewToMovie(@NotNull @Range(min = 1) @PathVariable Long movieId,
+    public ResponseEntity<EntityModel<ReviewDTO>> addReviewToMovie(@NotNull @Range(min = 1) @PathVariable Long movieId,
                                                    @Valid @RequestBody ReviewCreationDTO reviewDTO) {
-        Movie reviewedMovie = movieService.findMovieById(movieId);
-        User reviewingUser = userService.findUserById(reviewDTO.userId());
-
-        Review newReview = reviewMapper.toReview(reviewDTO);
-        newReview.setUser(reviewingUser);
-        newReview.setMovie(reviewedMovie);
-
+        Review newReview = movieService.addReviewToMovie(movieId, reviewDTO);
         EntityModel<ReviewDTO> entityModel = reviewAssembler.toModel(reviewMapper
-                .toDTO(reviewService.save(newReview)));
+                .toDTO(newReview));
 
-        return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
+        return responseBuilderService.buildCreatedResponseWithBody(entityModel);
     }
 
     /**
+     * Updates a {@link Review} based on its {@code reviewId}.
      *
-     * @param movieId number of the {@link Movie} for which the to be edited {@link Review} was created
-     * @param reviewId number of the {@link Review} which will be edited
-     * @param reviewDTO {@link ReviewUpdateDTO} object containing the new information
-     * @return HTTP code 204 if the {@link Review} was updated. HTTP code 404 if the {@link Movie}/{@link Review} was not found
+     * @param movieId the ID of the {@link Movie} for which the to be edited {@link Review} was created
+     * @param reviewId the ID of the {@link Review} which will be edited
+     * @param reviewDTO a DTO containing the needed update data
+     * @return {@link ResponseEntity<>} containing a 204 No Content status (or a 404 Not Found status if the
+     * {@link Movie} does not exist or the {@link Review} is not found).
      */
     @PutMapping("/{movieId}/reviews/{reviewId}")
     public ResponseEntity<Object> editReviewById(@NotNull @Range(min = 1) @PathVariable Long movieId,
-                                                 @NotNull @Range(min = 1)@PathVariable Long reviewId,
+                                                 @NotNull @Range(min = 1) @PathVariable Long reviewId,
                                                  @Valid @RequestBody ReviewUpdateDTO reviewDTO) {
-        Review foundReview = movieService.findReviewByMovieId(movieId, reviewId);
-
-        foundReview.updateFromDTO(reviewDTO);
+        Review updatedReview = movieService.editReviewForMovie(movieId, reviewId, reviewDTO);
         EntityModel<ReviewDTO> entityModel = reviewAssembler.toModel(reviewMapper
-                .toDTO(reviewService.save(foundReview)));
+                .toDTO(updatedReview));
 
         return responseBuilderService.buildNoContentResponseWithLocation(entityModel);
     }

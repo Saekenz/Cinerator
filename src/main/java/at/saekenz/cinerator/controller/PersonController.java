@@ -113,7 +113,7 @@ public class PersonController {
      * Fetch a specific {@link Person} by its {@code id}.
      *
      * @param id the ID of the {@link Person} that will be retrieved.
-     * @return ResponseEntity containing 200 Ok status and the {@link Person} resource.
+     * @return {@link ResponseEntity<>} containing 200 Ok status and the {@link Person} resource.
      * (Returns 404 Not Found if the {@link Person} does not exist for this {@code id}.)
      */
     @GetMapping("/{id}")
@@ -131,7 +131,7 @@ public class PersonController {
      * Creates a new {@link Person}.
      *
      * @param personDTO a DTO containing data of the new {@link Person}
-     * @return ResponseEntity containing a 201 Created status and the created {@link Person}.
+     * @return {@link ResponseEntity<>} containing a 201 Created status and the created {@link Person}.
      */
     @PostMapping()
     public ResponseEntity<?> createPerson(@Valid @RequestBody PersonDTO personDTO) {
@@ -147,7 +147,7 @@ public class PersonController {
      *
      * @param id the ID of the {@link Person} to be updated
      * @param personDTO a DTO containing the needed data
-     * @return ResponseEntity containing a 204 No Content status
+     * @return {@link ResponseEntity<>} containing a 204 No Content status
      * (Returns 404 Not Found if the to be updated {@link Person} does not exist in the database)
      */
     @PutMapping("/{id}")
@@ -163,7 +163,7 @@ public class PersonController {
      * Deletes a {@link Person} by its {@code id}.
      *
      * @param id the ID of the {@link Person} to be deleted
-     * @return ResponseEntity containing a 204 No Content status (or a
+     * @return {@link ResponseEntity<>} containing a 204 No Content status (or a
      * 404 Not Found status if no {@link Person} exists with the specified {@code id}.)
      */
     @DeleteMapping("/{id}")
@@ -179,7 +179,7 @@ public class PersonController {
      * Fetches the {@link Country} where the {@link Person} with {@code id} was born.
      *
      * @param id the ID of the {@link Person} for which the {@link Country} is to be fetched
-     * @return ResponseEntity containing a 200 Ok status and requested {@link Country} resource
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and requested {@link Country} resource
      * (Returns 404 Not Found if the {@link Person} does not exist for this {@code id}).
      */
     @GetMapping("/{id}/country")
@@ -197,7 +197,7 @@ public class PersonController {
      *
      * @param id id the ID of the {@link Person} for which the {@link Movie} resources are to be fetched
      * @param role the role that the {@link Person} has in the {@link Movie}
-     * @return ResponseEntity containing a 200 Ok status and the requested {@link Movie} resources
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and the requested {@link Movie} resources
      * (Returns 404 Not Found if no {@link Person} exists for this {@code id}).
      */
     @GetMapping("/{id}/movies")
@@ -220,7 +220,7 @@ public class PersonController {
      * by {@code id}.
      *
      * @param id id the ID of the {@link Person} for which the {@link CastInfo} resources are to be fetched
-     * @return ResponseEntity containing a 200 Ok status and the requested {@link CastInfo} resources
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and the requested {@link CastInfo} resources
      * (returns 404 Not Found if no {@link Person} exists for this {@code id}).
      */
     @GetMapping("/{id}/credits")
@@ -242,7 +242,7 @@ public class PersonController {
      * is credited with (each {@link Role} is only returned once).
      *
      * @param id id the ID of the {@link Person} for which the {@link Role} resources are to be fetched
-     * @return ResponseEntity containing a 200 Ok status and the requested {@link Role} resources
+     * @return {@link ResponseEntity<>} containing a 200 Ok status and the requested {@link Role} resources
      * (returns 404 Not Found if no {@link Person} exists for this {@code id}).
      */
     @GetMapping("/{id}/roles")

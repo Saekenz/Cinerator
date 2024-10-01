@@ -113,8 +113,8 @@ public class CastInfoController {
      * (Returns 404 Not Found if the to be updated {@link CastInfo} does not exist in the database)
      */
     @PutMapping("/{id}")
-    public ResponseEntity<EntityModel<CastInfoDTO>> updateCastInfo(@NotNull @PathVariable Long id,
-                                                                   @Valid @RequestBody CastInfoCreationDTO castInfoCreationDTO) {
+    public ResponseEntity<EntityModel<CastInfoDTO>> updateCastInfo(
+            @NotNull @PathVariable Long id, @Valid @RequestBody CastInfoCreationDTO castInfoCreationDTO) {
         CastInfo updatedCastInfo = castInfoService.updateCastInfo(id, castInfoCreationDTO);
         EntityModel<CastInfoDTO> updatedCastInfoModel = castInfoDTOModelAssembler
                 .toModel(castInfoMapper.toDTO(updatedCastInfo));

@@ -65,7 +65,7 @@ public class RoleController {
      * Fetch a specific {@link Role} by its {@code id}.
      *
      * @param id the ID of the {@link Role} that will be retrieved.
-     * @return ResponseEntity containing 200 Ok status and the {@link Role} resource.
+     * @return {@link ResponseEntity<>} containing 200 Ok status and the {@link Role} resource.
      * (Returns 404 Not Found if the {@link Role} does not exist for this {@code id}.)
      */
     @GetMapping("/{id}")
@@ -81,7 +81,7 @@ public class RoleController {
      * Creates a new {@link Role}.
      *
      * @param roleDTO a DTO containing data of the new {@link Role}
-     * @return ResponseEntity containing a 201 Created status and the created {@link Role}.
+     * @return {@link ResponseEntity<>} containing a 201 Created status and the created {@link Role}.
      */
     @PostMapping
     public ResponseEntity<EntityModel<RoleDTO>> createRole(@Valid @RequestBody RoleDTO roleDTO) {
@@ -96,11 +96,11 @@ public class RoleController {
      *
      * @param id the ID of the {@link Role} to be updated
      * @param roleDTO a DTO containing the needed data
-     * @return ResponseEntity containing a 204 No Content status
+     * @return {@link ResponseEntity<>} containing a 204 No Content status
      * (Returns 404 Not Found if the to be updated {@link Role} does not exist in the database)
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateRole(@NotNull @PathVariable Long id, @Valid @RequestBody RoleDTO roleDTO) {
+    public ResponseEntity<Object> updateRole(@NotNull @PathVariable Long id, @Valid @RequestBody RoleDTO roleDTO) {
         Role existingRole = roleService.updateRole(id, roleDTO);
         EntityModel<RoleDTO> entityModel = roleDTOModelAssembler.toModel(
                 roleMapper.toDTO(roleService.save(existingRole)));
@@ -112,7 +112,7 @@ public class RoleController {
      * Deletes a {@link Role} by its {@code id}.
      *
      * @param id the ID of the {@link Role} to be deleted
-     * @return ResponseEntity containing a 204 No Content status (or a
+     * @return {@link ResponseEntity<>} containing a 204 No Content status (or a
      * 404 Not Found status if no {@link Role} exists with the specified {@code id}.)
      */
     @DeleteMapping("/{id}")
